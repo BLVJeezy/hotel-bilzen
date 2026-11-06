@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hotel Meeting Checklist — Solyn Global</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f3ee; --card:#ffffff; --ink:#1d1b18; --muted:#7a736a; --line:#e6e0d6;
+  --gold:#a8865a; --ja:#2f6b4f; --ja-bg:#e5f0ea; --nee:#9a3b32; --nee-bg:#f6e4e1; --wn:#8a6d1f; --wn-bg:#f5eed9;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#151412; --card:#1e1c19; --ink:#f1ece4; --muted:#a39b90; --line:#2f2c27;
+    --ja-bg:#1d3329; --nee-bg:#3a201d; --wn-bg:#352d18; --ja:#7fc4a2; --nee:#e48c80; --wn:#d9b964; }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:28px 18px 120px}
+header{text-align:center;margin-bottom:26px}
+.brand{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600}
+h1{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:clamp(28px,6vw,40px);line-height:1.1;margin:10px 0 6px}
+.sub{color:var(--muted);font-size:14px}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.field{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.field label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:2px}
+.field input,.field textarea{width:100%;border:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);outline:none}
+.field textarea{min-height:110px;resize:vertical}
+.progress{display:flex;align-items:center;gap:12px;margin:4px 0 22px;font-size:13px;color:var(--muted)}
+.bar{flex:1;height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--gold);transition:width .3s}
+section{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:6px 0;margin-bottom:16px}
+section h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600;padding:14px 18px 8px;display:flex;justify-content:space-between}
+section h2 span{color:var(--muted);letter-spacing:.05em}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row p{font-size:15px;flex:1}
+.opts{display:flex;gap:6px;flex-shrink:0}
+.opts button{font:inherit;font-size:13px;font-weight:500;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:7px 12px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.opts button:hover{border-color:var(--muted)}
+.opts button.on[data-v="ja"]{background:var(--ja-bg);color:var(--ja);border-color:var(--ja)}
+.opts button.on[data-v="nee"]{background:var(--nee-bg);color:var(--nee);border-color:var(--nee)}
+.opts button.on[data-v="wn"]{background:var(--wn-bg);color:var(--wn);border-color:var(--wn)}
+@media (max-width:560px){
+  .row{flex-direction:column;align-items:stretch}
+  .opts{display:grid;grid-template-columns:repeat(3,1fr)}
+  .opts button{padding:9px 0}
+  .meta{grid-template-columns:1fr}
+}
+.summary{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin:26px 0 16px}
+.summary h3{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:600;margin-bottom:10px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{border-radius:12px;padding:12px;text-align:center}
+.stat b{display:block;font-size:24px;font-weight:600}
+.stat small{font-size:12px}
+.s-ja{background:var(--ja-bg);color:var(--ja)} .s-nee{background:var(--nee-bg);color:var(--nee)} .s-wn{background:var(--wn-bg);color:var(--wn)}
+.summary ul{list-style:none;font-size:14px}
+.summary li{padding:5px 0;border-top:1px dashed var(--line)}
+.summary li:first-child{border-top:0}
+.summary .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:12px 0 4px}
+.empty{color:var(--muted);font-size:14px;font-style:italic}
+.actions{position:fixed;left:0;right:0;bottom:0;padding:12px 18px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 35%);display:flex;justify-content:center;gap:10px}
+.actions button{font:inherit;font-weight:600;font-size:14px;border-radius:999px;padding:12px 18px;cursor:pointer;border:1px solid var(--ink)}
+.primary{background:var(--ink);color:var(--bg)}
+.ghost{background:var(--card);color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);font-size:13px;padding:9px 16px;border-radius:999px;opacity:0;transition:all .25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:10}
+.modal.open{display:flex}
+.modal div{background:var(--card);border-radius:16px;padding:20px;max-width:340px;text-align:center}
+.modal p{margin-bottom:16px;font-size:15px}
+.modal button{font:inherit;font-weight:600;border-radius:999px;padding:10px 18px;margin:0 4px;cursor:pointer;border:1px solid var(--ink)}
+html{scroll-behavior:smooth}
+.topnav{position:sticky;top:0;z-index:5;display:flex;justify-content:center;gap:4px;padding:10px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topnav a{color:var(--ink);text-decoration:none;font-size:13px;font-weight:500;padding:7px 14px;border-radius:999px}
+.topnav a:hover{background:var(--card)}
+.part{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:30px;margin:38px 0 8px;scroll-margin-top:70px}
+.intro{color:var(--muted);font-size:14px;margin-bottom:16px}
+.cards{display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.card .ic{color:var(--gold);font-size:18px}
+.card h4{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:4px 0 10px}
+.card li{font-size:15px;padding:7px 0 7px 18px;border-top:1px solid var(--line);list-style:none;position:relative}
+.card li:first-child{border-top:0}
+.card li::before{content:"";position:absolute;left:2px;top:15px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.gallery{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.gallery figure{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:zoom-in;transition:transform .2s}
+.gallery figure:hover{transform:translateY(-2px)}
+.gallery img{width:100%;aspect-ratio:3/2;object-fit:cover;display:block}
+.gallery figcaption{padding:10px 14px;font-size:14px;font-weight:500}
+.gallery figcaption small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+@media (max-width:560px){.gallery{grid-template-columns:1fr}}
+.lb{position:fixed;inset:0;background:rgba(10,9,8,.94);z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+.lb.open{display:flex}
+.lb img{max-width:100%;max-height:78vh;border-radius:8px}
+.lb p{color:#eee;margin-top:12px;font-size:14px;text-align:center}
+.lb .ctl{display:flex;gap:10px;margin-top:12px}
+.lb button{font:inherit;background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:999px;padding:10px 18px;cursor:pointer}
+footer{text-align:center;font-size:12px;color:var(--muted);margin-top:26px}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a href="#profiel">Profiel</a><a href="#concepten">Concepten</a><a href="#checklist">Checklist</a>
+</nav>
+<div class="wrap">
+  <header>
+    <div class="brand">Solyn Global × Luxury Hotel Bilzen</div>
+    <h1>Main Skills, Initiatieven &amp; Interesses</h1>
+    <p class="sub">Hotelmanagement · Operations · Digitale groei</p>
+  </header>
+
+  <h2 class="part" id="profiel">Profiel</h2>
+  <div class="cards">
+    <div class="card">
+      <div class="ic">◆</div>
+      <h4>Main skills</h4>
+      <ul>
+        <li>Dagelijks management, operationele opvolging en kwaliteitscontrole</li>
+        <li>Personeelsplanning, uurroosters en urenregistratie</li>
+        <li>Stockbeheer, bestellingen en leveranciersbeheer</li>
+        <li>Websiteontwikkeling, onderhoud en reservatiesystemen</li>
+        <li>SEO, online zichtbaarheid en Google-optimalisatie</li>
+        <li>Marketingstrategie, social media, AI-video en AI-marketing</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ic">✦</div>
+      <h4>Initiatieven</h4>
+      <ul>
+        <li>Werkprocessen en gastenervaring continu verbeteren</li>
+        <li>Maandelijkse analyse van resultaten en concrete actiepunten</li>
+        <li>Maandelijks een luxe hotel bezoeken met twee personen voor een vergelijkende gastenervaring: service, kamers, prijzen en details beoordelen en verbeterideeën meenemen</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ic">○</div>
+      <h4>Interesses</h4>
+      <ul>
+        <li>Gastvrijheid, luxe hotelconcepten en customer experience</li>
+        <li>Technologie, AI, automatisering en digitale innovatie</li>
+        <li>Branding, commerciële groei en concurrentieanalyse</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 class="part" id="concepten">Websiteconcepten</h2>
+  <p class="intro">Zes visuele richtingen voor de nieuwe hotelwebsite — elegant, warm en sensueel, in de geest van Rituals. Tik op een concept om het groot te bekijken.</p>
+  <div class="gallery" id="gallery"></div>
+
+  <h2 class="part" id="checklist">Meetingchecklist</h2>
+  <p class="intro">Duid per dienst de interesse aan.</p>
+
+  <div class="meta">
+    <div class="field"><label for="hotel">Hotel</label><input id="hotel" placeholder="Naam hotel"></div>
+    <div class="field"><label for="datum">Datum</label><input id="datum" type="date"></div>
+  </div>
+
+  <div class="progress"><div class="bar"><i id="bar"></i></div><span id="count">0 / 21</span></div>
+
+  <div id="list"></div>
+
+  <div class="field" style="margin-top:6px">
+    <label for="notes">Prioriteiten / opmerkingen</label>
+    <textarea id="notes" placeholder="Wat is het belangrijkst voor het hotel? Volgende stappen…"></textarea>
+  </div>
+
+  <div class="summary">
+    <h3>Overzicht</h3>
+    <div class="stats">
+      <div class="stat s-ja"><b id="nJa">0</b><small>Ja</small></div>
+      <div class="stat s-nee"><b id="nNee">0</b><small>Nee</small></div>
+      <div class="stat s-wn"><b id="nWn">0</b><small>Weet niet</small></div>
+    </div>
+    <div class="lbl">Interesse (Ja)</div>
+    <ul id="sumJa"></ul>
+    <div class="lbl">Op te volgen (Weet niet)</div>
+    <ul id="sumWn"></ul>
+  </div>
+
+  <footer>Solyn Global | Interne meetingnotities — geen bindende offerte</footer>
+</div>
+
+<div class="actions">
+  <button class="ghost" id="reset">Wissen</button>
+  <button class="ghost" id="copy">Kopieer</button>
+  <button class="primary" id="pdf">Download PDF</button>
+</div>
+<div class="toast" id="toast"></div>
+<div class="lb" id="lb"><img id="lbImg" alt=""><p id="lbCap"></p><div class="ctl"><button id="lbPrev">← Vorige</button><button id="lbClose">Sluiten</button><button id="lbNext">Volgende →</button></div></div>
+<div class="modal" id="modal"><div><p>Alle antwoorden en notities wissen?</p><button class="ghost" id="no">Annuleer</button><button class="primary" id="yes">Wissen</button></div></div>
+
+<script>
+const DATA = [
+  ["Management & Operations", ["Dagelijks operationeel management","Personeelsplanning, uren & roosters","Stockbeheer, bestellingen & leveranciers","Kwaliteitscontrole & gastenervaring","Procesoptimalisatie & kostenbeheer"]],
+  ["Website & Digitaal", ["Nieuwe hotelwebsite / redesign","Websiteonderhoud & updates","Online reservatiesysteem","Software, CRM & automatisering"]],
+  ["SEO & Online vindbaarheid", ["SEO (Google-zoekresultaten)","Lokale SEO & Google Bedrijfsprofiel","SEO-content voor kamers en arrangementen"]],
+  ["Marketing & AI", ["Algemene marketingstrategie","Socialmediabeheer & contentplanning","AI-video’s & promotionele content","Google Ads & Meta Ads","E-mailmarketing & campagnes","Branding & commerciële groei"]],
+  ["Initiatieven & Analyse", ["Maandelijks luxe hotel bezoeken (2 personen)","Concurrentie- & gastenervaringanalyse","Maandelijks rapport & verbeteractieplan"]]
+];
+const LABEL = {ja:"Ja", nee:"Nee", wn:"Weet niet"};
+const TOTAL = DATA.reduce((n,[,i])=>n+i.length,0);
+const KEY = "solyn-hotel-checklist";
+let state = {answers:{}, hotel:"", datum:"", notes:""};
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) state = Object.assign(state, s); } catch(e){}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} };
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+function render(){
+  $("list").innerHTML = DATA.map(([cat, items]) => `
+    <section><h2>${esc(cat)}<span data-cat="${esc(cat)}"></span></h2>
+    ${items.map(it => `<div class="row"><p>${esc(it)}</p><div class="opts">
+      ${["ja","nee","wn"].map(v=>`<button data-item="${esc(it)}" data-v="${v}" class="${state.answers[it]===v?'on':''}">${LABEL[v]}</button>`).join("")}
+    </div></div>`).join("")}</section>`).join("");
+  update();
+}
+function update(){
+  const a = state.answers, vals = Object.values(a);
+  const n = v => vals.filter(x=>x===v).length;
+  $("nJa").textContent=n("ja"); $("nNee").textContent=n("nee"); $("nWn").textContent=n("wn");
+  $("count").textContent = `${vals.length} / ${TOTAL}`;
+  $("bar").style.width = (vals.length/TOTAL*100)+"%";
+  document.querySelectorAll("[data-cat]").forEach(el=>{
+    const items = DATA.find(d=>d[0]===el.dataset.cat)[1];
+    el.textContent = `${items.filter(i=>a[i]).length}/${items.length}`;
+  });
+  const list = v => { const l = Object.keys(a).filter(k=>a[k]===v); return l.length ? l.map(x=>`<li>${esc(x)}</li>`).join("") : `<li class="empty">Nog niets</li>`; };
+  $("sumJa").innerHTML = list("ja"); $("sumWn").innerHTML = list("wn");
+}
+$("list").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-item]"); if(!b) return;
+  const it = b.dataset.item, v = b.dataset.v;
+  if (state.answers[it]===v) delete state.answers[it]; else state.answers[it]=v;
+  b.parentElement.querySelectorAll("button").forEach(x=>x.classList.toggle("on", state.answers[it]===x.dataset.v));
+  save(); update();
+});
+["hotel","datum","notes"].forEach(id=>{ $(id).value = state[id]||""; $(id).addEventListener("input",e=>{state[id]=e.target.value; save();}); });
+
+function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),1800); }
+$("copy").onclick = async () => {
+  let txt = `MEETINGCHECKLIST — ${state.hotel||"Hotel"}${state.datum?" ("+state.datum+")":""}\n`;
+  DATA.forEach(([cat,items])=>{ txt += `\n${cat.toUpperCase()}\n`; items.forEach(i=> txt += `- ${i}: ${state.answers[i]?LABEL[state.answers[i]]:"—"}\n`); });
+  if (state.notes) txt += `\nPRIORITEITEN / OPMERKINGEN\n${state.notes}\n`;
+  txt += `\nSolyn Global | Interne meetingnotities — geen bindende offerte`;
+  try { await navigator.clipboard.writeText(txt); toast("Samenvatting gekopieerd"); }
+  catch(e){ toast("Kopiëren niet toegestaan in deze weergave"); }
+};
+$("reset").onclick = ()=> $("modal").classList.add("open");
+$("no").onclick = ()=> $("modal").classList.remove("open");
+$("yes").onclick = ()=>{ state={answers:{},hotel:"",datum:"",notes:""}; save(); ["hotel","datum","notes"].forEach(id=>$(id).value=""); $("modal").classList.remove("open"); render(); toast("Gewist"); };
+render();
+
+// ---------- PDF export ----------
+function loadJsPDF(){
+  if (window.jspdf) return Promise.resolve(window.jspdf);
+  return new Promise((res,rej)=>{ const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    s.onload=()=>res(window.jspdf); s.onerror=rej; document.head.appendChild(s); });
+}
+const clean = t => t.replace(/[’‘]/g,"'").replace(/[“”]/g,'"');
+async function buildPDF(){
+  const { jsPDF } = await loadJsPDF();
+  const doc = new jsPDF({unit:"mm", format:"a4"});
+  const W=210, M=16, gold=[168,134,90], ink=[29,27,24], muted=[122,115,106], line=[230,224,214];
+  const col = {ja:[47,107,79], nee:[154,59,50], wn:[138,109,31]};
+  let y = 18;
+  doc.setFont("helvetica","bold"); doc.setFontSize(8); doc.setTextColor(...gold);
+  doc.text("SOLYN GLOBAL  ×  LUXURY HOTEL BILZEN", M, y);
+  y += 8; doc.setFontSize(17); doc.setTextColor(...ink);
+  doc.text("MAIN SKILLS, INITIATIEVEN & INTERESSES", M, y);
+  y += 6; doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(...muted);
+  doc.text("Meetingchecklist  |  Duid per dienst de interesse aan", M, y);
+  y += 9;
+  doc.setFontSize(10); doc.setTextColor(...ink);
+  doc.setFont("helvetica","bold"); doc.text("Hotel:", M, y);
+  doc.setFont("helvetica","normal"); doc.text(clean(state.hotel||"—"), M+14, y);
+  doc.setFont("helvetica","bold"); doc.text("Datum:", 128, y);
+  doc.setFont("helvetica","normal");
+  const d = state.datum ? state.datum.split("-").reverse().join("/") : "—";
+  doc.text(d, 143, y);
+  y += 4; doc.setDrawColor(...line); doc.line(M, y, W-M, y); y += 6;
+
+  const optX = {ja:142, nee:157, wn:172};
+  DATA.forEach(([cat, items])=>{
+    if (y > 260) { doc.addPage(); y = 20; }
+    doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(...gold);
+    doc.text(cat.toUpperCase(), M, y); y += 2.5;
+    items.forEach(it=>{
+      y += 5.6;
+      doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(...ink);
+      doc.text(clean(it), M+1, y);
+      [["ja","Ja"],["nee","Nee"],["wn","Weet niet"]].forEach(([v,l])=>{
+        const x = optX[v], on = state.answers[it]===v;
+        doc.setDrawColor(...(on?col[v]:muted)); doc.setLineWidth(0.3);
+        doc.rect(x, y-3, 3.2, 3.2);
+        if (on){ doc.setFillColor(...col[v]); doc.rect(x+0.6, y-2.4, 2, 2, "F"); }
+        doc.setFontSize(8.5); doc.setTextColor(...(on?col[v]:muted));
+        doc.setFont("helvetica", on?"bold":"normal");
+        doc.text(l, x+4.5, y);
+      });
+      doc.setDrawColor(...line); doc.setLineWidth(0.2); doc.line(M, y+2.1, W-M, y+2.1);
+    });
+    y += 7.5;
+  });
+
+  const vals = Object.values(state.answers), n = v => vals.filter(x=>x===v).length;
+  doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(...gold);
+  doc.text("OVERZICHT", M, y); y += 5.5;
+  doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(...ink);
+  doc.text(`Ja: ${n("ja")}     Nee: ${n("nee")}     Weet niet: ${n("wn")}     Niet ingevuld: ${TOTAL-vals.length}`, M, y);
+  y += 9;
+  const lines = doc.splitTextToSize(clean(state.notes||""), W-2*M-6);
+  const boxH = Math.max(28, lines.length*4.6+8);
+  if (y+3+boxH > 284) { doc.addPage(); y = 20; }
+  doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(...gold);
+  doc.text("PRIORITEITEN / OPMERKINGEN", M, y); y += 3;
+  doc.setDrawColor(...line); doc.setLineWidth(0.3); doc.roundedRect(M, y, W-2*M, boxH, 2, 2);
+  doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(...ink);
+  doc.text(lines, M+3, y+6);
+
+  const pages = doc.getNumberOfPages();
+  for (let p=1;p<=pages;p++){ doc.setPage(p);
+    doc.setFontSize(7.5); doc.setTextColor(...muted); doc.setFont("helvetica","normal");
+    doc.text("Solyn Global | Interne meetingnotities — geen bindende offerte", M, 290);
+    doc.text(`${p}/${pages}`, W-M, 290, {align:"right"}); }
+  return doc;
+}
+let downloadsCap = null;
+if (window.claude && window.claude.use) window.claude.use("downloads").then(d=>{ downloadsCap=d; }).catch(()=>{});
+$("pdf").onclick = async ()=>{
+  const btn=$("pdf"); btn.disabled=true; btn.textContent="Bezig…";
+  try {
+    const doc = await buildPDF();
+    const slug = (state.hotel||"hotel").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "hotel";
+    const filename = `meetingchecklist-${slug}${state.datum?"-"+state.datum:""}.pdf`;
+    const blob = doc.output("blob");
+    if (downloadsCap){
+      try { await downloadsCap.save({filename, data: blob}); toast("PDF opgeslagen"); }
+      catch(e){ if (e && e.code!=="declined") toast("Download niet beschikbaar hier"); }
+    } else {
+      const url = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 4000); toast("PDF gedownload");
+    }
+  } catch(e){ toast("PDF maken mislukt"); }
+  btn.disabled=false; btn.textContent="Download PDF";
+};
+
+const CONCEPTS = [
+  ["Domaine Bilzen","Donker & nachtelijk — overzicht homepage, kamers, keramiek, wellness, culinair"],
+  ["Maison Bilzen","Volledige flow — home, kameroverzicht, kamerdetail, reservatie"],
+  ["Maison Bilzen — Rituals-stijl","Espresso, walnoot & goudbeige · Playfair Display + Inter"],
+  ["Maison Bilzen — Concept 02","Modern · boutique · sensueel — deep green, sand & terracotta"],
+  ["Bilzen Palace","Midnight & royal blue met champagnegoud · Playfair + Montserrat"],
+  ["Domaine de Bilzen","Ontsnap. Ontspan. Beleef. — groen, marmer & goud"]
+];
+$("gallery").innerHTML = CONCEPTS.map((c,i)=>`<figure data-i="${i}"><img src="img/concept${i+1}.jpg" alt="${esc(c[0])}" loading="lazy"><figcaption>${i+1}. ${esc(c[0])}<small>${esc(c[1])}</small></figcaption></figure>`).join("");
+let cur = 0;
+const show = i => { cur=(i+CONCEPTS.length)%CONCEPTS.length; $("lbImg").src=`img/concept${cur+1}.jpg`; $("lbCap").textContent=`${cur+1}/${CONCEPTS.length} — ${CONCEPTS[cur][0]}`; $("lb").classList.add("open"); };
+$("gallery").addEventListener("click",e=>{ const f=e.target.closest("figure"); if(f) show(+f.dataset.i); });
+$("lbPrev").onclick=()=>show(cur-1); $("lbNext").onclick=()=>show(cur+1);
+$("lbClose").onclick=()=>$("lb").classList.remove("open");
+$("lb").addEventListener("click",e=>{ if(e.target.id==="lb") $("lb").classList.remove("open"); });
+document.addEventListener("keydown",e=>{ if(!$("lb").classList.contains("open")) return; if(e.key==="Escape")$("lb").classList.remove("open"); if(e.key==="ArrowLeft")show(cur-1); if(e.key==="ArrowRight")show(cur+1); });
+</script>
+</body>
+</html>
