@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="color-scheme" content="light">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hotel Meeting Checklist — Solyn Global</title>
+<title>Jason Balongo — Sollicitatie Luxury Hotel Bilzen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -69,8 +69,8 @@ section h2 span{color:var(--muted);letter-spacing:.05em}
 .modal p{margin-bottom:16px;font-size:15px}
 .modal button{font:inherit;font-weight:600;border-radius:999px;padding:10px 18px;margin:0 4px;cursor:pointer;border:1px solid var(--ink)}
 html{scroll-behavior:smooth}
-.topnav{position:sticky;top:0;z-index:5;display:flex;justify-content:center;gap:4px;padding:10px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.topnav a{color:var(--ink);text-decoration:none;font-size:13px;font-weight:500;padding:7px 14px;border-radius:999px}
+.topnav{position:sticky;top:0;z-index:5;display:flex;justify-content:safe center;overflow-x:auto;scrollbar-width:none;white-space:nowrap;gap:4px;padding:10px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topnav a{flex-shrink:0;color:var(--ink);text-decoration:none;font-size:13px;font-weight:500;padding:7px 14px;border-radius:999px}
 .topnav a:hover{background:var(--card)}
 .part{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:30px;margin:38px 0 8px;scroll-margin-top:70px}
 .intro{color:var(--muted);font-size:14px;margin-bottom:16px}
@@ -94,21 +94,57 @@ html{scroll-behavior:smooth}
 .lb p{color:#eee;margin-top:12px;font-size:14px;text-align:center}
 .lb .ctl{display:flex;gap:10px;margin-top:12px}
 .lb button{font:inherit;background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:999px;padding:10px 18px;cursor:pointer}
+.hero{text-align:center;margin-bottom:18px}
+.hero h1{font-size:clamp(40px,10vw,60px);margin:8px 0 2px}
+.role{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:12px}
+.hero .sub{max-width:520px;margin:0 auto;font-size:15px}
+.links{margin-top:14px}
+.links a{display:inline-block;color:var(--ink);border:1px solid var(--ink);border-radius:999px;padding:8px 16px;font-size:13px;font-weight:600;text-decoration:none}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0 4px}
+.facts div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.facts b{display:block;font-size:14px}
+.facts span{font-size:12px;color:var(--muted)}
+@media (max-width:560px){.facts{grid-template-columns:1fr}}
+.feature{border-color:var(--gold)}
+.feature .tag{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:6px}
+.feature h3{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:600;margin-bottom:8px}
+.feature p{font-size:15px}
+.feature .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+.feature h5{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.feature .also{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+@media (max-width:560px){.feature .cols{grid-template-columns:1fr}}
+.plan{display:grid;gap:12px}
+.step{display:flex;gap:16px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px}
+.step .num{flex-shrink:0;width:54px;height:54px;border-radius:50%;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-family:"Cormorant Garamond",serif;font-size:24px;font-weight:600}
+.step h4{font-size:16px;margin-bottom:4px}
+.step li{font-size:14px;list-style:none;padding:3px 0 3px 14px;position:relative}
+.step li::before{content:"";position:absolute;left:0;top:11px;width:5px;height:5px;border-radius:50%;background:var(--gold)}
+.gallery{grid-template-columns:1fr 1fr 1fr}
+@media (max-width:720px){.gallery{grid-template-columns:1fr}}
+footer a{color:inherit}
 footer{text-align:center;font-size:12px;color:var(--muted);margin-top:26px}
 </style>
 </head>
 <body>
 <nav class="topnav">
-  <a href="#profiel">Profiel</a><a href="#concepten">Concepten</a><a href="#checklist">Checklist</a>
+  <a href="#over-mij">Over mij</a><a href="#bewijs">Stocktellr</a><a href="#plan">Plan</a><a href="#concepten">Concepten</a><a href="#checklist">Prioriteiten</a>
 </nav>
 <div class="wrap">
-  <header>
-    <div class="brand">Solyn Global × Luxury Hotel Bilzen</div>
-    <h1>Main Skills, Initiatieven &amp; Interesses</h1>
-    <p class="sub">Hotelmanagement · Operations · Digitale groei</p>
+  <header class="hero">
+    <div class="brand">Sollicitatie · Luxury Hotel Bilzen</div>
+    <h1>Jason Balongo</h1>
+    <p class="role">Hotelmanagement · Operations · Digitale groei</p>
+    <p class="sub">Ik combineer dagelijks operationeel leidinggeven met het zelf bouwen van de digitale tools die een team sneller en beter laten werken.</p>
+    <div class="links"><a href="https://jasonbalongo.be" target="_blank" rel="noopener">jasonbalongo.be ↗</a></div>
   </header>
 
-  <h2 class="part" id="profiel">Profiel</h2>
+  <div class="facts">
+    <div><b>Filiaal Manager</b><span>Pathé · sinds okt 2024</span></div>
+    <div><b>Oprichter</b><span>Solyn Global · web &amp; lokale SEO</span></div>
+    <div><b>NL · FR · EN</b><span>Woont in Tongeren</span></div>
+  </div>
+
+  <h2 class="part" id="over-mij">Over mij</h2>
   <div class="cards">
     <div class="card">
       <div class="ic">◆</div>
@@ -127,8 +163,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin-top:26px}
       <h4>Initiatieven</h4>
       <ul>
         <li>Werkprocessen en gastenervaring continu verbeteren</li>
-        <li>Maandelijkse analyse van resultaten en concrete actiepunten</li>
-        <li>Maandelijks een luxe hotel bezoeken met twee personen voor een vergelijkende gastenervaring: service, kamers, prijzen en details beoordelen en verbeterideeën meenemen</li>
+        <li>Elke maand een analyse van de resultaten, met concrete actiepunten</li>
+        <li><b>Maandelijkse benchmark bij een vergelijkbaar luxehotel.</b> In overleg en binnen een vooraf afgesproken budget overnacht ik als gast in een concurrerend hotel. Ik beoordeel service, kamers, prijzen en details en lever binnen een week een kort rapport met concrete verbeterpunten voor ons hotel.</li>
       </ul>
     </div>
     <div class="card">
@@ -142,12 +178,31 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin-top:26px}
     </div>
   </div>
 
+  <h2 class="part" id="bewijs">Bewezen in de praktijk: Stocktellr</h2>
+  <div class="card feature">
+    <div class="tag">Zelf gebouwd · in gebruik bij Pathé</div>
+    <h3>Stocktellr — app voor voorraadtellingen</h3>
+    <p>Voor de periodieke voorraadtellingen bij Pathé bouwde ik Stocktellr: een webapp waarmee het team de tellingen digitaal invoert. De tellingen worden automatisch vergeleken met de stocklijst uit het kassasysteem (Vista), zodat verschillen meteen zichtbaar zijn.</p>
+    <div class="cols">
+      <div><h5>Wat het oplevert</h5><ul><li>Sneller tellen, minder fouten</li><li>Verschillen direct zichtbaar</li><li>Eén plek voor alle tellingen</li></ul></div>
+      <div><h5>Vertaling naar het hotel</h5><ul><li>Minibar, F&amp;B en linnen</li><li>Keramiekatelier: klei, glazuur, materiaal</li><li>Bestellingen op basis van echte stock</li></ul></div>
+    </div>
+    <p class="also">Ook gebouwd voor Pathé: een uren- en planningsapp (personeel bevestigt uren, managers keuren goed, export naar PDF) en een digitale kassa-afrekening.</p>
+  </div>
+
+  <h2 class="part" id="plan">Mijn 30-60-90 dagenplan</h2>
+  <div class="plan">
+    <div class="step"><div class="num">30</div><div><h4>Leren &amp; observeren</h4><ul><li>Meelopen in elke afdeling en de volledige gastenreis zelf doorlopen</li><li>Nulmeting: reviews, bezetting, online vindbaarheid</li><li>Quick wins: Google Bedrijfsprofiel en vaste kwaliteitschecks</li></ul></div></div>
+    <div class="step"><div class="num">60</div><div><h4>Structureren</h4><ul><li>Personeelsplanning en urenregistratie digitaal en overzichtelijk</li><li>Stockbeheer en bestellingen opzetten volgens de Stocktellr-aanpak</li><li>Voorstel nieuwe website en reservatieflow afstemmen</li></ul></div></div>
+    <div class="step"><div class="num">90</div><div><h4>Groeien</h4><ul><li>Nieuwe website live met lokale SEO in NL, FR, EN en DE</li><li>Eerste maandrapport met KPI's en actieplan</li><li>Eerste benchmarkbezoek met verbeterpunten</li></ul></div></div>
+  </div>
+
   <h2 class="part" id="concepten">Websiteconcepten</h2>
-  <p class="intro">Zes visuele richtingen voor de nieuwe hotelwebsite — elegant, warm en sensueel, in de geest van Rituals. Tik op een concept om het groot te bekijken.</p>
+  <p class="intro">Op eigen initiatief uitgewerkt: drie visuele richtingen voor de nieuwe hotelwebsite, warm en elegant in de geest van Rituals. Tik op een concept om het groot te bekijken.</p>
   <div class="gallery" id="gallery"></div>
 
-  <h2 class="part" id="checklist">Meetingchecklist</h2>
-  <p class="intro">Duid per dienst de interesse aan.</p>
+  <h2 class="part" id="checklist">Waar liggen jullie prioriteiten?</h2>
+  <p class="intro">Een gespreksleidraad: duid per onderwerp aan wat voor het hotel belangrijk is.</p>
 
   <div class="meta">
     <div class="field"><label for="hotel">Hotel</label><input id="hotel" placeholder="Naam hotel"></div>
@@ -176,7 +231,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);margin-top:26px}
     <ul id="sumWn"></ul>
   </div>
 
-  <footer>Solyn Global | Interne meetingnotities — geen bindende offerte</footer>
+  <footer>Jason Balongo · <a href="https://jasonbalongo.be" target="_blank" rel="noopener">jasonbalongo.be</a></footer>
 </div>
 
 <div class="actions">
@@ -194,7 +249,7 @@ const DATA = [
   ["Website & Digitaal", ["Nieuwe hotelwebsite / redesign","Websiteonderhoud & updates","Online reservatiesysteem","Software, CRM & automatisering"]],
   ["SEO & Online vindbaarheid", ["SEO (Google-zoekresultaten)","Lokale SEO & Google Bedrijfsprofiel","SEO-content voor kamers en arrangementen"]],
   ["Marketing & AI", ["Algemene marketingstrategie","Socialmediabeheer & contentplanning","AI-video’s & promotionele content","Google Ads & Meta Ads","E-mailmarketing & campagnes","Branding & commerciële groei"]],
-  ["Initiatieven & Analyse", ["Maandelijks luxe hotel bezoeken (2 personen)","Concurrentie- & gastenervaringanalyse","Maandelijks rapport & verbeteractieplan"]]
+  ["Initiatieven & Analyse", ["Maandelijkse benchmark bij een vergelijkbaar luxehotel (met rapport)","Concurrentie- & gastenervaringanalyse","Maandelijks rapport & verbeteractieplan"]]
 ];
 const LABEL = {ja:"Ja", nee:"Nee", wn:"Weet niet"};
 const TOTAL = DATA.reduce((n,[,i])=>n+i.length,0);
@@ -237,10 +292,10 @@ $("list").addEventListener("click", e=>{
 
 function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),1800); }
 $("copy").onclick = async () => {
-  let txt = `MEETINGCHECKLIST — ${state.hotel||"Hotel"}${state.datum?" ("+state.datum+")":""}\n`;
+  let txt = `PRIORITEITEN — ${state.hotel||"Hotel"}${state.datum?" ("+state.datum+")":""}\n`;
   DATA.forEach(([cat,items])=>{ txt += `\n${cat.toUpperCase()}\n`; items.forEach(i=> txt += `- ${i}: ${state.answers[i]?LABEL[state.answers[i]]:"—"}\n`); });
   if (state.notes) txt += `\nPRIORITEITEN / OPMERKINGEN\n${state.notes}\n`;
-  txt += `\nSolyn Global | Interne meetingnotities — geen bindende offerte`;
+  txt += `\nJason Balongo | jasonbalongo.be`;
   try { await navigator.clipboard.writeText(txt); toast("Samenvatting gekopieerd"); }
   catch(e){ toast("Kopiëren niet toegestaan in deze weergave"); }
 };
@@ -264,11 +319,11 @@ async function buildPDF(){
   const col = {ja:[47,107,79], nee:[154,59,50], wn:[138,109,31]};
   let y = 18;
   doc.setFont("helvetica","bold"); doc.setFontSize(8); doc.setTextColor(...gold);
-  doc.text("SOLYN GLOBAL  ×  LUXURY HOTEL BILZEN", M, y);
+  doc.text("JASON BALONGO  ·  SOLLICITATIE LUXURY HOTEL BILZEN", M, y);
   y += 8; doc.setFontSize(17); doc.setTextColor(...ink);
-  doc.text("MAIN SKILLS, INITIATIEVEN & INTERESSES", M, y);
+  doc.text("PRIORITEITEN VAN HET HOTEL", M, y);
   y += 6; doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(...muted);
-  doc.text("Meetingchecklist  |  Duid per dienst de interesse aan", M, y);
+  doc.text("Gespreksleidraad  |  Wat is belangrijk voor het hotel?", M, y);
   y += 9;
   doc.setFontSize(10); doc.setTextColor(...ink);
   doc.setFont("helvetica","bold"); doc.text("Hotel:", M, y);
@@ -320,7 +375,7 @@ async function buildPDF(){
   const pages = doc.getNumberOfPages();
   for (let p=1;p<=pages;p++){ doc.setPage(p);
     doc.setFontSize(7.5); doc.setTextColor(...muted); doc.setFont("helvetica","normal");
-    doc.text("Solyn Global | Interne meetingnotities — geen bindende offerte", M, 290);
+    doc.text("Jason Balongo  |  jasonbalongo.be", M, 290);
     doc.text(`${p}/${pages}`, W-M, 290, {align:"right"}); }
   return doc;
 }
@@ -331,7 +386,7 @@ $("pdf").onclick = async ()=>{
   try {
     const doc = await buildPDF();
     const slug = (state.hotel||"hotel").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "hotel";
-    const filename = `meetingchecklist-${slug}${state.datum?"-"+state.datum:""}.pdf`;
+    const filename = `prioriteiten-${slug}${state.datum?"-"+state.datum:""}.pdf`;
     const blob = doc.output("blob");
     if (downloadsCap){
       try { await downloadsCap.save({filename, data: blob}); toast("PDF opgeslagen"); }
@@ -346,16 +401,13 @@ $("pdf").onclick = async ()=>{
 };
 
 const CONCEPTS = [
-  ["Domaine Bilzen","Donker & nachtelijk — overzicht homepage, kamers, keramiek, wellness, culinair"],
-  ["Maison Bilzen","Volledige flow — home, kameroverzicht, kamerdetail, reservatie"],
-  ["Maison Bilzen — Rituals-stijl","Espresso, walnoot & goudbeige · Playfair Display + Inter"],
-  ["Maison Bilzen — Concept 02","Modern · boutique · sensueel — deep green, sand & terracotta"],
-  ["Bilzen Palace","Midnight & royal blue met champagnegoud · Playfair + Montserrat"],
-  ["Domaine de Bilzen","Ontsnap. Ontspan. Beleef. — groen, marmer & goud"]
+  ["Maison Bilzen","Volledige flow: home, kameroverzicht, kamerdetail en reservatie",2],
+  ["Maison Bilzen in Rituals-stijl","Espresso, walnoot en goudbeige · Playfair Display + Inter",3],
+  ["Domaine de Bilzen","Ontsnap. Ontspan. Beleef. Groen, marmer en goud",6]
 ];
-$("gallery").innerHTML = CONCEPTS.map((c,i)=>`<figure data-i="${i}"><img src="img/concept${i+1}.jpg" alt="${esc(c[0])}" loading="lazy"><figcaption>${i+1}. ${esc(c[0])}<small>${esc(c[1])}</small></figcaption></figure>`).join("");
+$("gallery").innerHTML = CONCEPTS.map((c,i)=>`<figure data-i="${i}"><img src="img/concept${c[2]}.jpg" alt="${esc(c[0])}" loading="lazy"><figcaption>${i+1}. ${esc(c[0])}<small>${esc(c[1])}</small></figcaption></figure>`).join("");
 let cur = 0;
-const show = i => { cur=(i+CONCEPTS.length)%CONCEPTS.length; $("lbImg").src=`img/concept${cur+1}.jpg`; $("lbCap").textContent=`${cur+1}/${CONCEPTS.length} — ${CONCEPTS[cur][0]}`; $("lb").classList.add("open"); };
+const show = i => { cur=(i+CONCEPTS.length)%CONCEPTS.length; $("lbImg").src=`img/concept${CONCEPTS[cur][2]}.jpg`; $("lbCap").textContent=`${cur+1}/${CONCEPTS.length} — ${CONCEPTS[cur][0]}`; $("lb").classList.add("open"); };
 $("gallery").addEventListener("click",e=>{ const f=e.target.closest("figure"); if(f) show(+f.dataset.i); });
 $("lbPrev").onclick=()=>show(cur-1); $("lbNext").onclick=()=>show(cur+1);
 $("lbClose").onclick=()=>$("lb").classList.remove("open");
