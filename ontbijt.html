@@ -43,8 +43,8 @@ section{margin-top:38px}
 .room-chips button i{width:7px;height:7px;border-radius:50%;background:var(--t)}
 .room-chips button.on{border-color:var(--t);background:color-mix(in srgb,var(--t) 16%,transparent)}
 /* coverflow */
-.cf{position:relative;overflow:hidden;padding:24px 0 6px;margin:0 -20px;--cf:#e6b866;isolation:isolate}
-.cf:before{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse 50% 40% at 50% 42%,color-mix(in srgb,var(--cf) 24%,transparent),transparent 72%);transition:background .9s}
+.cf{position:relative;overflow-x:clip;overflow-y:visible;padding:24px 0 6px;margin:0 -20px;--cf:#e6b866;isolation:isolate}
+.cf:before{content:'';position:absolute;left:0;right:0;top:-35%;bottom:-35%;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 55% 42% at 50% 50%,color-mix(in srgb,var(--cf) 24%,transparent),transparent 72%);transition:background .9s}
 .stage{position:relative;perspective:1400px;transform-style:preserve-3d;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
 .stage.drag{cursor:grabbing}
 .mc{position:absolute;left:50%;top:0;width:min(290px,74vw);margin-left:calc(min(290px,74vw) / -2);padding:10px;border-radius:26px;background:linear-gradient(160deg,color-mix(in srgb,var(--t) 26%,#ffffff12),color-mix(in srgb,var(--t) 8%,#ffffff05) 55%,color-mix(in srgb,var(--t) 16%,#ffffff0d)),#1a1512;border:1px solid color-mix(in srgb,var(--t) 45%,#ffffff22);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 30px 60px #0009,inset 0 1px 0 #ffffff40;will-change:transform,opacity}
