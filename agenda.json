@@ -1,0 +1,13 @@
+{
+  "_uitleg": "Speciale events. Datum JJJJ-MM-DD. cat: event | pottery | wellness | ontbijt. Wordt bovenop het vaste weekschema getoond.",
+  "events": [
+    {"date":"2026-11-14","cat":"event","time":"19:00 – 21:00","title":"Sound bath in de wellness","text":"Klankschalen, kaarslicht en een glas kruidenthee. Max. 10 gasten.","price":"€ 35 p.p."},
+    {"date":"2026-11-27","cat":"pottery","time":"19:00 – 22:00","title":"Raku-avond","text":"Stook je eigen stuk in het vuur in de tuin. Inclusief glazuur en een drankje.","price":"€ 65 p.p."},
+    {"date":"2026-12-06","cat":"event","time":"14:00 – 17:00","title":"Kerstmarkt van The Amano Shop","text":"Keramiek uit het atelier, kaarsen en cadeaubonnen. Gratis toegang.","price":"Gratis"},
+    {"date":"2026-12-12","cat":"pottery","time":"10:00 – 13:00","title":"Workshop: kerstkommen draaien","text":"Draai je eigen feestelijke kom voor de kerstdis.","price":"€ 55 p.p."},
+    {"date":"2026-12-24","cat":"ontbijt","time":"08:00 – 11:00","title":"Kerstavond-brunch","text":"Uitgebreide brunch met bubbels, warme croissants en huisgemaakte stol.","price":"€ 39 p.p."},
+    {"date":"2026-12-25","cat":"ontbijt","time":"08:00 – 11:30","title":"Kerstbrunch","text":"Feestelijke brunch met live piano.","price":"€ 45 p.p."},
+    {"date":"2026-12-31","cat":"event","time":"20:00 – 00:30","title":"Oudejaar: ceramics & bubbels","text":"Maak je wensenschaaltje voor het nieuwe jaar, met champagne om middernacht.","price":"€ 75 p.p."},
+    {"date":"2027-01-17","cat":"event","time":"10:00 – 16:00","title":"Rest · Create · Be – retreatdag","text":"Yoga, keramiek, wellness en lunch op één dag.","price":"€ 145 p.p."}
+  ]
+}

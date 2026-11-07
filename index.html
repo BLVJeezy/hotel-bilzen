@@ -403,7 +403,7 @@ button.bk-d{background:none;border:0;font:inherit;text-align:left;width:100%}
 .cal-t{font:400 22px var(--serif)}
 .cal-nav{width:38px;height:38px;border-radius:50%;border:1px solid #ffffff26;background:transparent;display:grid;place-items:center;cursor:pointer;color:var(--text)}
 .cal-nav svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.5}
-.cal-nav[data-cm="-1"] svg{transform:scaleX(-1)}.cal-nav:disabled{opacity:.25}
+.cal-nav[data-cm="-1"] svg,.cal-nav[data-am="-1"] svg{transform:scaleX(-1)}.cal-nav:disabled{opacity:.25}
 .cal-hint{text-align:center;font-size:12px;color:var(--gold);letter-spacing:.06em;margin:4px 0 8px}
 .cal-w,.cal-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}
 .cal-w span{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:4px 0}
@@ -424,6 +424,52 @@ button.bk-d{background:none;border:0;font:inherit;text-align:left;width:100%}
 .bk-cta:disabled{filter:grayscale(.8) brightness(.55);box-shadow:none;cursor:not-allowed}
 .bk .msg.bad{border-color:#e8a0a066;background:#e8a0a012;color:#f0d4d4}
 .bk .msg b{font-weight:500;color:var(--gold2)}.bk .msg.bad b{color:#f3c0c0}
+
+
+/* AGENDA */
+.agenda{padding:110px 0 40px}
+.ag-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap;margin-bottom:28px}
+.ag-head h2{font-size:clamp(40px,5vw,66px);font-weight:300;margin-top:14px}
+.ag-head p{max-width:420px;color:var(--muted);margin:0}
+.ag-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.ag-filters button{display:inline-flex;align-items:center;gap:8px;border:1px solid #ffffff1f;background:#ffffff08;color:var(--text);border-radius:999px;padding:8px 15px;font:400 13px var(--sans);cursor:pointer;transition:.25s}
+.ag-filters button i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.ag-filters button.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 16%,transparent)}
+.ag-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;align-items:start}
+.ag-cal,.ag-detail{border:1px solid #ffffff1f;border-radius:26px;background:linear-gradient(160deg,#ffffff0d,#ffffff03);padding:20px}
+.ag-mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ag-mh b{font:400 26px var(--serif)}
+.ag-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.ag-days button{position:relative;aspect-ratio:1/1.05;min-width:0;padding:6px 0 0;border:1px solid transparent;border-radius:14px;background:#ffffff05;color:var(--text);font:400 15px var(--sans);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;transition:.2s}
+.ag-days button:hover{background:#ffffff10}
+.ag-days button.past{opacity:.35}
+.ag-days button.today{border-color:#ffffff40}
+.ag-days button.sel{background:linear-gradient(140deg,#e6b8662e,#e6b8660a);border-color:#e6b866aa}
+.ag-days button .dt{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:80%}
+.ag-days button .dt i{width:6px;height:6px;border-radius:50%;background:var(--c)}
+.ag-days button .st{position:absolute;top:4px;right:5px;font-size:9px;color:#9fb8e6}
+.ag-days span{min-width:0}
+.ag-leg{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:var(--muted)}
+.ag-leg span{display:flex;align-items:center;gap:6px}.ag-leg i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.ag-detail h3{font-size:30px}
+.ag-detail .sub{color:var(--muted);font-size:13px;margin:2px 0 16px;text-transform:capitalize}
+.ag-it{position:relative;display:flex;gap:14px;padding:14px 14px 14px 16px;border-radius:18px;border:1px solid color-mix(in srgb,var(--c) 30%,#ffffff12);background:linear-gradient(140deg,color-mix(in srgb,var(--c) 12%,transparent),transparent 70%);margin-bottom:10px}
+.ag-it:before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:3px;background:var(--c)}
+.ag-it svg{width:26px;height:26px;flex:none;fill:none;stroke:var(--c);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;margin-top:2px}
+.ag-it .tx{flex:1;min-width:0}
+.ag-it .k{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--c)}
+.ag-it b{display:block;font:400 21px/1.2 var(--serif);margin:2px 0}
+.ag-it p{margin:2px 0 0;font-size:13.5px;color:#cfc3b0;line-height:1.5}
+.ag-it ul{margin:6px 0 0;padding:0;list-style:none;font-size:13px;color:#cfc3b0}
+.ag-it li:before{content:'·';color:var(--c);margin-right:6px}
+.ag-it .meta{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:8px;font-size:12.5px;color:var(--muted)}
+.ag-it .meta a{color:var(--c);display:inline-flex;align-items:center;gap:6px}
+.ag-it .meta a svg{width:14px;height:14px;margin:0;stroke:currentColor}
+.ag-it .vibe{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:999px;border:1px solid color-mix(in srgb,var(--c) 45%,transparent);font-size:11.5px;color:color-mix(in srgb,var(--c) 70%,#fff)}
+#agX{scroll-margin-top:96px}
+.ag-empty{color:var(--muted);font-size:14px;padding:10px 0}
+@media(max-width:1000px){.agenda{padding:70px 0 20px}.ag-grid{grid-template-columns:1fr}.ag-cal,.ag-detail{padding:16px}.ag-days{gap:3px}.ag-days button{font-size:14px;border-radius:11px;padding-top:5px}}
+@media(max-width:560px){.ag-filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -22px 16px;padding:0 22px}.ag-filters::-webkit-scrollbar{display:none}.ag-filters button{flex:none}.ag-days button .dt i{width:5px;height:5px}}
 
 /* FILM */
 .film{position:relative;margin:110px 0 0;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:#0d0a08;box-shadow:0 40px 100px #0008}
@@ -758,6 +804,22 @@ footer ul a:hover{color:var(--beige)}
   </div>
 </section>
 
+<section class="agenda" id="agenda">
+  <div class="wrap">
+    <div class="ag-head"><div><div class="caps rv">Agenda</div><h2 class="rv">Wat gebeurt er wanneer?</h2></div><p class="rv">Bekijk per dag de wellness-uren, de keramiekles in Pottery House, het ontbijtmenu van de dag en speciale events.</p></div>
+    <div class="ag-filters rv" id="agF"></div>
+    <div class="ag-grid rv">
+      <div class="ag-cal">
+        <div class="ag-mh"><button type="button" class="cal-nav" data-am="-1" aria-label="Vorige maand"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button><b id="agT"></b><button type="button" class="cal-nav" data-am="1" aria-label="Volgende maand"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button></div>
+        <div class="cal-w"><span>ma</span><span>di</span><span>wo</span><span>do</span><span>vr</span><span>za</span><span>zo</span></div>
+        <div class="ag-days" id="agD"></div>
+        <div class="ag-leg" id="agL"></div>
+      </div>
+      <div class="ag-detail" id="agX"></div>
+    </div>
+  </div>
+</section>
+
 <section class="extras">
   <div class="wrap">
     <div class="caps rv">Verrijk je verblijf</div>
@@ -1002,6 +1064,56 @@ const MQM=matchMedia('(max-width:1000px)');
 function jump(h,smooth){let el=document.getElementById(h);const k=ACT_CF.findIndex(a=>a.k===h);
   if(MQM.matches&&k>-1){cfActs.go(k);el=document.getElementById('activiteiten')}
   if(el)el.scrollIntoView({behavior:smooth?'smooth':'auto'})}
+
+
+// EVENT AGENDA
+(function(){
+ const C={wellness:['Wellness','#b06ad0','lotus'],pottery:['Pottery House','#c98d5a','vase'],ontbijt:['Ontbijt','#e6b866','cloche'],event:['Events','#9fb8e6','i-clock']};
+ const POT={1:['09:00','22:00'],2:['09:00','18:00'],3:['16:30','21:30'],4:['09:30','21:00'],5:['09:00','22:00'],6:['09:00','22:00'],0:['09:00','22:00']};
+ const THEMES=['Draaischijf voor beginners','Handvormen: organische kommen','Glazuren & kleur','Mokken met oor','Japandi-vazen','Texturen & stempels','Serveerschalen'];
+ const MENUS={1:['Nordic Calm','Rustig & licht',['Roggebrood met zalm','Skyr met bessen','Kardemomthee']],2:['Ibiza Sunrise','Mediterraan & zonnig',['Shakshuka met feta','Hummus & pita','Glas cava']],3:['Green & Light','Fris & vegetarisch',['Avocado op zuurdesem','Granola-bowl','Groene smoothie']],4:['Amano Classic','Huiselijk & warm',['Croissant & roerei','Lokale kaas & ham','Verse jus & koffie']],5:['Croissant Friday','Frans & feestelijk',['Croissants, pains au chocolat','Confituur van het huis','Café au lait']],6:['Weekend Brunch','Uitgebreid & gezellig',['Pancakes met seizoensfruit','Eggs Benedict','Prosecco']],0:['Slow Sunday','Akoestische live muziek',['Wafels met slagroom','Omelet met kruiden','Verse muntthee']]};
+ let month=new Date(),sel=null,filter=new Set(Object.keys(C)),SPECIAL=[];
+ month=new Date(month.getFullYear(),month.getMonth(),1);
+ const today=new Date();today.setHours(0,0,0,0);
+ const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+ function fullMoon(d){const syn=29.530588853,ref=Date.UTC(2000,0,6,18,14),t=(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(),20)-ref)/864e5;const ph=((t%syn)+syn)%syn;return Math.abs(ph-14.765)<.55}
+ function itemsFor(d){const w=d.getDay(),k=iso(d),out=[];
+  out.push({cat:'wellness',time:'10:00 – 19:30',title:w===5?'Wellness · Late night tot 22:00':'Wellness open',text:w===5?'Op vrijdag blijft de wellness langer open, met kaarslicht en kruidenthee.':'Gedeelde wellness voor hotelgasten. Kies je tijdslot bij je reservatie.',price:'€ 35 p.p. · max. 3 uur',act:'wellness'});
+  const [a,b]=POT[w];const wk=Math.floor((d-new Date(d.getFullYear(),0,1))/6048e5);
+  out.push({cat:'pottery',time:`${a} – ${b}`,title:'Vrij atelier',text:'Zelfstandig werken aan de draaischijf of met de hand. Max. 6 personen per blok van 3 uur.',price:'€ 30 p.p.',act:'pottery'});
+  if(w===2)out.push({cat:'pottery',time:'18:30 – 21:30',title:'Les: '+THEMES[(wk)%THEMES.length],text:'Lessenreeks van 10 weken, deze week rond dit thema. Klei en begeleiding inbegrepen.',price:'€ 385 / 10 lessen',act:'lessen'});
+  if(w===3)out.push({cat:'pottery',time:'09:30 – 12:30',title:'Les: '+THEMES[(wk+3)%THEMES.length],text:'Ochtendgroep van de lessenreeks. Rustig tempo, max. 6 deelnemers.',price:'€ 385 / 10 lessen',act:'lessen'});
+  if(w===6)out.push({cat:'pottery',time:'10:00 – 12:30',title:'Workshop: '+THEMES[(wk+5)%THEMES.length],text:'Eenmalige workshop, ideaal om keramiek te ontdekken. Je stuk wordt gebakken en kan je later ophalen.',price:'€ 55 p.p.',act:'pottery'});
+  const m=MENUS[w];out.push({cat:'ontbijt',time:'07:30 – 10:30',title:'Menu van de dag: '+m[0],vibe:m[1],list:m[2],price:'€ 25 p.p.',act:'ontbijt'});
+  if(fullMoon(d))out.push({cat:'event',time:'21:00 – 22:30',title:'Volle maan in de wellness',text:'Ontspan onder de volle maan met klankschalen en een moonstone-ritueel.',price:'€ 35 p.p.',act:'wellness'});
+  SPECIAL.filter(e=>e.date===k).forEach(e=>out.push(Object.assign({act:e.cat==='pottery'?'pottery':null},e)));
+  return out.filter(x=>filter.has(x.cat))}
+ const $=id=>document.getElementById(id);
+ $('agF').innerHTML=`<button type="button" class="on" data-f="all" style="--c:#e8d8b8">Alles</button>`+Object.entries(C).map(([k,[n,c]])=>`<button type="button" data-f="${k}" style="--c:${c}"><i></i>${n}</button>`).join('');
+ $('agL').innerHTML=Object.entries(C).map(([k,[n,c]])=>`<span style="--c:${c}"><i></i>${n}</span>`).join('');
+ $('agF').onclick=e=>{const b=e.target.closest('button');if(!b)return;const f=b.dataset.f;
+  if(f==='all')filter=new Set(Object.keys(C));else filter=new Set([f]);
+  $('agF').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.f===f));draw()};
+ document.querySelectorAll('[data-am]').forEach(b=>b.onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()+ +b.dataset.am,1);sel=null;draw()});
+ function draw(){
+  $('agT').textContent=['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'][month.getMonth()]+' '+month.getFullYear();
+  document.querySelector('[data-am="-1"]').disabled=month<=new Date(today.getFullYear(),today.getMonth(),1);
+  const pad=(month.getDay()+6)%7,n=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
+  if(!sel||sel.getMonth()!==month.getMonth()){sel=(today.getMonth()===month.getMonth()&&today.getFullYear()===month.getFullYear())?new Date(today):new Date(month)}
+  let h='';for(let i=0;i<pad;i++)h+='<span></span>';
+  for(let dn=1;dn<=n;dn++){const d=new Date(month.getFullYear(),month.getMonth(),dn),its=itemsFor(d),cats=[...new Set(its.map(x=>x.cat))],sp=its.some(x=>x.cat==='event'||SPECIAL.some(e=>e.date===iso(d)&&e===x));
+   h+=`<button type="button" data-ad="${dn}" class="${d<today?'past':''} ${+d===+today?'today':''} ${+d===+sel?'sel':''}"><span>${dn}</span><span class="dt">${cats.map(c=>`<i style="--c:${C[c][1]}"></i>`).join('')}</span>${sp?'<span class="st">★</span>':''}</button>`}
+  $('agD').innerHTML=h;detail()}
+ $('agD').onclick=e=>{const b=e.target.closest('[data-ad]');if(!b)return;sel=new Date(month.getFullYear(),month.getMonth(),+b.dataset.ad);draw();if(innerWidth<1000)$('agX').scrollIntoView({behavior:'smooth',block:'start'})};
+ function detail(){const its=itemsFor(sel),ar='<svg viewBox="0 0 24 24"><use href="#arrow"/></svg>';
+  const dl=sel.toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'});
+  $('agX').innerHTML=`<span class="caps" style="color:var(--gold)">Programma</span><h3>${dl.charAt(0).toUpperCase()+dl.slice(1)}</h3><div class="sub">${its.length} ${its.length===1?'activiteit':'activiteiten'}</div>`+
+   (its.length?its.map(x=>{const [n,c,ic]=C[x.cat];const sym=ic.startsWith('i-')?ic:ic;
+    const btn=x.act==='ontbijt'?`<a href="#boeken" onclick="pick('rose')">Voeg toe aan verblijf ${ar}</a>`:x.act==='pottery'||x.act==='lessen'?`<a href="#boeken" onclick="pick('${x.act}')">Reserveer ${ar}</a>`:x.act==='wellness'?`<a href="#boeken">Boek met je kamer ${ar}</a>`:`<a href="#contact">Inschrijven ${ar}</a>`;
+    return `<div class="ag-it" style="--c:${c}"><svg viewBox="0 0 ${ic.startsWith('i-')?24:40} ${ic.startsWith('i-')?24:40}"><use href="#${sym}"/></svg><div class="tx"><span class="k">${n} · ${x.time}</span><b>${x.title}</b>${x.vibe?`<span class="vibe">Vibe: ${x.vibe}</span>`:''}${x.list?`<ul>${x.list.map(l=>`<li>${l}</li>`).join('')}</ul>`:''}${x.text?`<p>${x.text}</p>`:''}<div class="meta"><span>${x.price||''}</span>${btn}</div></div></div>`}).join(''):'<div class="ag-empty">Niets gepland voor deze filter op deze dag.</div>')}
+ fetch('agenda.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.events){SPECIAL=j.events;draw()}}).catch(()=>{});
+ draw();
+})();
 
 // reveal
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1});
