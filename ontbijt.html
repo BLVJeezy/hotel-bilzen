@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#100d0b">
+<title>Ontbijt op je kamer · Villa Amano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400;500&family=Wittgenstein&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#16120f;--night:#100d0b;--panel:#1d1814;--line:#ffffff1f;--beige:#E8D8B8;--gold:#e6b866;--gold2:#f6dfa4;--text:#efe6d6;--muted:#a99b88;--serif:'Cormorant Garamond',Georgia,serif;--caps:'Wittgenstein',Georgia,serif;--sans:'Jost',Arial,sans-serif}
+*{box-sizing:border-box}html{overflow-x:clip;scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(ellipse 90% 40% at 50% 0%,#2a2018,transparent 70%),var(--bg);color:var(--text);font:300 16px/1.6 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:var(--serif);font-weight:300;line-height:1.08;margin:0}
+button{font:inherit;color:inherit}
+.caps{font-family:var(--caps);text-transform:uppercase;letter-spacing:.36em;font-size:10.5px;color:var(--gold)}
+.k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:10px}
+.wrap{max-width:560px;margin:auto;padding:0 20px}
+header{display:flex;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 20px 6px}
+header img{height:50px}
+.intro{text-align:center;padding:22px 0 10px}
+.intro h1{font-size:clamp(40px,11vw,58px);margin:12px 0 10px}
+.intro p{color:var(--muted);margin:0 auto;max-width:400px;font-size:15px}
+.info{display:flex;justify-content:center;gap:18px;margin-top:16px;font-size:13px;color:#d6cab7;flex-wrap:wrap}
+.info span{display:inline-flex;align-items:center;gap:7px}
+.info svg{width:16px;height:16px;stroke:var(--gold);fill:none;stroke-width:1.3}
+section{margin-top:38px}
+.card{border:1px solid var(--line);border-radius:22px;background:#0000002e;padding:18px}
+/* room */
+.room-in{display:flex;align-items:center;gap:14px}
+.room-in input{width:96px;height:64px;border-radius:16px;border:1px solid #e8d8b84d;background:#120f0d;color:var(--text);font:400 34px var(--serif);text-align:center;outline:none;-moz-appearance:textfield}
+.room-in input::-webkit-inner-spin-button{-webkit-appearance:none}
+.room-in input:focus{border-color:var(--gold)}
+.room-name{flex:1;min-width:0}
+.room-name b{display:block;font:400 24px var(--serif)}
+.room-name small{color:var(--muted);font-size:12.5px}
+.room-name.err small{color:#e8a0a0}
+.room-chips{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.room-chips button{border:1px solid var(--line);background:#ffffff08;border-radius:999px;padding:7px 13px;font-size:12.5px;cursor:pointer;display:flex;gap:7px;align-items:center;transition:.25s}
+.room-chips button i{width:7px;height:7px;border-radius:50%;background:var(--t)}
+.room-chips button.on{border-color:var(--t);background:color-mix(in srgb,var(--t) 16%,transparent)}
+/* coverflow */
+.cf{position:relative;overflow:hidden;padding:24px 0 6px;margin:0 -20px;--cf:#e6b866;isolation:isolate}
+.cf:before{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse 50% 40% at 50% 42%,color-mix(in srgb,var(--cf) 24%,transparent),transparent 72%);transition:background .9s}
+.stage{position:relative;perspective:1400px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
+.stage.drag{cursor:grabbing}
+.mc{position:absolute;left:50%;top:0;width:min(290px,74vw);margin-left:calc(min(290px,74vw) / -2);padding:10px;border-radius:26px;background:linear-gradient(160deg,color-mix(in srgb,var(--t) 26%,#ffffff12),color-mix(in srgb,var(--t) 8%,#ffffff05) 55%,color-mix(in srgb,var(--t) 16%,#ffffff0d));border:1px solid color-mix(in srgb,var(--t) 45%,#ffffff22);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 30px 60px #0009,inset 0 1px 0 #ffffff40;will-change:transform,opacity}
+.mc.on{box-shadow:0 30px 60px #0009,0 0 60px color-mix(in srgb,var(--t) 22%,transparent),inset 0 1px 0 #ffffff40}
+.art{position:relative;aspect-ratio:1/1;border-radius:18px;overflow:hidden;background:radial-gradient(circle at 50% 46%,color-mix(in srgb,var(--t) 40%,#2a2018),#120f0d 78%);display:grid;place-items:center;transition:filter .5s}
+.mc:not(.on) .art{filter:brightness(.6)}
+.art svg{width:78%;height:78%;fill:none;stroke:color-mix(in srgb,var(--t) 55%,#fff);stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}
+.art .steam{animation:steam 3s ease-in-out infinite;opacity:.0}
+.art .steam:nth-of-type(2){animation-delay:1s}.art .steam:nth-of-type(3){animation-delay:2s}
+@keyframes steam{0%{opacity:0;transform:translateY(4px)}40%{opacity:.9}100%{opacity:0;transform:translateY(-10px)}}
+.art svg *{transform-box:fill-box}
+.tag{position:absolute;top:12px;left:12px;padding:5px 11px;border-radius:999px;background:#0d0a0899;border:1px solid #ffffff30;font-size:11px;letter-spacing:.06em;backdrop-filter:blur(8px)}
+.mtx{padding:14px 8px 6px}
+.mtx h3{font-size:28px}
+.mtx ul{list-style:none;margin:8px 0 0;padding:0;font-size:13px;color:#cfc3b0;line-height:1.55;min-height:100px}
+.mtx li:before{content:'·';color:var(--t);margin-right:7px;font-weight:600}
+.mfoot{display:flex;justify-content:space-between;align-items:center;padding:10px 8px 6px;border-top:1px solid color-mix(in srgb,var(--t) 25%,#ffffff1a);margin-top:10px}
+.mfoot b{font:400 22px var(--serif);color:color-mix(in srgb,var(--t) 70%,#fff)}
+.mfoot small{font-size:11.5px;color:var(--muted)}
+.step{display:flex;align-items:center;gap:4px}
+.step b{font:400 24px var(--serif);min-width:30px;text-align:center;color:var(--text)}
+.step button{width:38px;height:38px;border-radius:50%;border:1px solid #e8d8b84d;background:transparent;font-size:19px;line-height:1;cursor:pointer;transition:.25s}
+.step button:disabled{opacity:.28}
+.step .add{width:auto;padding:0 16px;border-radius:999px;border:0;font-size:13px;font-weight:500;color:#24180e;background:linear-gradient(120deg,#f6dfa4,#e6b866,#c98d3e)}
+.dots{display:flex;justify-content:center;gap:8px;margin-top:20px}
+.dots button{width:7px;height:7px;padding:0;border:0;border-radius:4px;background:#ffffff40;cursor:pointer;transition:.35s}
+.dots button.on{width:24px;background:var(--cf)}
+/* time */
+.times{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:2px 20px}
+.times::-webkit-scrollbar{display:none}
+.times button{flex:none;min-width:74px;padding:12px 10px;border-radius:16px;border:1px solid var(--line);background:#0000002e;cursor:pointer;font:400 20px var(--serif);transition:.25s}
+.times button.on{border-color:#e6b866aa;background:linear-gradient(140deg,#e6b86626,#e6b86608);color:var(--gold2)}
+.where{display:flex;gap:8px;margin-top:12px}
+.where button{flex:1;padding:12px;border-radius:16px;border:1px solid var(--line);background:#0000002e;cursor:pointer;font-size:14px;transition:.25s}
+.where button.on{border-color:#e6b866aa;background:#e6b8661a}
+/* suggestions */
+.sug{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sx{position:relative;display:flex;flex-direction:column;gap:2px;padding:14px;border:1px solid var(--line);border-radius:18px;background:#0000002e;cursor:pointer;text-align:left;transition:.3s}
+.sx svg{width:24px;height:24px;stroke:var(--gold);fill:none;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px}
+.sx b{font-weight:400;font-size:14.5px}.sx small{font-size:12px;color:var(--muted)}
+.sx:after{content:'';position:absolute;top:12px;right:12px;width:17px;height:17px;border-radius:50%;border:1px solid #ffffff33;transition:.3s}
+.sx.on{border-color:#e6b86699;background:linear-gradient(140deg,#e6b8661f,#e6b86608)}
+.sx.on:after{background:var(--gold) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12l4 4 8-8' fill='none' stroke='%2324180e' stroke-width='3'/%3E%3C/svg%3E") center/11px no-repeat;border-color:var(--gold);box-shadow:0 0 12px #e6b86680}
+.diet{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.diet button{border:1px solid var(--line);background:#ffffff08;border-radius:999px;padding:8px 14px;font-size:13px;cursor:pointer;transition:.25s}
+.diet button.on{border-color:var(--gold);color:var(--gold2);background:#e6b8661a}
+textarea{width:100%;min-height:110px;resize:vertical;border-radius:18px;border:1px solid var(--line);background:#120f0d;color:var(--text);padding:14px 16px;font:300 15px/1.5 var(--sans);outline:none}
+textarea:focus{border-color:var(--gold)}
+.cnt{text-align:right;font-size:11px;color:var(--muted);margin-top:6px}
+/* summary + bar */
+.sum .row{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);padding:3px 0}
+.sum .row span:last-child{color:var(--text)}
+.sum .tot{border-top:1px solid var(--line);margin-top:10px;padding-top:12px;align-items:baseline}
+.sum .tot span:first-child{color:var(--text)}
+.sum .tot b{font:400 34px var(--serif)}
+.sum .empty{color:var(--muted);font-size:14px;text-align:center;padding:8px 0}
+.note{font-size:12px;color:#857865;text-align:center;margin:14px 0 0}
+.bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(520px,calc(100vw - 28px));display:flex;align-items:center;gap:12px;padding:8px 8px 8px 20px;border-radius:999px;background:#16120fcc;border:1px solid #e8d8b833;backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);box-shadow:0 20px 50px #000a;z-index:20}
+.bar .bt{flex:1;min-width:0;line-height:1.2}
+.bar .bt b{display:block;font:400 22px var(--serif)}
+.bar .bt small{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.cta{height:52px;padding:0 24px;border:0;border-radius:999px;cursor:pointer;font:500 14.5px var(--sans);color:#24180e;background:linear-gradient(120deg,#f6dfa4,#e6b866 55%,#c98d3e);box-shadow:0 10px 30px #e6b86640;display:inline-flex;align-items:center;gap:10px;white-space:nowrap;transition:.3s}
+.cta:disabled{filter:grayscale(.7) brightness(.6);box-shadow:none;cursor:not-allowed}
+.cta svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.5}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translate(-50%,10px);background:#2a1f18;border:1px solid #e8a0a066;color:#f3d6d6;padding:10px 16px;border-radius:14px;font-size:13.5px;opacity:0;pointer-events:none;transition:.35s;z-index:30;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+/* confirmation */
+.done{position:fixed;inset:0;z-index:40;background:radial-gradient(ellipse 80% 50% at 50% 20%,#2c2117,transparent 70%),#0e0b09;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 24px;opacity:0;visibility:hidden;transition:opacity .5s,visibility 0s .5s;overflow-y:auto}
+.done.show{opacity:1;visibility:visible;transition:opacity .5s}
+.check{width:92px;height:92px;border-radius:50%;border:1px solid #e6b86680;display:grid;place-items:center;margin-bottom:22px;box-shadow:0 0 60px #e6b86633}
+.check svg{width:40px;height:40px;fill:none;stroke:var(--gold);stroke-width:1.6;stroke-dasharray:40;stroke-dashoffset:40}
+.done.show .check svg{animation:draw .8s .3s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.done h2{font-size:44px;margin:10px 0}
+.done p{color:#d6cab7;max-width:380px;margin:0 auto}
+.done .recap{margin:24px auto 0;max-width:400px;width:100%;text-align:left}
+.ghost{margin-top:22px;height:48px;padding:0 22px;border-radius:999px;border:1px solid var(--beige);background:transparent;cursor:pointer;font-size:14px}
+footer{text-align:center;color:#6d6153;font-size:11.5px;margin-top:40px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+ <symbol id="arrow" viewBox="0 0 24 24"><path d="M3 12h17M14 6l6 6-6 6"/></symbol>
+ <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+ <symbol id="tray" viewBox="0 0 24 24"><path d="M3 17h18M5 17a7 7 0 0 1 14 0M12 10V8M10.5 8h3M3 20h18"/></symbol>
+ <symbol id="glass" viewBox="0 0 24 24"><path d="M8 3h8l-1 8a3 3 0 0 1-6 0zM12 14v6M9 21h6"/></symbol>
+ <symbol id="juice" viewBox="0 0 24 24"><path d="M7 6h10l-1.5 15h-7zM8 10h8"/><path d="M14 6l2-4"/></symbol>
+ <symbol id="egg" viewBox="0 0 24 24"><path d="M12 3c4 0 7 6 7 10a7 7 0 0 1-14 0c0-4 3-10 7-10z"/></symbol>
+ <symbol id="flower" viewBox="0 0 24 24"><circle cx="12" cy="10" r="2"/><path d="M12 8a3 3 0 1 1 3 2 3 3 0 1 1-3 2 3 3 0 1 1-3-2 3 3 0 1 1 3-2zM12 12v9M12 17c-2-2-4-2-5-1M12 18c2-2 4-2 5-1"/></symbol>
+ <symbol id="croissant" viewBox="0 0 24 24"><path d="M3 15c2-6 6-9 9-9s7 3 9 9c-2 1-4 0-5-2-1 2-2 3-4 3s-3-1-4-3c-1 2-3 3-5 2z"/></symbol>
+</svg>
+
+<header><img src="img/logo_a.png" alt="Villa Amano"></header>
+
+<main class="wrap">
+ <div class="intro">
+  <span class="caps">Room service · Ontbijt</span>
+  <h1>Ontbijt op<br><i style="color:var(--beige)">je kamer.</i></h1>
+  <p>Kies je menu, je tijdstip en wij brengen het met zorg tot aan je deur.</p>
+  <div class="info"><span><svg><use href="#clock"/></svg>07:30 – 10:30</span><span><svg><use href="#tray"/></svg>€ 25 p.p.</span></div>
+ </div>
+
+ <section>
+  <span class="k">1 · Je kamernummer</span>
+  <div class="card">
+   <div class="room-in">
+    <input id="room" type="number" inputmode="numeric" min="1" max="5" placeholder="–" aria-label="Kamernummer">
+    <div class="room-name" id="roomName"><b>Kamer</b><small>Vul je kamernummer in (1 – 5)</small></div>
+   </div>
+   <div class="room-chips" id="chips"></div>
+  </div>
+ </section>
+
+ <section>
+  <span class="k">2 · Kies je menu</span>
+  <div class="cf" id="cf"><div class="stage" id="stage"></div><div class="dots" id="dots"></div></div>
+ </section>
+
+ <section>
+  <span class="k">3 · Wanneer?</span>
+  <div class="times" id="times"></div>
+  <div class="where" id="where"><button type="button" class="on" data-w="kamer">In de kamer</button><button type="button" data-w="terras">Op het terras</button></div>
+ </section>
+
+ <section>
+  <span class="k">4 · Suggesties van het huis</span>
+  <div class="sug" id="sug"></div>
+  <span class="k" style="margin-top:22px">Dieetwensen</span>
+  <div class="diet" id="diet"></div>
+ </section>
+
+ <section>
+  <span class="k">5 · Extra opmerkingen</span>
+  <textarea id="note" maxlength="300" placeholder="Bijv. allergieën, verjaardag, koffie zonder melk…"></textarea>
+  <div class="cnt"><span id="cnt">0</span>/300</div>
+ </section>
+
+ <section>
+  <span class="k">Overzicht</span>
+  <div class="card sum" id="sum"></div>
+  <p class="note">Wordt aangerekend op je kamer. Bestel uiterlijk 30 min. vooraf.</p>
+ </section>
+ <footer>Villa Amano · Wijsstraat 1, Bilzen-Hoeselt · Ontwerpdemo – bestellingen worden nog niet verzonden.</footer>
+</main>
+
+<div class="bar"><div class="bt"><b id="barTot">€ 0</b><small id="barSub">Nog niets gekozen</small></div><button class="cta" id="send" disabled>Bestel <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button></div>
+<div class="toast" id="toast"></div>
+
+<div class="done" id="done">
+ <div class="check"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+ <span class="caps">Bestelling ontvangen</span>
+ <h2>Smakelijk!</h2>
+ <p id="doneTxt"></p>
+ <div class="card sum recap" id="recap"></div>
+ <button class="ghost" onclick="location.reload()">Nieuwe bestelling</button>
+</div>
+
+<script>
+const ROOMS={1:['Rose Quartz','#e8a0b0'],2:['Clear Quartz','#cfe3ee'],3:['Sunstone','#e6b866'],4:['Moonstone','#9fb8e6'],5:['Amethyst','#b48ce6']};
+const MENUS=[
+ {id:'classic',name:'Amano Classic',tag:'Meest gekozen',t:'#e6b866',p:25,items:['Croissant & zuurdesembrood','Roerei of zachtgekookt ei','Lokale kaas & ham','Huisgemaakte confituur','Verse jus & koffie of thee'],
+  art:'<path d="M20 70a40 40 0 0 0 80 0z"/><path d="M14 70h92"/><path d="M38 52c4-10 14-16 22-16s18 6 22 16"/><ellipse cx="60" cy="56" rx="9" ry="6"/><path class="steam" d="M86 30c-3-4 3-6 0-10"/><path class="steam" d="M93 32c-3-4 3-6 0-10"/><path d="M80 40h18v14a9 9 0 0 1-18 0z"/><path d="M98 44h3a4 4 0 0 1 0 8h-3"/><path d="M22 40c3-8 9-12 14-12s11 4 14 12c-3 2-6 1-8-2-1 3-3 4-6 4s-5-1-6-4c-2 3-5 4-8 2z"/>'},
+ {id:'green',name:'Green & Light',tag:'Vegetarisch',t:'#9fc7a8',p:25,items:['Griekse yoghurt & granola','Seizoensfruit & bessen','Avocado op zuurdesem','Groene smoothie','Kruidenthee of matcha'],
+  art:'<path d="M24 66a36 36 0 0 0 72 0z"/><path d="M18 66h84"/><circle cx="46" cy="58" r="5"/><circle cx="58" cy="54" r="5"/><circle cx="70" cy="58" r="5"/><path d="M52 44c0-8 8-14 16-14-1 9-7 14-16 14z"/><path d="M52 44l10-8"/><path d="M84 24h14l-2 26h-10z"/><path d="M85 34h12"/><path d="M93 24l3-8"/><path class="steam" d="M30 40c-3-4 3-6 0-10"/>'},
+ {id:'med',name:'Ibiza Sunrise',tag:'Mediterraan',t:'#e8a0b0',p:28,items:['Shakshuka met feta','Hummus, olijven & pita','Gegrilde tomaat & kruiden','Granaatappel-yoghurt','Glas cava inbegrepen'],
+  art:'<circle cx="56" cy="62" r="30"/><circle cx="56" cy="62" r="22"/><ellipse cx="48" cy="58" rx="6" ry="5"/><ellipse cx="64" cy="66" rx="6" ry="5"/><circle cx="48" cy="58" r="2"/><circle cx="64" cy="66" r="2"/><path d="M86 62h14M100 56v12"/><path d="M90 18h12l-2 16a4 4 0 0 1-8 0z"/><path d="M96 38v10M92 48h8"/><path class="steam" d="M50 24c-3-4 3-6 0-10"/><path class="steam" d="M60 24c-3-4 3-6 0-10"/>'}];
+const SUG=[['glass','Prosecco','€ 6,50 / glas',6.5],['juice','Vers geperst sinaasappelsap','€ 4,50',4.5],['egg','Eggs Benedict','€ 7',7],['flower','Verjaardagsverrassing','€ 12 · bloem & kaartje',12]];
+const DIET=['Glutenvrij','Lactosevrij','Vegan','Notenallergie'];
+const st={room:null,qty:{classic:0,green:0,med:0},time:'08:30',where:'kamer',sug:new Set(),diet:new Set()};
+const $=id=>document.getElementById(id),fmt=n=>'€ '+n.toLocaleString('nl-BE',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2});
+
+// room
+const ri=$('room');
+$('chips').innerHTML=Object.entries(ROOMS).map(([n,[nm,c]])=>`<button type="button" data-n="${n}" style="--t:${c}"><i></i>${n} · ${nm}</button>`).join('');
+function setRoom(v){const n=parseInt(v,10),r=ROOMS[n],el=$('roomName');
+  st.room=r?n:null;el.classList.toggle('err',!!v&&!r);
+  el.innerHTML=r?`<b>${r[0]}</b><small>Kamer ${String(n).padStart(2,'0')}</small>`:`<b>Kamer</b><small>${v?'Onbekend kamernummer — kies 1 tot 5':'Vul je kamernummer in (1 – 5)'}</small>`;
+  ri.style.borderColor=r?r[1]:'';document.querySelectorAll('#chips button').forEach(b=>b.classList.toggle('on',+b.dataset.n===st.room));update()}
+ri.addEventListener('input',()=>setRoom(ri.value));
+$('chips').onclick=e=>{const b=e.target.closest('button');if(b){ri.value=b.dataset.n;setRoom(b.dataset.n)}};
+const qp=new URLSearchParams(location.search).get('kamer')||location.hash.replace('#kamer-','');if(ROOMS[qp]){ri.value=qp;setRoom(qp)}
+
+// coverflow
+const stage=$('stage');
+stage.innerHTML=MENUS.map((m,i)=>`<article class="mc" data-i="${i}" style="--t:${m.t}"><div class="art"><span class="tag">${m.tag}</span><svg viewBox="0 0 120 100">${m.art}</svg></div><div class="mtx"><h3>${m.name}</h3><ul>${m.items.map(x=>`<li>${x}</li>`).join('')}</ul></div><div class="mfoot"><div><b>${fmt(m.p)}</b><br><small>per persoon</small></div><div class="step" data-m="${m.id}"></div></div></article>`).join('');
+$('dots').innerHTML=MENUS.map((_,i)=>`<button aria-label="Menu ${i+1}" data-d="${i}"></button>`).join('');
+const cards=[...stage.children],dots=[...$('dots').children],N=cards.length,mod=x=>((x%N)+N)%N;
+let pos=0,target=0,raf=0,last=0,drag=false,moved=false,sx=0,sp=0,vel=0,lx=0,lt=0,idx=-1,step=0;
+function measure(){step=cards[0].offsetWidth*.66;stage.style.height=Math.max(...cards.map(c=>c.offsetHeight))+'px'}
+function render(){cards.forEach((c,i)=>{let d=((i-pos)%N+N)%N;if(d>N/2)d-=N;const a=Math.abs(d),cl=Math.max(-1.5,Math.min(1.5,d)),e=Math.min(a,2);
+  c.style.transform=`translate3d(${(d*step).toFixed(2)}px,0,${(-a*170).toFixed(1)}px) rotateY(${(-cl*30).toFixed(2)}deg) scale(${(1-e*.07).toFixed(4)})`;
+  c.style.opacity=a>2.4?0:(1-e*.25).toFixed(3);c.style.zIndex=100-Math.round(a*10);c.classList.toggle('on',a<.5)});
+  const k=mod(Math.round(pos));if(k!==idx){idx=k;$('cf').style.setProperty('--cf',MENUS[k].t);dots.forEach((d,j)=>d.classList.toggle('on',j===k))}}
+function tick(t){const dt=Math.min(.05,(t-(last||t))/1000);last=t;if(!drag){pos+=(target-pos)*(1-Math.exp(-dt*7.5));if(Math.abs(target-pos)<.0008){pos=target;render();raf=0;last=0;return}}render();raf=requestAnimationFrame(tick)}
+const run=()=>{if(!raf){last=0;raf=requestAnimationFrame(tick)}};
+function go(i){const c=Math.round(target);let d=mod(i)-mod(c);if(d>N/2)d-=N;if(d<-N/2)d+=N;target=c+d;run()}
+stage.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;drag=true;moved=false;sx=lx=e.clientX;lt=performance.now();sp=pos;vel=0;stage.classList.add('drag');run()});
+addEventListener('pointermove',e=>{if(!drag)return;const now=performance.now(),d=e.clientX-sx;if(Math.abs(d)>6)moved=true;vel=vel*.7+(-(e.clientX-lx)/step/Math.max(1,now-lt)*1000)*.3;lx=e.clientX;lt=now;pos=sp-d/step},{passive:true});
+const end=()=>{if(!drag)return;drag=false;stage.classList.remove('drag');if(performance.now()-lt>90)vel=0;target=Math.max(Math.round(sp)-1,Math.min(Math.round(sp)+1,Math.round(pos+vel*.22)));run()};
+addEventListener('pointerup',end);addEventListener('pointercancel',end);
+stage.addEventListener('click',e=>{if(moved){e.stopPropagation();moved=false;return}const c=e.target.closest('.mc');if(!c)return;const i=+c.dataset.i;if(i!==idx){e.stopPropagation();e.preventDefault();go(i);return}
+  const b=e.target.closest('button[data-q]');if(b){const m=b.parentNode.dataset.m;st.qty[m]=Math.max(0,Math.min(6,st.qty[m]+ +b.dataset.q));update()}},true);
+dots.forEach((d,k)=>d.onclick=()=>go(k));
+addEventListener('resize',()=>{measure();render()});
+
+// time / where
+const T=['07:30','08:00','08:30','09:00','09:30','10:00','10:30'];
+$('times').innerHTML=T.map(t=>`<button type="button" data-t="${t}">${t}</button>`).join('');
+$('times').onclick=e=>{const b=e.target.closest('button');if(b){st.time=b.dataset.t;update()}};
+$('where').onclick=e=>{const b=e.target.closest('button');if(b){st.where=b.dataset.w;update()}};
+// suggestions
+$('sug').innerHTML=SUG.map(([ic,t,p],i)=>`<button type="button" class="sx" data-s="${i}"><svg><use href="#${ic}"/></svg><b>${t}</b><small>${p}</small></button>`).join('');
+$('sug').onclick=e=>{const b=e.target.closest('button');if(b){const i=+b.dataset.s;st.sug.has(i)?st.sug.delete(i):st.sug.add(i);update()}};
+$('diet').innerHTML=DIET.map(d=>`<button type="button" data-d="${d}">${d}</button>`).join('');
+$('diet').onclick=e=>{const b=e.target.closest('button');if(b){const d=b.dataset.d;st.diet.has(d)?st.diet.delete(d):st.diet.add(d);update()}};
+$('note').addEventListener('input',()=>$('cnt').textContent=$('note').value.length);
+
+function rows(){const r=[];MENUS.forEach(m=>{if(st.qty[m.id])r.push([`${st.qty[m.id]} × ${m.name}`,st.qty[m.id]*m.p])});st.sug.forEach(i=>r.push([SUG[i][1],SUG[i][3]]));return r}
+function sumHTML(){const r=rows(),tot=r.reduce((a,x)=>a+x[1],0);
+  if(!r.length)return['<div class="empty">Kies een menu in de carousel hierboven.</div>',0];
+  return[r.map(x=>`<div class="row"><span>${x[0]}</span><span>${fmt(x[1])}</span></div>`).join('')+
+   `<div class="row"><span>Tijdstip</span><span>${st.time} · ${st.where==='kamer'?'op de kamer':'op het terras'}</span></div>`+
+   (st.diet.size?`<div class="row"><span>Dieet</span><span>${[...st.diet].join(', ')}</span></div>`:'')+
+   `<div class="row tot"><span>Totaal</span><b>${fmt(tot)}</b></div>`,tot]}
+function update(){
+  document.querySelectorAll('.step').forEach(s=>{const m=s.dataset.m,q=st.qty[m];
+    s.innerHTML=q?`<button type="button" data-q="-1" aria-label="Minder">−</button><b>${q}</b><button type="button" data-q="1" aria-label="Meer" ${q>=6?'disabled':''}>+</button>`:`<button type="button" class="add" data-q="1">+ Kies</button>`});
+  document.querySelectorAll('#times button').forEach(b=>b.classList.toggle('on',b.dataset.t===st.time));
+  document.querySelectorAll('#where button').forEach(b=>b.classList.toggle('on',b.dataset.w===st.where));
+  document.querySelectorAll('.sx').forEach(b=>b.classList.toggle('on',st.sug.has(+b.dataset.s)));
+  document.querySelectorAll('#diet button').forEach(b=>b.classList.toggle('on',st.diet.has(b.dataset.d)));
+  const [h,tot]=sumHTML();$('sum').innerHTML=h;
+  const pers=Object.values(st.qty).reduce((a,b)=>a+b,0);
+  $('barTot').textContent=fmt(tot);
+  $('barSub').textContent=pers?`${pers} ontbijt${pers>1?'en':''} · ${st.time}${st.room?' · '+ROOMS[st.room][0]:''}`:'Nog niets gekozen';
+  $('send').disabled=!pers;
+}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600)}
+$('send').onclick=()=>{
+  if(!st.room){toast('Vul eerst je kamernummer in.');ri.focus();ri.scrollIntoView({behavior:'smooth',block:'center'});return}
+  const nr='VA-'+String(Date.now()).slice(-5);
+  $('doneTxt').innerHTML=`Je ontbijt wordt om <b>${st.time}</b> ${st.where==='kamer'?'naar <b>'+ROOMS[st.room][0]+'</b> gebracht':'op het terras geserveerd'}. Bestelnummer <b>${nr}</b>.`;
+  const note=$('note').value.trim();
+  $('recap').innerHTML=sumHTML()[0]+(note?`<div class="row" style="margin-top:8px"><span>Opmerking</span><span style="max-width:60%;text-align:right">${note.replace(/</g,'&lt;')}</span></div>`:'');
+  $('done').classList.add('show');scrollTo(0,0);
+};
+update();measure();go(0);render();setTimeout(()=>{measure();render()},300);
+</script>
+</body>
+</html>
