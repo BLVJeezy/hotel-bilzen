@@ -284,6 +284,15 @@ async function poll(){if(!S.perms||!S.perms.includes('orders')||document.hidden&
 function badge(){const n=(S.orders||[]).filter(o=>o.status==='nieuw').length,b=$('#bd');if(b){b.textContent=n;b.classList.toggle('hide',!n)}}
 
 
+/* ---------- GOOGLE ---------- */
+function googleSheet(){const cur=S.googleClientId||'',o=location.origin;openSheet(`<h3>Google-login</h3><div class="sub">Gasten loggen dan in met één tik op “Doorgaan met Google”.</div>
+ <ol class="steps"><li>Open <a href="https://console.cloud.google.com/auth/clients/create" target="_blank" rel="noopener" style="color:var(--gold2)">Google Cloud → Clients</a> (maak eerst een project als dat gevraagd wordt).</li><li>Type: <b>Webapplicatie</b>, naam: Villa Amano.</li><li>Bij <b>Toegestane JavaScript-oorsprongen</b>: <b style="user-select:all">${o}</b> (en later je eigen domein).</li><li>Tik op Maken en kopieer de <b>Client ID</b>.</li></ol>
+ ${S.googleEnv?'<p class="k" style="margin:0 0 12px">Ingesteld via Vercel (GOOGLE_CLIENT_ID).</p>':''}
+ <label class="field"><span>Client ID</span><input id="gci" value="${esc(cur)}" placeholder="…apps.googleusercontent.com" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+ <button class="cta full" id="gcs">${cur?'Bijwerken':'Koppelen'}</button>${cur?'<button class="btn2" style="width:100%;margin-top:8px" id="gcd">Ontkoppelen</button>':''}`);
+ const save=async v=>{try{await api('google-set',{clientId:v});toast(v?'Google-login aan ✓':'Ontkoppeld');closeSheet();await reload();vMore()}catch(e){toast(e.message,1)}};
+ $('#gcs').onclick=()=>save($('#gci').value.trim());const d=$('#gcd');if(d)d.onclick=()=>save('')}
+
 /* ---------- GASTEN ---------- */
 async function reqDone(id){try{await api('req-done',{id});toast('Afgerond ✓');reload()}catch(e){toast(e.message,1)}}
 async function memSet(gid,plan,status){try{await api('member-set',{gid,plan,status});toast(status==='actief'?'Geactiveerd ✓':'Bijgewerkt');await reload();guestsView()}catch(e){toast(e.message,1)}}
@@ -407,7 +416,7 @@ function eventSheet(e){e=e||{date:TODAY(),cat:'event',time:'',title:'',text:'',p
 function vMore(){const P=S.perms,li=(ic,t,sub,fn)=>`<button class="list-btn" onclick="${fn}"><svg><use href="#${ic}"/></svg><span>${t}</span><em>${sub||''}</em><svg style="width:16px;stroke:var(--muted)"><use href="#i-arrow"/></svg></button>`;
  const np='Notification' in window?Notification.permission:'unsupported';
  const pend=P.includes('guests')?(S.guests||[]).reduce((n,g)=>n+Object.values(g.memberships||{}).filter(m=>m.status==='aangevraagd').length,0)+(S.requests||[]).filter(r=>r.status!=='klaar').length:0;
- $('#app').innerHTML=`<div class="card">${P.includes('guests')?li('i-team','Gasten & abonnementen',(pend?pend+' open · ':'')+(S.guests||[]).length+' accounts',"guestsView()"):''}${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'Aan/uit & inhoud',"menusView()"):''}${P.includes('staff')?li('i-team','Personeel',(S.staff||[]).length+' personen',"staffView()"):''}${P.includes('log')?li('i-log','Logboek','Wie deed wat',"logView()"):''}</div>
+ $('#app').innerHTML=`<div class="card">${P.includes('guests')?li('i-team','Gasten & abonnementen',(pend?pend+' open · ':'')+(S.guests||[]).length+' accounts',"guestsView()"):''}${P.includes('connect')?li('i-web','Google-login gasten',S.googleEnv||S.googleClientId?'Aan':'Niet ingesteld',"googleSheet()"):''}${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'Aan/uit & inhoud',"menusView()"):''}${P.includes('staff')?li('i-team','Personeel',(S.staff||[]).length+' personen',"staffView()"):''}${P.includes('log')?li('i-log','Logboek','Wie deed wat',"logView()"):''}</div>
  <div class="card">${li('i-bell','Meldingen',np==='granted'?'Aan':np==='denied'?'Geblokkeerd':'Uit',"notif()")}${li('i-phone','Zet op beginscherm','',"installSheet()")}${li('i-web','Open de website','',"window.open('/','_blank')")}${li('i-out','Uitloggen','',"logout()")}</div>
  ${S.store===false?'<div class="warn" style="max-width:none">Opslag is nog niet gekoppeld in Vercel. Wijzigingen worden nog niet bewaard.</div>':''}
  <p class="k" style="text-align:center;margin-top:18px">Villa Amano · Operations center v1</p>`}

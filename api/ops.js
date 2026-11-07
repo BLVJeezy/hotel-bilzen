@@ -229,6 +229,27 @@ module.exports = async (req, res) => {
 
     // ===== gasten: account =====
     if (a === 'plans') return send(res, 200, { plans: PLANS });
+    if (a === 'g-config') { const { data: C } = await load('config'); return send(res, 200, { google: process.env.GOOGLE_CLIENT_ID || C.googleClientId || null }); }
+    if (a === 'g-google' && req.method === 'POST') {
+      const b = await body(req);
+      const { data: C } = await load('config');
+      const cid = process.env.GOOGLE_CLIENT_ID || C.googleClientId;
+      if (!cid) return send(res, 400, { error: 'Google-login is nog niet ingesteld' });
+      let info;
+      try { const r = await fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(String(b.credential || ''))); info = r.ok ? await r.json() : null; } catch (e) { info = null; }
+      if (!info || info.aud !== cid || !['accounts.google.com', 'https://accounts.google.com'].includes(info.iss) || String(info.email_verified) !== 'true' || Number(info.exp) * 1000 < Date.now())
+        return send(res, 401, { error: 'Inloggen met Google mislukt, probeer opnieuw' });
+      const email = String(info.email).toLowerCase();
+      let g, isNew = false;
+      await mutate('guests', d => {
+        g = d.guests.find(x => x.googleSub === info.sub) || d.guests.find(x => x.email === email);
+        if (g) { g.googleSub = info.sub; if (!g.name) g.name = clean(info.name, 80); return; }
+        g = { id: id(), email, name: clean(info.name || email.split('@')[0], 80), phone: '', googleSub: info.sub, created: Date.now(), memberships: {} };
+        d.guests.push(g); isNew = true;
+      });
+      if (isNew) await addLog({ name: g.name }, 'Nieuw gastaccount (Google)');
+      return send(res, 200, { token: sign({ gid: g.id, name: g.name, role: 'guest', exp: Date.now() + 180 * 864e5 }), name: g.name, isNew, needPhone: !g.phone });
+    }
     if ((a === 'g-register' || a === 'g-login') && req.method === 'POST') {
       const b = await body(req);
       const email = clean(b.email, 120).toLowerCase(), pw = String(b.password || '');
@@ -250,6 +271,7 @@ module.exports = async (req, res) => {
       } else {
         const { data } = await load('guests');
         g = data.guests.find(x => x.email === email);
+        if (g && !g.pw) return send(res, 401, { error: 'Dit account gebruikt Google. Tik op “Doorgaan met Google”.' });
         if (!g || hashPw(pw, g.salt) !== g.pw) return send(res, 401, { error: 'E-mail of wachtwoord klopt niet' });
       }
       return send(res, 200, { token: sign({ gid: g.id, name: g.name, role: 'guest', exp: Date.now() + 180 * 864e5 }), name: g.name });
@@ -337,6 +359,7 @@ module.exports = async (req, res) => {
       if (can(u, 'calendar')) out.calendar = K.entries;
       if (can(u, 'agenda')) out.events = A.events;
       if (can(u, 'connect')) out.ical = C.ical, out.icalKey = C.icalKey;
+      if (can(u, 'connect')) out.googleClientId = C.googleClientId || '', out.googleEnv = !!process.env.GOOGLE_CLIENT_ID;
       if (can(u, 'prices')) out.prices = C.prices;
       if (can(u, 'staff')) out.staff = C.staff.map(s => ({ id: s.id, name: s.name, role: s.role, active: s.active !== false }));
       if (can(u, 'log')) out.log = (await load('log')).data.log.slice(0, 120);
@@ -407,6 +430,14 @@ module.exports = async (req, res) => {
         (b.extras || []).forEach(m => { const t = d.extras.find(x => x.id === m.id); if (!t) return; t.active = !!m.active; if (u.role === 'owner' && +m.price > 0) t.price = Math.round(+m.price * 100) / 100; });
       });
       await addLog(u, "Menu's bijgewerkt");
+      return send(res, 200, { ok: true });
+    }
+    if (a === 'google-set') {
+      if (!can(u, 'connect')) return send(res, 403, { error: 'Geen toegang' });
+      const v = clean(b.clientId, 200);
+      if (v && !/^[\w-]+\.apps\.googleusercontent\.com$/.test(v)) return send(res, 400, { error: 'Dit lijkt geen Google Client ID (…apps.googleusercontent.com)' });
+      await mutate('config', C => { C.googleClientId = v; });
+      await addLog(u, v ? 'Google-login gekoppeld' : 'Google-login ontkoppeld');
       return send(res, 200, { ok: true });
     }
     if (a === 'prices-save') {

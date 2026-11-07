@@ -41,6 +41,7 @@ button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:i
 .b2{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 18px;border-radius:999px;border:1px solid #e8d8b84d;background:transparent;font-size:14px;white-space:nowrap}
 .b2.red{border-color:#e8a0a066;color:var(--red)}
 .sw{text-align:center;color:var(--muted);font-size:14px;margin-top:14px}.sw button{background:none;border:0;color:var(--gold2);text-decoration:underline}
+.or{display:flex;align-items:center;gap:12px;margin:16px 0 14px;color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase}.or:before,.or:after{content:'';flex:1;height:1px;background:#ffffff1f}
 .err{color:#f3c0c0;font-size:13.5px;margin-bottom:10px}.err:empty{display:none}
 /* shell */
 #app{padding:calc(70px + var(--st)) 16px calc(100px + var(--sb));max-width:640px;margin:auto}
@@ -144,6 +145,7 @@ button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:i
  <img class="lg" src="/img/logo_a.png" alt="Villa Amano">
  <span class="caps" style="text-align:center">Mijn Villa Amano</span>
  <h1 id="aT">Welkom</h1><p id="aP">Log in om je verblijf, bestellingen en abonnementen te bekijken.</p>
+ <div id="gWrap" class="hide"><div id="gBtn" style="display:flex;justify-content:center;min-height:44px"></div><div class="or"><span>of met e-mail</span></div></div>
  <form id="aF" novalidate>
   <label class="f reg hide"><span>Naam</span><input name="name" autocomplete="name" placeholder="Voor- en achternaam"></label>
   <label class="f"><span>E-mail</span><input name="email" type="email" inputmode="email" autocomplete="email" placeholder="jij@voorbeeld.be"></label>
@@ -182,7 +184,10 @@ function authMode(m){MODE=m;document.querySelectorAll('#aF .reg').forEach(x=>x.c
  $('#aB').textContent=m==='register'?'Account aanmaken':'Inloggen';$('#aS').innerHTML=m==='register'?'Al een account? <button type="button" data-m="login">Log in</button>':'Nog geen account? <button type="button" data-m="register">Maak er een</button>';$('#aE').textContent=''}
 $('#aS').onclick=e=>{const b=e.target.closest('[data-m]');if(b)authMode(b.dataset.m)};
 $('#aF').onsubmit=async e=>{e.preventDefault();const f=e.target;$('#aB').disabled=true;try{const r=await api(MODE==='register'?'g-register':'g-login',{name:f.name.value,email:f.email.value,phone:f.phone.value,password:f.password.value});T=r.token;try{localStorage.setItem('va_g_t',T)}catch(x){}start()}catch(x){$('#aE').textContent=x.message;if(x.status===409)authMode('login')}$('#aB').disabled=false};
-function showAuth(){$('#auth').classList.remove('hide');$('#shell').classList.add('hide');authMode('login')}
+function gInit(){fetch('/api/ops?a=g-config').then(r=>r.json()).then(c=>{if(!c.google)return;const go=()=>{google.accounts.id.initialize({client_id:c.google,callback:async res=>{try{const r=await api('g-google',{credential:res.credential});T=r.token;try{localStorage.setItem('va_g_t',T)}catch(x){}start()}catch(x){$('#aE').textContent=x.message}},ux_mode:'popup',auto_select:false});
+ google.accounts.id.renderButton($('#gBtn'),{theme:'filled_black',shape:'pill',size:'large',text:'continue_with',locale:'nl',width:Math.min(380,$('#auth').clientWidth-44)});$('#gWrap').classList.remove('hide')};
+ if(window.google&&google.accounts)go();else{const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.async=1;sc.onload=go;document.head.appendChild(sc)}}).catch(()=>{})}
+function showAuth(){gInit();$('#auth').classList.remove('hide');$('#shell').classList.add('hide');authMode('login')}
 function logout(silent){T=null;try{localStorage.removeItem('va_g_t')}catch(e){}if(!silent)toast('Uitgelogd');showAuth()}
 
 /* shell */
@@ -207,6 +212,7 @@ function vHome(){const t=D.today,rs=D.reservations.filter(r=>r.status!=='geannul
  const h=new Date().getHours(),hi=h<12?'Goedemorgen':h<18?'Goedemiddag':'Goedenavond';
  let x=`<div class="hello"><h1>${hi}, ${esc(D.me.name.split(' ')[0])}</h1><p>Rest · Create · Be</p></div>`;
  if(nr)x+=`<div class="ok"><svg><use href="#i-check"/></svg><div><b>Reservatie bevestigd</b><br><span style="color:var(--muted);font-size:13px">${nr.kind==='room'?esc(nr.roomName)+' · '+nice(nr.from)+' → '+nice(nr.to):(nr.kind==='lessen'?'Lessenreeks':'Vrij atelier')+' · '+nice(nr.date)} · ${fmt(nr.total)}</span></div></div>`;
+ if(!D.me.phone)x+=`<div class="ok" style="border-color:#e6b86666;background:#e6b86612;cursor:pointer" onclick="profileSheet()"><svg style="stroke:var(--gold)"><use href="#i-phone"/></svg><div><b>Voeg je telefoonnummer toe</b><br><span style="color:var(--muted);font-size:13px">Zo kunnen we je bereiken rond je verblijf.</span></div></div>`;
  if(stay){const r=R[stay.room],now=stay.from<=t&&stay.to>=t,dl=days(t,stay.from);
   x+=`<div class="stay" style="--t:${r[1]}"><div class="im" style="background-image:url('/img/${r[2]}.jpg')"><span class="badge">${now?'● Je verblijf loopt':dl===1?'Morgen aankomst':'Nog '+dl+' dagen'}</span></div><div class="bd">
   <span class="caps" style="color:${r[1]}">Kamer ${String(stay.roomNo).padStart(2,'0')}</span><h2>${esc(stay.roomName)}</h2><div class="dt">${nice(stay.from)} → ${nice(stay.to)} · ${stay.guests} gast${stay.guests>1?'en':''}</div>

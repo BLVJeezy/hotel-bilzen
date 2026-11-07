@@ -537,6 +537,7 @@ button.bk-d{background:none;border:0;font:inherit;text-align:left;width:100%}
 .au-box label span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .au-box input{height:52px;border-radius:16px;border:1px solid #ffffff22;background:#120f0d;color:var(--text);padding:0 16px;font:300 16px var(--sans);outline:none;margin:0}
 .au-box input:focus{border-color:var(--gold)}
+.au-gb{display:flex;justify-content:center;min-height:44px}.au-or{display:flex;align-items:center;gap:12px;margin:6px 0 0;color:var(--muted);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase}.au-or:before,.au-or:after{content:'';flex:1;height:1px;background:#ffffff1f}
 .au-err{color:#f3c0c0;font-size:13.5px;min-height:0}.au-err:empty{display:none}
 .au-sw{text-align:center;font-size:14px;color:var(--muted)}.au-sw button{background:none;border:0;color:var(--gold2);font:inherit;text-decoration:underline;cursor:pointer}
 
@@ -964,6 +965,7 @@ footer ul a:hover{color:var(--beige)}
  <button type="button" class="au-x" aria-label="Sluiten">×</button>
  <img src="img/logo_a.png" alt="" class="au-logo"><div class="au-sum"></div>
  <h3></h3><p class="au-p"></p>
+ <div class="au-g" hidden><div class="au-gb"></div><div class="au-or"><span>of met e-mail</span></div></div>
  <label class="reg"><span>Naam</span><input name="name" autocomplete="name" placeholder="Voor- en achternaam"></label>
  <label><span>E-mail</span><input name="email" type="email" autocomplete="email" inputmode="email" placeholder="jij@voorbeeld.be"></label>
  <label class="reg"><span>Telefoon</span><input name="phone" type="tel" autocomplete="tel" placeholder="+32 …"></label>
@@ -1258,7 +1260,11 @@ async function gapi(a,body,tok){const r=await fetch('/api/ops?a='+a,{method:body
 let PEND=null;
 function bookNow(payload,summary,total,onErr){PEND={payload,summary,total,onErr};const t=GT.get();if(t)return doReserve(t);openAuth()}
 async function doReserve(t){const P=PEND;const box=document.getElementById('authBox');try{const r=await gapi('g-reserve',P.payload,t);closeAuth();location.href='/portaal/?nieuw='+encodeURIComponent(r.reservation.id)}catch(e){if(e.status===401){GT.set('');openAuth();return}closeAuth();P.onErr(e.message)}}
-function openAuth(mode){const el=document.getElementById('auth');mode=mode||'register';el.dataset.mode=mode;
+let GINIT=0;function gInit(){if(GINIT)return;GINIT=1;fetch('/api/ops?a=g-config').then(r=>r.json()).then(c=>{if(!c.google)return;const el=document.getElementById('auth'),w=el.querySelector('.au-g');
+ const go=()=>{google.accounts.id.initialize({client_id:c.google,ux_mode:'popup',callback:async res=>{const er=el.querySelector('.au-err');er.textContent='';try{const r=await gapi('g-google',{credential:res.credential});GT.set(r.token);await doReserve(r.token)}catch(x){er.textContent=x.message}}});
+  google.accounts.id.renderButton(w.querySelector('.au-gb'),{theme:'filled_black',shape:'pill',size:'large',text:'continue_with',locale:'nl',width:Math.min(380,innerWidth-60)});w.hidden=false};
+ if(window.google&&google.accounts)go();else{const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.async=1;sc.onload=go;document.head.appendChild(sc)}}).catch(()=>{GINIT=0})}
+function openAuth(mode){const el=document.getElementById('auth');gInit();mode=mode||'register';el.dataset.mode=mode;
  el.querySelector('.au-sum').innerHTML=PEND?`<span class="caps">Jouw reservatie</span><b>${PEND.summary}</b><em>${PEND.total}</em>`:'';
  el.querySelector('h3').textContent=mode==='register'?'Maak je account aan':'Log in';
  el.querySelector('.au-p').textContent=mode==='register'?'Met je Villa Amano-account beheer je je verblijf, bestel je ontbijt op de kamer en volg je je abonnementen.':'Welkom terug. Log in om je reservatie te bevestigen.';
