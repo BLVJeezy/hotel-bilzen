@@ -331,6 +331,10 @@ input:focus,select:focus{outline:none;border-color:var(--beige)}
 #roomPage .rfacts b.g{color:var(--tint)}
 #roomPage .room .tint-name{color:var(--tint)}
 .rhero{position:relative;height:78vh;min-height:520px;display:flex;align-items:flex-end;overflow:hidden}
+.rh-cta{margin-top:28px}
+.qbook{border-radius:999px;padding:16px 26px;font-size:15px;cursor:pointer}
+.qbook span{opacity:.7;font-weight:400}
+#roomBook{scroll-margin-top:100px}
 .rhero .rvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .rhero .img{position:absolute;inset:0;background-size:cover;background-position:center;animation:kb 14s ease-out forwards}
 .rhero:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,var(--bg) 0%,#16120fa0 30%,transparent 65%),linear-gradient(90deg,#0d0a08d0,transparent 70%)}
@@ -438,6 +442,7 @@ footer ul a:hover{color:var(--beige)}
   .rhero.has-vid:after{display:none}
   .rhero.has-vid .in{padding:26px 22px 40px}
   .rhero.has-vid h1{font-size:clamp(48px,14vw,72px)}
+  .rh-cta{margin-top:24px}.qbook{width:100%;justify-content:center;padding:17px 22px}
   .rfacts{grid-template-columns:1fr 1fr;margin-bottom:50px}
   .rbody{grid-template-columns:1fr;gap:40px}.sticky{position:static}
   .gal{grid-template-columns:1fr 1fr;grid-auto-rows:170px;margin-top:60px}.gal figure:nth-child(1){grid-column:span 2;grid-row:span 1;height:240px}
@@ -909,7 +914,7 @@ function roomPage(r){
   const amen=[...COMMON,r.max===3?['sofa','Extra volwassenwaardig zetelbed']:['bed','Bed als tweepersoonsbed of twee aparte bedden']];
   return `<div style="--tint:${r.tint}">
   <section class="rhero${r.vid?' has-vid':''}"><div class="img" style="background-image:url('${IMG(r.img)}')"></div>${r.vid?`<video class="rvid" src="${r.vid}" poster="${IMG(r.img)}" autoplay muted loop playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-hidden="true"></video>`:''}
-   <div class="in"><a class="back" href="#kamers">${arrow} Alle kamers</a><div class="caps">Villa Amano · Boutique Hotel</div><h1>${r.name}</h1><p>${r.d}</p></div></section>
+   <div class="in"><a class="back" href="#kamers">${arrow} Alle kamers</a><div class="caps">Villa Amano · Boutique Hotel</div><h1>${r.name}</h1><p>${r.d}</p><div class="rh-cta"><button type="button" class="btn gold qbook" onclick="document.getElementById('roomBook').scrollIntoView({behavior:'smooth',block:'start'})">Reserveer nu <span>· € ${r.p} / nacht</span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><use href="#arrow"/></svg></button></div></div></section>
   <section class="wrap" style="padding-top:10px;padding-bottom:120px">
    <div class="rfacts rv"><div><span>Per nacht</span><b class="g">€ ${r.p}</b></div><div><span>Max. bezetting</span><b>${r.max} gasten</b></div><div><span>Check-in</span><b>15:00–21:00</b></div><div><span>Check-out</span><b>11:00</b></div></div>
    <div class="rbody">
