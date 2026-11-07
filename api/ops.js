@@ -482,6 +482,37 @@ module.exports = async (req, res) => {
       await addLog(u, `QR ${out.ok ? '✓' : '✕'} ${out.guest || ''} · ${out.why}`);
       return send(res, 200, out);
     }
+    if (a === 'demo-seed' || a === 'demo-clear') {
+      if (u.role !== 'owner') return send(res, 403, { error: 'Alleen de eigenaar' });
+      const email = 'jasonbalongo@gmail.com';
+      if (a === 'demo-clear') {
+        await mutate('guests', d => { d.reservations = d.reservations.filter(r => !r.demo); });
+        await mutate('calendar', d => { d.entries = d.entries.filter(e => !e.demo); });
+        await addLog(u, 'Voorbeeldreservaties verwijderd'); return send(res, 200, { ok: true });
+      }
+      const { data: C } = await load('config'), { data: K } = await load('calendar'), { data: A } = await load('agenda');
+      const t = today(), t2 = addDays(t, 2);
+      let room = ROOMS.find(rm => !K.entries.some(e => e.room === rm && e.from < t2 && e.to > t)), from = t, to = t2;
+      if (!room) { for (let i = 3; i < 60 && !room; i++) { from = addDays(t, i); to = addDays(from, 2); room = ROOMS.find(rm => !K.entries.some(e => e.room === rm && e.from < to && e.to > from)); } }
+      const ev = A.events.filter(e => e.date > t).sort((x, y) => x.date < y.date ? -1 : 1)[0];
+      let pw = null, g;
+      await mutate('guests', d => {
+        d.reservations = d.reservations.filter(r => !r.demo);
+        g = d.guests.find(x => x.email === email);
+        if (!g) { pw = 'amano-' + crypto.randomBytes(3).toString('hex'); const salt = crypto.randomBytes(12).toString('hex'); g = { id: id(), email, name: 'Jason Balongo', phone: '', salt, pw: hashPw(pw, salt), created: Date.now(), memberships: {} }; d.guests.push(g); }
+        const base = { guestId: g.id, guestName: g.name, created: Date.now(), status: 'bevestigd', demo: true };
+        const mk = (k, x) => ({ id: 'R' + (Date.now() + k).toString(36).toUpperCase(), ...base, ...x });
+        const r1 = mk(1, { kind: 'room', room, roomName: ROOM_NAMES[room], roomNo: ROOMS.indexOf(room) + 1, from, to, guests: 2, extras: { ontbijt: true, well: true, bike: false, late: false } }); Object.assign(r1, quote(C, r1));
+        const r2 = mk(2, { kind: 'pottery', date: t, guests: 2, member: false }); Object.assign(r2, quote(C, r2));
+        const rs = [r1, r2];
+        if (ev) rs.push(mk(3, { kind: 'event', eventId: ev.id, title: ev.title, date: ev.date, time: ev.time, guests: 2, total: (parseFloat(String(ev.price).replace(/[^\d,.]/g, '').replace(',', '.')) || 0) * 2 }));
+        d.reservations.push(...rs); g._rs = rs;
+      });
+      const rs = g._rs; delete g._rs;
+      await mutate('calendar', d => { d.entries = d.entries.filter(e => !e.demo); d.entries.push({ id: 'c' + rs[0].id, ref: rs[0].id, room, from, to, type: 'booking', guest: 'Jason Balongo', guestId: g.id, note: 'Voorbeeld · 2 pers. · ontbijt', by: 'Demo', demo: true, created: Date.now() }); });
+      await addLog(u, '3 voorbeeldreservaties aangemaakt voor Jason Balongo');
+      return send(res, 200, { ok: true, email, password: pw, items: rs.map(r => ({ id: r.id, kind: r.kind, label: r.kind === 'room' ? r.roomName + ' · kamer ' + String(r.roomNo).padStart(2, '0') : r.kind === 'event' ? r.title : 'Vrij atelier Pottery', when: r.kind === 'room' ? r.from + ' → ' + r.to : r.date + (r.time ? ' · ' + r.time : ''), qr: qrCode('R', r.id), valid: validity(r) })) });
+    }
     if (a === 'google-set') {
       if (!can(u, 'connect')) return send(res, 403, { error: 'Geen toegang' });
       const v = clean(b.clientId, 200);
