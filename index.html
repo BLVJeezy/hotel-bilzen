@@ -271,9 +271,10 @@ input:focus,select:focus{outline:none;border-color:var(--beige)}
 .eq b:nth-child(2){animation-delay:-.3s}.eq b:nth-child(3){animation-delay:-.6s}.eq b:nth-child(4){animation-delay:-.15s}
 .cf.paused .eq b{animation-play-state:paused}
 @keyframes eq{0%,100%{height:3px}50%{height:14px}}
+.cf-more{display:none}
 .acts-m{display:none;padding:100px 0 110px;background:var(--bg)}
 .acts-m h2{font-size:clamp(44px,5.5vw,80px);font-weight:300;margin:14px 0 30px}
-@media(max-width:1000px){.acts-m{display:block}.panel{display:none}.cf{--cw:min(290px,72vw)}.cf-nav .cf-btn{display:none}}
+@media(max-width:1000px){.acts-m{display:block}.panel{display:none}.more-grid{display:none}.cf-more{display:block;margin:20px -22px 0}.cf{--cw:min(290px,72vw)}.cf-nav .cf-btn{display:none}}
 
 /* BOOKING WIDGET */
 .bk{display:flex!important;flex-direction:column;gap:22px;padding:30px!important;border-radius:26px!important;background:linear-gradient(160deg,#ffffff0f,#ffffff04)!important;border:1px solid #e8d8b826!important;box-shadow:0 30px 70px #0006,inset 0 1px 0 #ffffff14}
@@ -646,6 +647,7 @@ footer ul a:hover{color:var(--beige)}
       <div class="card rv"><div class="cimg" style="background-image:url('img/shop.jpg')"></div><h3>The Amano Shop</h3><p>Keramiek, verzorging en sfeer om mee naar huis te nemen.</p><a class="link" href="#contact">Naar de shop <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div>
       <div class="card rv"><div class="cimg" style="background-image:url('img/rose-handdoek.jpg')"></div><h3>Cadeaubon</h3><p>Schenk een verblijf, wellnessmoment of keramiekreeks.</p><a class="link" href="#contact">Bon kiezen <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div>
     </div>
+    <div class="cf cf-more" id="cfMore"></div>
   </div>
 </section>
 
@@ -824,6 +826,11 @@ const ACT_CF=[
  {k:'wellness',img:'wellness',title:'Wellness & ontspanning',short:'10:00–19:30',meta:'<b>€ 35</b> p.p. · max. 3 uur · alleen hotelgasten',href:'#boeken',cta:'Ontdek wellness',tint:'#b06ad0',play:'lotus'},
  {k:'ontbijt',img:'terras',title:'Ontbijt bij Villa Amano',short:'07:30–10:30',meta:'<b>€ 25</b> p.p. · 07:30–10:30 · prosecco € 6,50',href:'#boeken',cta:'Voeg toe aan verblijf',tint:'#e6b866',play:'cloche'}];
 const cfActs=coverflow(document.getElementById('cfActs'),ACT_CF);
+coverflow(document.getElementById('cfMore'),[
+ {img:'lounge2',title:'Amano Retreats',meta:'Meerdaagse programma\'s met verblijf, wellness en keramiek',href:'#contact',cta:'Meer info',tint:'#9fc7a8'},
+ {img:'lounge',title:'Amano Therapy',meta:'Begeleiding en coaching in een warme omgeving',href:'#contact',cta:'Meer info',tint:'#a8b8e6'},
+ {img:'shop',title:'The Amano Shop',meta:'Keramiek, verzorging en sfeer voor thuis',href:'#contact',cta:'Naar de shop',tint:'#e6b866'},
+ {img:'rose-handdoek',title:'Cadeaubon',meta:'Schenk een verblijf, wellness of keramiek',href:'#contact',cta:'Bon kiezen',tint:'#e8a0b0'}]);
 const MQM=matchMedia('(max-width:1000px)');
 function jump(h,smooth){let el=document.getElementById(h);const k=ACT_CF.findIndex(a=>a.k===h);
   if(MQM.matches&&k>-1){cfActs.go(k);el=document.getElementById('activiteiten')}
