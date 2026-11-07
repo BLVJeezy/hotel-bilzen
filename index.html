@@ -212,7 +212,7 @@ input:focus,select:focus{outline:none;border-color:var(--beige)}
 #msg{display:none;border-left:2px solid var(--beige);padding:12px 16px;background:#e8d8b80d;font-size:14px;color:#d6cab7}
 .fine{font-size:12px;color:#857865;margin:0}
 .excl-wrap{position:relative;margin-top:80px;padding:70px clamp(18px,5vw,70px);isolation:isolate;overflow:hidden;border-radius:8px}
-.excl-wrap .bg{position:absolute;inset:0;z-index:-2;background:linear-gradient(0deg,#0d0a08b0,#0d0a0840),url('img/villa-avond.jpg') center 40%/cover}
+.excl-wrap .bg{position:absolute;inset:0;z-index:-2;background:linear-gradient(0deg,#0d0a08e6 0%,#0d0a0880 55%,#0d0a0840),url('img/villa-avond.jpg') center 40%/cover}
 .excl-wrap .blob{position:absolute;z-index:-1;border-radius:50%;filter:blur(60px);animation:float 14s ease-in-out infinite alternate}
 .excl-wrap .b1{width:340px;height:240px;left:4%;top:0;background:#e6b86670}
 .excl-wrap .b2{width:300px;height:220px;right:8%;bottom:0;background:#b0702f80;animation-delay:-6s}
@@ -220,7 +220,7 @@ input:focus,select:focus{outline:none;border-color:var(--beige)}
 @keyframes float{from{transform:translate(0,0) scale(1)}to{transform:translate(40px,-20px) scale(1.15)}}
 .exclusive{position:relative;padding:44px 48px;display:flex;justify-content:space-between;align-items:center;gap:30px;flex-wrap:wrap;background:linear-gradient(135deg,#ffffff14,#ffffff05 60%);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);border-radius:6px;box-shadow:inset 0 1px 0 #ffffff22,0 30px 80px #00000060}
 .exclusive:before{content:'';position:absolute;inset:0;border-radius:6px;padding:1px;background:linear-gradient(120deg,#f6dfa4,#e6b86640 35%,#ffffff10 60%,#e6b866aa);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
-.exclusive .caps{color:var(--gold)}
+.exclusive .caps{color:var(--gold);display:block;line-height:1.7;letter-spacing:.3em}
 .exclusive h3{font-size:clamp(34px,3.6vw,46px);font-weight:300;margin:10px 0;background:linear-gradient(100deg,#fff3d6,#f6dfa4 30%,#e6b866 60%,#c98d3e);-webkit-background-clip:text;background-clip:text;color:transparent}
 .exclusive p{color:#d9ccb8;margin:0;max-width:640px}
 .btn.gold{border:0;color:#24180e;background:linear-gradient(120deg,#f6dfa4,#e6b866 55%,#c98d3e);box-shadow:0 8px 30px #e6b86640;font-weight:500}
@@ -338,6 +338,17 @@ input:focus,select:focus{outline:none;border-color:var(--beige)}
 .film figcaption b{font:300 clamp(28px,3.4vw,48px) var(--serif)}
 .film+.excl-wrap{margin-top:40px}
 @media(max-width:560px){.film{aspect-ratio:4/5;margin-top:70px}}
+
+
+/* simple exclusive */
+.excl-wrap{border-radius:26px;padding:clamp(22px,5vw,60px)}
+.exclusive{background:#100d0b8c!important;backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;border-radius:22px!important;border:1px solid #ffffff1f;box-shadow:none!important;padding:clamp(26px,4vw,44px)!important}
+.exclusive:before{display:none}
+.exclusive h3{background:none!important;-webkit-background-clip:initial!important;background-clip:initial!important;color:var(--text)!important;font-size:clamp(32px,3.4vw,44px)!important}
+.exclusive .caps{color:var(--gold);display:block;line-height:1.7;letter-spacing:.3em}
+.exclusive p{color:#cfc3b0!important}
+.exclusive .btn.gold{border-radius:999px;box-shadow:none}
+@media(max-width:560px){.exclusive .btn.gold{width:100%;justify-content:center}}
 
 /* ROOM PAGE */
 #roomPage{min-height:100vh}
@@ -672,7 +683,7 @@ footer ul a:hover{color:var(--beige)}
       <video id="filmVid" muted loop playsinline webkit-playsinline preload="metadata" poster="vid/film-poster.jpg" disablepictureinpicture disableremoteplayback aria-label="Sfeerfilm Villa Amano"></video>
       <figcaption><span class="caps">Rest · Create · Be</span><b>Een blik op Villa Amano</b></figcaption>
     </figure>
-    <div class="excl-wrap rv"><span class="bg"></span><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+    <div class="excl-wrap rv"><span class="bg"></span>
       <div class="exclusive">
         <div><span class="caps">Voor bedrijven & groepen</span><h3>Villa Amano exclusief huren</h3><p>Alle vijf de kamers vanaf twee nachten, met optioneel wellness, keramiek, coaching, ontbijt en catering.</p></div>
         <a class="btn gold" href="#contact">Vraag een voorstel aan <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><use href="#arrow"/></svg></a>
