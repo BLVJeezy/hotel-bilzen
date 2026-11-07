@@ -178,6 +178,39 @@ button{cursor:pointer}
 .verdict{border-radius:26px;padding:24px 18px;text-align:center;margin-bottom:12px;display:flex;flex-direction:column;align-items:center;gap:4px}.verdict .vi{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-size:32px;margin-bottom:6px;color:#14100d}
 .verdict b{font:400 30px var(--serif)}.verdict span{font-size:14px;opacity:.85}
 .verdict.green{background:#9fc7a822;border:1px solid #9fc7a8aa}.verdict.green .vi{background:#9fc7a8}.verdict.red{background:#e8a0a01f;border:1px solid #e8a0a0aa}.verdict.red .vi{background:#e8a0a0}.verdict.amber{background:#e6b8661f;border:1px solid #e6b866aa}.verdict.amber .vi{background:#e6b866}
+
+.sb-top,.sb-me,.sb-web{display:none}
+@media(min-width:1024px){
+ .tabs{inset:0 auto 0 0;width:256px;flex-direction:column;justify-content:flex-start;gap:4px;padding:28px 16px;border-top:0;border-right:1px solid #ffffff10;background:#110e0c}
+ .sb-top{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:0 8px 22px;margin-bottom:10px;border-bottom:1px solid #ffffff0d}.sb-top img{height:44px;width:auto}
+ .tabs .sb-scan{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;width:100%;height:46px;margin-top:8px;border:0;border-radius:14px;background:linear-gradient(120deg,#f6dfa4,#e6b866 55%,#c98d3e);color:#24180e;font:500 14px var(--sans);box-shadow:0 8px 24px #e6b86633;letter-spacing:0}.tabs .sb-scan svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7}
+ .tabs button[data-t]{flex:none;flex-direction:row;gap:14px;height:46px;padding:0 14px;border-radius:13px;font-size:14px;letter-spacing:0;justify-content:flex-start;width:100%}
+ .tabs button[data-t] svg{width:20px;height:20px}.tabs button[data-t]:hover{background:#ffffff08;color:var(--text)}
+ .tabs button[data-t].on{background:linear-gradient(120deg,#e6b8661f,#e6b86608);color:var(--gold2);box-shadow:inset 0 0 0 1px #e6b86633}
+ .tabs .bd{position:static;margin-left:auto}
+ .sb-me{display:flex;gap:12px;align-items:center;margin-top:auto;padding:14px 8px;border-top:1px solid #ffffff0d}.sb-me>b{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(120deg,#f6dfa4,#c98d3e);color:#24180e;font:500 14px var(--sans);flex:none}.sb-me span{display:block;font-size:14px}.sb-me small{color:var(--muted);font-size:12px}
+ .sb-web{display:block;padding:4px 8px 0;font-size:12.5px;color:var(--muted)}.sb-web:hover{color:var(--gold2)}
+ .top{left:256px;padding:22px 40px 14px}.top img,#scanB,.top #me{display:none}.top h2{font-size:30px;margin:0}
+ #app{max-width:none;margin:0 0 0 256px;padding:96px 40px 50px}
+ #app>*{max-width:1320px}
+ .hello h1{font-size:46px}
+ .tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 24px;align-items:start;max-width:1320px}.tgrid .pair .sec{margin-top:14px}
+ .kb{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+ .kcol{background:#ffffff05;border:1px solid #ffffff0d;border-radius:22px;padding:12px;min-height:60vh}.kcol .ord{margin-bottom:10px}
+ .kh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:4px 6px 12px}.kh b{font:400 22px var(--serif)}.kh i{font-style:normal;font-size:12px;padding:1px 9px;border-radius:999px;background:#ffffff12}.kh small{width:100%;color:var(--muted);font-size:12px}
+ .k-nieuw .kh i{background:#e86a6a;color:#fff}.k-bereiding .kh i{background:#e6b866;color:#24180e}
+ .cwrap{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:24px;align-items:start}.cwrap .cs{margin-top:0}
+ .tl{margin-bottom:18px;overflow-x:auto}.tlh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}.tlh b{font:400 22px var(--serif)}
+ .tlg{display:grid;grid-template-columns:150px repeat(var(--n),minmax(22px,1fr));gap:3px;align-items:center;min-width:900px}
+ .tlg .dh{font-size:10.5px;color:var(--muted);text-align:center;padding-bottom:4px}.tlg .dh.we{color:#d6cab7}.tlg .dh.td{color:#24180e;background:var(--gold);border-radius:6px}
+ .tlr{display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border-radius:10px;border:1px solid transparent;background:none;color:inherit;font:inherit;font-size:13px;text-align:left}.tlr i{width:9px;height:9px;border-radius:50%;background:var(--t)}.tlr.on{border-color:color-mix(in srgb,var(--t) 50%,transparent);background:color-mix(in srgb,var(--t) 10%,transparent)}
+ .tlg .c{height:34px;border-radius:6px;background:#ffffff07}.tlg .c.bk{background:color-mix(in srgb,var(--t) 55%,#1d1814)}.tlg .c.st{box-shadow:inset 3px 0 0 #fff8}.tlg .c.bl{background:repeating-linear-gradient(135deg,#ffffff30 0 3px,#ffffff0a 3px 6px)}.tlg .c.ext{background:#9fb8e655}.tlg .c.past{opacity:.45}
+ .sheet{left:50%;right:auto;top:50%;bottom:auto;width:540px;max-width:calc(100vw - 40px);max-height:86vh;border-radius:26px;border-bottom:1px solid #e8d8b826;transform:translate(-50%,-46%) scale(.97);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .25s;padding:22px 26px 26px;margin:0}
+ .sheet.open{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
+ .toast{bottom:30px;left:calc(50% + 128px)}
+ .scan{left:50%;right:auto;top:50%;bottom:auto;width:560px;height:min(860px,92vh);border-radius:28px;border:1px solid #e8d8b826;transform:translate(-50%,-44%);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .25s;padding:20px;box-shadow:0 40px 120px #000c}
+ .scan.open{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
+}
 </style>
 </head>
 <body>
@@ -278,14 +311,18 @@ async function start(){try{S=await api('bootstrap')}catch(e){return}
  S.orders.forEach(o=>seenOrders.add(o.id));
  $('#me').innerHTML=`<b>${esc(S.user.name[0]||'?')}</b>${esc(S.user.name)} · ${ROLE_NL[S.user.role]}`;
  const tabs=TABDEF.filter(t=>t[0]==='more'||S.perms.includes(t[0]));
- $('#tabs').innerHTML=tabs.map(t=>`<button data-t="${t[0]}"><svg><use href="#${t[2]}"/></svg>${t[1]}${t[0]==='orders'?'<span class="bd hide" id="bd"></span>':''}</button>`).join('');
- $('#tabs').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.t)};
+ $('#tabs').innerHTML=`<div class="sb-top"><img src="/img/logo_full.png" alt="Villa Amano" onerror="this.src='/img/logo_a.png'"><span class="caps">Operations center</span><button class="sb-scan" onclick="scanOpen()"><svg><use href="#i-scan"/></svg>Scan QR-code</button></div>`+tabs.map(t=>`<button data-t="${t[0]}"><svg><use href="#${t[2]}"/></svg>${t[1]}${t[0]==='orders'?'<span class="bd hide" id="bd"></span>':''}</button>`).join('')+`<div class="sb-me"><b>${esc(S.user.name[0]||'?')}</b><div><span>${esc(S.user.name)}</span><small>${ROLE_NL[S.user.role]}</small></div></div><a class="sb-web" href="/" target="_blank">Website openen ↗</a>`;
+ $('#tabs').onclick=e=>{const b=e.target.closest('button[data-t]');if(b)go(b.dataset.t)};
  const h=location.hash.slice(1);go(tabs.some(t=>t[0]===h)?h:S.user.role==='keuken'?'orders':'today');
  if('serviceWorker' in navigator)navigator.serviceWorker.register('/ops/sw.js').catch(()=>{});
  clearInterval(pollT);pollT=setInterval(poll,8000);badge()}
 function go(t){TAB=t;history.replaceState(null,'','#'+t);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
  $('#title').textContent=TABDEF.find(x=>x[0]===t)[1];scrollTo(0,0);render()}
-function render(){({today:vToday,orders:vOrders,calendar:vCal,agenda:vAgenda,more:vMore})[TAB]()}
+const WIDE=()=>matchMedia('(min-width:1024px)').matches;
+addEventListener('resize',()=>{const w=WIDE();if(w!==WIDE.last){WIDE.last=w;if(TAB&&S.user)render()}});
+function render(){({today:vToday,orders:vOrders,calendar:vCal,agenda:vAgenda,more:vMore})[TAB]();if(TAB==='today')pairUp()}
+function pairUp(){if(!WIDE())return;const A=$('#app'),kids=[...A.children],g=document.createElement('div');g.className='tgrid';let started=false;
+ kids.forEach((el,i)=>{if(el.classList.contains('sec')){started=true;const w=document.createElement('div');w.className='pair';el.before(w);w.appendChild(el);const nx=kids[i+1];if(nx&&!nx.classList.contains('sec'))w.appendChild(nx);g.appendChild(w)}});if(started)A.appendChild(g)}
 async function reload(){try{S={...S,...await api('bootstrap')};render();badge()}catch(e){}}
 
 /* ---------- live orders ---------- */
@@ -303,14 +340,14 @@ function badge(){const n=(S.orders||[]).filter(o=>o.status==='nieuw').length,b=$
 
 /* ---------- SCAN ---------- */
 let SC={stream:null,raf:0,busy:false,det:null,cv:null};
-async function scanOpen(){$('#scan').classList.add('open');$('#scRes').classList.add('hide');$('#scCam').classList.remove('hide');$('#scIn').value='';$('#scMsg').textContent='Camera starten…';
+async function scanOpen(){$('#scan').classList.add('open');if(WIDE())$('#sbg').classList.add('open');if(WIDE())$('.sbg').classList.add('open');$('#scRes').classList.add('hide');$('#scCam').classList.remove('hide');$('#scIn').value='';$('#scMsg').textContent='Camera starten…';
  try{SC.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});const v=$('#scV');v.srcObject=SC.stream;await v.play();$('#scMsg').textContent='Richt de camera op de QR-code van de gast'}
  catch(e){$('#scMsg').textContent='Geen toegang tot de camera. Sta camera toe in je instellingen, of typ de code hieronder.';return}
  if('BarcodeDetector' in window){try{const f=await BarcodeDetector.getSupportedFormats();if(f.includes('qr_code'))SC.det=new BarcodeDetector({formats:['qr_code']})}catch(e){}}
  if(!SC.det&&!window.jsQR){await new Promise(r=>{const s=document.createElement('script');s.src='/lib/jsQR.js';s.onload=r;s.onerror=r;document.head.appendChild(s)})}
  SC.busy=false;loop()}
 function scanStop(){cancelAnimationFrame(SC.raf);if(SC.stream)SC.stream.getTracks().forEach(t=>t.stop());SC.stream=null}
-function scanClose(){scanStop();$('#scan').classList.remove('open')}
+function scanClose(){scanStop();$('#scan').classList.remove('open');$('.sbg').classList.remove('open')}
 async function loop(){const v=$('#scV');if(!SC.stream)return;
  if(!SC.busy&&v.readyState>=2){let code=null;
   try{if(SC.det){const r=await SC.det.detect(v);if(r[0])code=r[0].rawValue}
@@ -384,15 +421,17 @@ let OSEG='nieuw';
 function vOrders(){const all=S.orders||[],t=TODAY();
  const grp={nieuw:all.filter(o=>o.status==='nieuw'),bereiding:all.filter(o=>o.status==='bereiding'),geleverd:all.filter(o=>(o.status==='geleverd'||o.status==='geannuleerd')&&o.date>=addD(t,-1))};
  const list=grp[OSEG].sort((a,b)=>(a.date+a.time<b.date+b.time?-1:1));
- $('#app').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin:0 4px 10px"><span class="live"><i></i>Live · ververst elke 8 sec.</span><button class="btn2" style="height:34px;font-size:12.5px" onclick="poll()">Vernieuwen</button></div>
- <div class="seg">${[['nieuw','Nieuw'],['bereiding','Bezig'],['geleverd','Klaar']].map(([k,l])=>`<button class="${OSEG===k?'on':''}" data-s="${k}">${l}<i>${grp[k].length}</i></button>`).join('')}</div>
- ${list.length?list.map(o=>{const r=RBYN[o.room];const nxt=o.status==='nieuw'?['bereiding','Start bereiding']:o.status==='bereiding'?['geleverd','✓ Geleverd']:null;
+ const card=o=>{const r=RBYN[o.room];const nxt=o.status==='nieuw'?['bereiding','Start bereiding']:o.status==='bereiding'?['geleverd','✓ Geleverd']:null;
   return `<div class="ord ${o._new?'new':''}" style="--t:${r[2]}"><div class="ord-h"><div><div class="tm">${esc(o.time)}</div><small class="k">${o.date===t?'Vandaag':nice(o.date)} · ${o.where==='terras'?'Terras':'Op de kamer'}</small></div><div class="rm"><b>${esc(o.roomName)}</b><small>Kamer ${String(o.room).padStart(2,'0')} · ${esc(o.id)}</small></div></div>
   <ul>${o.items.map(i=>`<li><span><b>${i.qty}×</b>${esc(i.name)}</span></li>`).join('')}${o.extras.map(x=>`<li><span><b>+</b>${esc(x.name)}</span></li>`).join('')}</ul>
   ${o.diet.length?`<div class="tags">${o.diet.map(d=>`<span class="tag diet">⚠ ${esc(d)}</span>`).join('')}</div>`:''}
   ${o.note?`<div class="note">${esc(o.note)}</div>`:''}
-  <div class="ord-f">${nxt?`<button class="cta" data-st="${nxt[0]}" data-id="${esc(o.id)}">${nxt[1]}</button>`:`<span class="meta">${stLabel(o.status)} ${o.by?'door '+esc(o.by):''}</span>`}<span class="meta">${fmt(o.total)}</span>${o.status==='nieuw'?`<button class="btn2 red" data-st="geannuleerd" data-id="${esc(o.id)}">Annuleer</button>`:''}</div></div>`}).join(''):`<div class="card empty">${OSEG==='nieuw'?'Geen nieuwe bestellingen. Je hoort een signaal zodra er één binnenkomt.':'Niets in deze lijst.'}</div>`}`;
- $('#app').querySelector('.seg').onclick=e=>{const b=e.target.closest('button');if(b){OSEG=b.dataset.s;vOrders()}};
+  <div class="ord-f">${nxt?`<button class="cta" data-st="${nxt[0]}" data-id="${esc(o.id)}">${nxt[1]}</button>`:`<span class="meta">${stLabel(o.status)} ${o.by?'door '+esc(o.by):''}</span>`}<span class="meta">${fmt(o.total)}</span>${o.status==='nieuw'?`<button class="btn2 red" data-st="geannuleerd" data-id="${esc(o.id)}">Annuleer</button>`:''}</div></div>`};
+ const head=`<div style="display:flex;justify-content:space-between;align-items:center;margin:0 4px 10px"><span class="live"><i></i>Live · ververst elke 8 sec.</span><button class="btn2" style="height:34px;font-size:12.5px" onclick="poll()">Vernieuwen</button></div>`;
+ if(WIDE()){$('#app').innerHTML=head+`<div class="kb">${[['nieuw','Nieuw','Nog niet gestart'],['bereiding','In bereiding','Wordt klaargemaakt'],['geleverd','Klaar','Geleverd of geannuleerd']].map(([k,l,sub])=>`<div class="kcol k-${k}"><div class="kh"><b>${l}</b><i>${grp[k].length}</i><small>${sub}</small></div>${grp[k].sort((a,b)=>(a.date+a.time<b.date+b.time?-1:1)).map(card).join('')||'<div class="empty">Leeg</div>'}</div>`).join('')}</div>`}
+ else $('#app').innerHTML=head+`<div class="seg">${[['nieuw','Nieuw'],['bereiding','Bezig'],['geleverd','Klaar']].map(([k,l])=>`<button class="${OSEG===k?'on':''}" data-s="${k}">${l}<i>${grp[k].length}</i></button>`).join('')}</div>
+ ${list.length?list.map(card).join(''):`<div class="card empty">${OSEG==='nieuw'?'Geen nieuwe bestellingen. Je hoort een signaal zodra er één binnenkomt.':'Niets in deze lijst.'}</div>`}`;
+ const sg=$('#app').querySelector('.seg');if(sg)sg.onclick=e=>{const b=e.target.closest('button');if(b){OSEG=b.dataset.s;vOrders()}};
  $('#app').querySelectorAll('[data-st]').forEach(b=>b.onclick=async()=>{if(b.dataset.st==='geannuleerd'&&!confirmBox('Bestelling annuleren?'))return;
   const o=S.orders.find(x=>x.id===b.dataset.id);b.disabled=true;try{await api('order-status',{id:o.id,status:b.dataset.st});o.status=b.dataset.st;o.by=S.user.name;delete o._new;toast(b.dataset.st==='geleverd'?'Geleverd ✓':b.dataset.st==='bereiding'?'In bereiding':'Geannuleerd');vOrders();badge()}catch(e){toast(e.message,1);b.disabled=false}})}
 function confirmBox(m){return window.confirm?confirm(m):true}
@@ -409,14 +448,17 @@ function vCal(){if(!CM){const d=new Date();CM=new Date(d.getFullYear(),d.getMont
   let c=[k<t?'past':'',k===t?'today':''];if(e)c.push(e.type==='booking'?'bk':'bl');else if(x)c.push('ext');if(e&&e.from===k)c.push('st');
   if(SEL){if(k===SEL.a||k===SEL.b)c.push('sel');else if(SEL.b&&k>SEL.a&&k<SEL.b)c.push('rng')}
   g+=`<button data-d="${k}" class="${c.join(' ')}">${d}${e&&e.from===k&&e.guest?`<small>${esc(e.guest.split(' ')[0])}</small>`:''}</button>`}
- $('#app').innerHTML=`<div class="rooms">${ROOMS.map(x=>`<button class="${x[0]===CR?'on':''}" data-r="${x[0]}" style="--t:${x[2]}"><i></i>${x[1]}</button>`).join('')}</div>
+ let tl='';if(WIDE()){const days=[...Array(n)].map((_,i)=>iso(new Date(CM.getFullYear(),CM.getMonth(),i+1)));
+  tl=`<div class="card tl"><div class="tlh"><b>Bezetting · ${MON[CM.getMonth()]} ${CM.getFullYear()}</b><span class="k">Klik een kamer om te beheren</span></div><div class="tlg" style="--n:${n}"><span></span>${days.map(k=>{const d=pd(k);return `<span class="dh ${k===t?'td':''} ${[0,6].includes(d.getDay())?'we':''}">${d.getDate()}</span>`}).join('')}
+  ${ROOMS.map(x=>{const o2=(S.calendar||[]).filter(e=>e.room===x[0]),e2=EXT[x[0]]||[];return `<button class="tlr ${x[0]===CR?'on':''}" data-r="${x[0]}" style="--t:${x[2]}"><i></i>${x[1]}</button>`+days.map(k=>{const e=o2.find(q=>q.from<=k&&q.to>k),xe=!e&&e2.find(([a,b])=>a<=k&&b>k);return `<span class="c ${e?(e.type==='booking'?'bk':'bl'):xe?'ext':''} ${e&&e.from===k?'st':''} ${k<t?'past':''}" style="--t:${x[2]}" title="${e?esc((e.guest||'Geblokkeerd')+' · '+e.from+' → '+e.to):''}"></span>`}).join('')}).join('')}</div></div>`}
+ $('#app').innerHTML=tl+`<div class="cwrap"><div><div class="rooms">${ROOMS.map(x=>`<button class="${x[0]===CR?'on':''}" data-r="${x[0]}" style="--t:${x[2]}"><i></i>${x[1]}</button>`).join('')}</div>
  ${S.perms.includes('connect')?`<div class="conn"><button class="${ic.booking?'ok':''}" data-c="booking"><i></i>Booking.com</button><button class="${ic.airbnb?'ok':''}" data-c="airbnb"><i></i>Airbnb</button></div>`:''}
  <div class="card" style="--t:${r[2]}"><div class="mh"><button class="nav" data-m="-1" aria-label="Vorige"><svg style="transform:scaleX(-1)"><use href="#i-arrow"/></svg></button><b>${MON[CM.getMonth()]} ${CM.getFullYear()}</b><button class="nav" data-m="1" aria-label="Volgende"><svg><use href="#i-arrow"/></svg></button></div>
  <div class="wk"><span>ma</span><span>di</span><span>wo</span><span>do</span><span>vr</span><span>za</span><span>zo</span></div><div class="grid" id="cg" style="--t:${r[2]}">${g}</div>
  <div class="hint" id="hint">${SEL?(SEL.b?'':'Tik de vertrekdag aan'):'Tik een vrije dag om te boeken of te blokkeren · tik een boeking om te bekijken'}</div>
  <div class="leg"><span><i style="background:color-mix(in srgb,${r[2]} 38%,#1d1814)"></i>Boeking</span><span><i style="background:repeating-linear-gradient(135deg,#ffffff26 0 3px,#ffffff08 3px 6px)"></i>Geblokkeerd</span><span><i style="background:#9fb8e655"></i>Booking.com / Airbnb</span></div></div>
- <div class="sec"><h3>Komende boekingen</h3></div><div class="card">${own.filter(e=>e.to>=t).sort((a,b)=>a.from<b.from?-1:1).slice(0,8).map(e=>`<div class="row" style="--c:${e.type==='booking'?r[2]:'#ffffff55'}" data-e="${e.id}"><i class="dot"></i><div class="tx"><b>${e.type==='booking'?esc(e.guest||'Boeking'):'Geblokkeerd'}</b><small>${nice(e.from)} → ${nice(e.to)}${e.note?' · '+esc(e.note):''}</small></div><div class="rt">${Math.round((pd(e.to)-pd(e.from))/864e5)} n.</div></div>`).join('')||'<div class="empty">Nog niets gepland voor deze kamer.</div>'}</div>`;
- const A=$('#app');
+ </div><div><div class="sec cs"><h3>Komende boekingen · ${r[1]}</h3></div><div class="card">${own.filter(e=>e.to>=t).sort((a,b)=>a.from<b.from?-1:1).slice(0,8).map(e=>`<div class="row" style="--c:${e.type==='booking'?r[2]:'#ffffff55'}" data-e="${e.id}"><i class="dot"></i><div class="tx"><b>${e.type==='booking'?esc(e.guest||'Boeking'):'Geblokkeerd'}</b><small>${nice(e.from)} → ${nice(e.to)}${e.note?' · '+esc(e.note):''}</small></div><div class="rt">${Math.round((pd(e.to)-pd(e.from))/864e5)} n.</div></div>`).join('')||'<div class="empty">Nog niets gepland voor deze kamer.</div>'}</div></div></div>`;
+ const A=$('#app');A.querySelectorAll('.tlr').forEach(b=>b.onclick=()=>{CR=b.dataset.r;SEL=null;vCal()});
  A.querySelector('.rooms').onclick=e=>{const b=e.target.closest('button');if(b){CR=b.dataset.r;SEL=null;vCal()}};
  A.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{CM=new Date(CM.getFullYear(),CM.getMonth()+ +b.dataset.m,1);vCal()});
  A.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>connectSheet(b.dataset.c));
@@ -513,7 +555,7 @@ function logView(){$('#title').textContent='Logboek';$('#app').innerHTML=`<butto
 let onClose=null;
 function openSheet(h,cb){$('#sheet').innerHTML='<div class="grab"></div>'+h;$('#sheet').classList.add('open');$('#sbg').classList.add('open');onClose=cb||null}
 function closeSheet(skip){$('#sheet').classList.remove('open');$('#sbg').classList.remove('open');if(onClose&&!skip)onClose();onClose=null}
-$('#sbg').onclick=()=>closeSheet();
+$('#sbg').onclick=()=>{closeSheet();if($('#scan').classList.contains('open'))scanClose()};
 
 /* ---------- boot ---------- */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&TOKEN)reload()});
