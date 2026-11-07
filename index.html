@@ -308,6 +308,12 @@ input:focus,select:focus{outline:none;border-color:var(--beige)}
 .cf-txt{min-height:104px}
 .cf-txt p{margin:4px 0 0;font-size:13px;line-height:1.5;color:var(--muted)}
 .cf-txt p b{font:400 17px var(--serif);color:var(--text)}
+.cf-side{display:none;position:absolute;z-index:150;top:var(--sideY,45%);transform:translateY(-50%);width:56px;height:56px;border-radius:50%;border:1px solid #ffffff33;background:#16120f8c;backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);color:var(--text);place-items:center;cursor:pointer;box-shadow:0 12px 30px #0008,inset 0 1px 0 #ffffff1f;transition:background .3s,border-color .3s,transform .3s}
+.cf-side svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5}
+.cf-side.l{left:max(16px,calc(50% - var(--cw) * 1.55 - 70px))}.cf-side.l svg{transform:scaleX(-1)}
+.cf-side.r{right:max(16px,calc(50% - var(--cw) * 1.55 - 70px))}
+.cf-side:hover{background:color-mix(in srgb,var(--cf) 30%,#16120fcc);border-color:color-mix(in srgb,var(--cf) 70%,transparent);transform:translateY(-50%) scale(1.06)}
+@media(hover:hover) and (pointer:fine){.cf-side{display:grid}.cf-nav .cf-btn{display:none!important}}
 .cf-nav{display:flex;align-items:center;justify-content:center;gap:18px;margin:26px 0 10px}
 .cf-nav .cf-btn{border:1px solid #ffffff33;background:#ffffff0a;backdrop-filter:blur(10px)}
 .cf-nav .cf-btn svg{fill:none;stroke:currentColor;stroke-width:1.4;width:16px;height:16px}
@@ -948,7 +954,7 @@ function coverflow(root,items,opts={}){
   const n=items.length,mod=x=>((x%n)+n)%n;
   let pos=0,target=0,raf=0,last=0,dragging=false,moved=false,sx=0,sp=0,vel=0,lx=0,lt=0,idx=0;
   root.innerHTML=`<div class="cf-stage">${items.map((it,i)=>`<article class="cf-card" data-i="${i}" style="--tint:${it.tint||'#e8d8b8'}"><div class="cf-img" style="background-image:url('${IMG(it.img)}')">${it.snd?`<button type="button" class="cf-snd" aria-label="Speel de sfeer van ${it.title}"><span class="eqs"><i></i><i></i><i></i><i></i></span><span class="sl"><b>Sfeer</b><em>${AMB.P[it.snd].vibe}</em></span></button>`:''}<a class="cf-cta" href="${it.href}" ${it.on?`data-on="${it.on}"`:''}>${it.cta} <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div><div class="cf-txt"><h3>${it.title}</h3><p>${it.meta}</p></div></article>`).join('')}</div>
-   <div class="cf-nav"><button class="cf-btn" data-a="prev" aria-label="Vorige"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button><div class="cf-dots">${items.map((_,i)=>`<button data-d="${i}" aria-label="${i+1}"></button>`).join('')}</div><button class="cf-btn" data-a="next" aria-label="Volgende"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button></div>`;
+   <button type="button" class="cf-side l" data-a="sprev" aria-label="Vorige"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button><button type="button" class="cf-side r" data-a="snext" aria-label="Volgende"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button><div class="cf-nav"><button class="cf-btn" data-a="prev" aria-label="Vorige"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button><div class="cf-dots">${items.map((_,i)=>`<button data-d="${i}" aria-label="${i+1}"></button>`).join('')}</div><button class="cf-btn" data-a="next" aria-label="Volgende"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button></div>`;
   const stage=root.querySelector('.cf-stage'),cards=[...stage.children],dots=[...root.querySelectorAll('.cf-dots button')];
   let w=0,step=0;const measure=()=>{w=cards[0].offsetWidth;step=w*.64;stage.style.height=Math.max(...cards.map(c=>c.offsetHeight))+'px'};
   function render(){
@@ -972,7 +978,7 @@ function coverflow(root,items,opts={}){
     if(i!==idx){e.preventDefault();go(i);return}
     if(e.target.closest('.cf-snd')){e.preventDefault();e.stopPropagation();opts.onSound&&opts.onSound(idx,items[idx]);return}
     const a=e.target.closest('a');if(a&&a.dataset.on)pick(a.dataset.on);if(!a){c.querySelector('.cf-cta').click()}},true);
-  root.querySelector('[data-a=prev]').onclick=()=>go(Math.round(target)-1);root.querySelector('[data-a=next]').onclick=()=>go(Math.round(target)+1);
+  root.querySelector('[data-a=prev]').onclick=root.querySelector('[data-a=sprev]').onclick=()=>go(Math.round(target)-1);root.querySelector('[data-a=snext]').onclick=()=>go(Math.round(target)+1);root.querySelector('[data-a=next]').onclick=()=>go(Math.round(target)+1);
   dots.forEach((d,k)=>d.onclick=()=>go(k));
   addEventListener('resize',()=>{measure();render()});
   measure();render();setTimeout(()=>{measure();render()},300);
