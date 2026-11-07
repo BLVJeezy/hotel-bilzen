@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#100d0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Villa Amano">
+<title>Mijn Villa Amano</title>
+<link rel="manifest" href="/portaal/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/portaal/icon-192.png">
+<link rel="icon" href="/portaal/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400;500&family=Wittgenstein&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#16120f;--line:#ffffff1a;--beige:#E8D8B8;--gold:#e6b866;--gold2:#f6dfa4;--text:#efe6d6;--muted:#a99b88;--green:#9fc7a8;--red:#e8a0a0;
+--serif:'Cormorant Garamond',Georgia,serif;--caps:'Wittgenstein',Georgia,serif;--sans:'Jost',Arial,sans-serif;--sb:env(safe-area-inset-bottom);--st:env(safe-area-inset-top)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:300 15px/1.5 var(--sans);-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
+body{min-height:100vh;background:radial-gradient(ellipse 90% 30% at 50% 0%,#2a2018,transparent 70%),var(--bg)}
+h1,h2,h3{font-family:var(--serif);font-weight:300;margin:0;line-height:1.1}
+button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}
+.caps{font-family:var(--caps);text-transform:uppercase;letter-spacing:.32em;font-size:10px;color:var(--gold)}
+.k{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.hide{display:none!important}
+/* auth */
+#auth{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:calc(30px + var(--st)) 22px 30px;max-width:440px;margin:auto}
+#auth .lg{height:60px;align-self:center;margin-bottom:16px}
+#auth h1{font-size:36px;text-align:center;margin:6px 0 4px}
+#auth p{color:var(--muted);text-align:center;margin:0 0 22px;font-size:14px}
+.f{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.f span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.f input,.f textarea{height:52px;border-radius:16px;border:1px solid var(--line);background:#120f0d;padding:0 16px;font-size:16px;outline:none;width:100%}
+.f textarea{height:auto;min-height:90px;padding:12px 16px;resize:vertical}
+.f input:focus,.f textarea:focus{border-color:var(--gold)}
+.cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:52px;padding:0 24px;border:0;border-radius:999px;font:500 15px var(--sans);color:#24180e;background:linear-gradient(120deg,#f6dfa4,#e6b866 55%,#c98d3e);box-shadow:0 10px 30px #e6b86633;white-space:nowrap}
+.cta:disabled{filter:grayscale(.7) brightness(.6)}.cta.full{width:100%}.cta svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6}
+.b2{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 18px;border-radius:999px;border:1px solid #e8d8b84d;background:transparent;font-size:14px;white-space:nowrap}
+.b2.red{border-color:#e8a0a066;color:var(--red)}
+.sw{text-align:center;color:var(--muted);font-size:14px;margin-top:14px}.sw button{background:none;border:0;color:var(--gold2);text-decoration:underline}
+.err{color:#f3c0c0;font-size:13.5px;margin-bottom:10px}.err:empty{display:none}
+/* shell */
+#app{padding:calc(70px + var(--st)) 16px calc(100px + var(--sb));max-width:640px;margin:auto}
+.top{position:fixed;inset:0 0 auto;z-index:20;padding:calc(10px + var(--st)) 16px 10px;display:flex;align-items:center;gap:12px;background:#100d0bd9;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid #ffffff0f}
+.top img{height:32px}.top h2{font-size:24px;flex:1}
+.av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(120deg,#f6dfa4,#c98d3e);color:#24180e;font:500 14px var(--sans);border:0}
+.tabs{position:fixed;inset:auto 0 0;z-index:20;display:flex;padding:8px 4px calc(8px + var(--sb));background:#100d0bf0;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid #ffffff12}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;padding:6px 0;font-size:10.5px;color:var(--muted)}
+.tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.tabs button.on{color:var(--gold2)}
+/* blocks */
+.hello{margin:6px 2px 18px}.hello h1{font-size:34px}.hello p{margin:2px 0 0;color:var(--muted)}
+.card{border:1px solid var(--line);border-radius:24px;background:linear-gradient(160deg,#ffffff0b,#ffffff03);padding:16px;margin-bottom:12px}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:24px 4px 10px}.sec h3{font-size:22px}.sec a,.sec button{font-size:12.5px;color:var(--gold2);background:none;border:0}
+.ok{border:1px solid #9fc7a866;background:#9fc7a814;border-radius:18px;padding:12px 14px;margin-bottom:14px;display:flex;gap:10px;align-items:center;font-size:14px}
+.ok svg{width:22px;height:22px;stroke:var(--green);fill:none;stroke-width:1.6;flex:none}
+.stay{position:relative;border-radius:26px;overflow:hidden;border:1px solid color-mix(in srgb,var(--t) 45%,#ffffff1a);margin-bottom:12px;background:#1a1512}
+.stay .im{height:200px;background-size:cover;background-position:center;position:relative}
+.stay .im:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#1a1512 0%,transparent 60%)}
+.stay .badge{position:absolute;z-index:2;top:12px;left:12px;padding:6px 12px;border-radius:999px;background:#0d0a08a6;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid #ffffff33;font-size:12px}
+.stay .bd{padding:4px 18px 18px;margin-top:-34px;position:relative;z-index:2}
+.stay h2{font-size:34px}.stay .dt{color:#d6cab7;font-size:14px;margin:2px 0 14px}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #ffffff14;border-bottom:1px solid #ffffff14;padding:12px 0;margin-bottom:14px;text-align:center}
+.facts b{display:block;font:400 20px var(--serif)}.facts span{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.acts{display:flex;gap:8px;flex-wrap:wrap}.acts .cta{flex:1}
+.row{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid #ffffff0d}.row:last-child{border-bottom:0}
+.row .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#ffffff0a;flex:none}
+.row .ic svg{width:20px;height:20px;stroke:var(--gold);fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.row .tx{flex:1;min-width:0}.row .tx b{display:block;font-weight:400}.row .tx small{color:var(--muted);font-size:12.5px;display:block}
+.row .rt{font-size:12.5px;color:var(--muted);text-align:right;white-space:nowrap}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;border:1px solid var(--line)}
+.pill.g{border-color:#9fc7a866;color:var(--green)}.pill.y{border-color:#e6b86680;color:var(--gold2)}.pill.r{border-color:#e8a0a066;color:var(--red)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{position:relative;aspect-ratio:4/3;border-radius:20px;overflow:hidden;border:1px solid var(--line);display:block}
+.tile .im{position:absolute;inset:0;background-size:cover;background-position:center}
+.tile:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#0d0a08e6,transparent 65%)}
+.tile b{position:absolute;z-index:2;left:12px;bottom:10px;right:10px;font:400 18px/1.15 var(--serif)}
+.empty{color:var(--muted);text-align:center;padding:18px 10px;font-size:14px}
+/* booking list */
+.bk{border:1px solid color-mix(in srgb,var(--t) 40%,#ffffff1a);border-radius:22px;padding:14px;margin-bottom:10px;display:flex;gap:12px;background:linear-gradient(150deg,color-mix(in srgb,var(--t) 10%,transparent),transparent 60%)}
+.bk .th{width:74px;height:74px;border-radius:16px;background-size:cover;background-position:center;flex:none}
+.bk .tx{flex:1;min-width:0}.bk b{display:block;font:400 20px var(--serif)}.bk small{display:block;color:var(--muted);font-size:12.5px}
+.bk .ft{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;flex-wrap:wrap}
+.bk.off{opacity:.5}
+/* membership */
+.mcard{position:relative;border-radius:24px;padding:20px;margin-bottom:14px;overflow:hidden;background:linear-gradient(135deg,#3a2c1f,#1b1511 60%,#2a2018);border:1px solid #e6b86666;box-shadow:0 20px 50px #0008}
+.mcard:before{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(#e6b86640,transparent 70%)}
+.mcard img{height:34px;position:relative}.mcard .no{font:400 26px var(--serif);letter-spacing:.08em;margin:18px 0 2px;position:relative}
+.mcard .nm{font-size:14px;color:#d6cab7;position:relative}.mcard .pl{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;position:relative}
+.plan{border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:10px;background:#0000002e}
+.plan .h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.plan b{font:400 20px var(--serif);display:block}.plan em{font-style:normal;color:var(--gold2);font-size:14px;white-space:nowrap}
+.plan p{margin:4px 0 12px;color:var(--muted);font-size:13.5px}
+.grp{display:flex;align-items:center;gap:10px;margin:22px 4px 10px}.grp i{width:9px;height:9px;border-radius:50%;background:var(--c)}.grp h3{font-size:22px}
+/* discover */
+.nb{display:flex;gap:12px;padding:14px 2px;border-bottom:1px solid #ffffff0d}.nb:last-child{border-bottom:0}
+.nb .ic{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:#ffffff0a;flex:none;font-size:20px}
+.nb .tx{flex:1;min-width:0}.nb b{display:block;font:400 19px var(--serif)}.nb small{display:block;color:var(--muted);font-size:13px;line-height:1.45}
+.nb a{align-self:center;font-size:12.5px;color:var(--gold2);white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 15px;border-radius:999px;border:1px solid var(--line);background:#ffffff08;font-size:14px}
+.chips svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.3}
+/* sheet */
+.sbg{position:fixed;inset:0;z-index:40;background:#000a;opacity:0;pointer-events:none;transition:.3s}.sbg.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;z-index:41;left:0;right:0;bottom:0;max-height:88vh;overflow-y:auto;padding:12px 18px calc(22px + var(--sb));border-radius:26px 26px 0 0;background:linear-gradient(170deg,#241c16,#14100d);border:1px solid #e8d8b826;border-bottom:0;transform:translateY(105%);transition:transform .4s cubic-bezier(.2,.8,.2,1);max-width:640px;margin:auto}
+.sheet.open{transform:none}.sheet .grab{width:42px;height:4px;border-radius:2px;background:#ffffff33;margin:0 auto 14px}
+.sheet h3{font-size:28px;margin-bottom:4px}.sheet .sub{color:var(--muted);font-size:13.5px;margin-bottom:16px}
+.steps{margin:0 0 16px;padding-left:20px;color:#d6cab7;font-size:14px}.steps li{margin-bottom:6px}
+.toast{position:fixed;left:50%;bottom:calc(92px + var(--sb));transform:translate(-50%,10px);z-index:60;padding:11px 18px;border-radius:14px;background:#2a2018;border:1px solid #e8d8b833;font-size:13.5px;opacity:0;pointer-events:none;transition:.3s;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}.toast.err{border-color:#e8a0a066;color:#f3d6d6}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+ <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+ <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+ <symbol id="i-card" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6 15h5"/></symbol>
+ <symbol id="i-map" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+ <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></symbol>
+ <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M3 12h17M14 6l6 6-6 6"/></symbol>
+ <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></symbol>
+ <symbol id="i-tray" viewBox="0 0 24 24"><path d="M3 17h18M5 17a7 7 0 0 1 14 0M12 10V8M10.5 8h3M3 20h18"/></symbol>
+ <symbol id="i-vase" viewBox="0 0 24 24"><path d="M9 3h6M9.5 3v2.5c0 1.5-4 3-4 8 0 4 2.7 7.5 6.5 7.5s6.5-3.5 6.5-7.5c0-5-4-6.5-4-8V3"/></symbol>
+ <symbol id="i-lotus" viewBox="0 0 24 24"><path d="M12 19c-2.5-2-3.5-4.5-3.5-7S9.5 7 12 5c2.5 2 3.5 4.5 3.5 7s-1 5-3.5 7z"/><path d="M12 19c-4 0-7-2-8-6 2-.5 4 0 5.5 1.3M12 19c4 0 7-2 8-6-2-.5-4 0-5.5 1.3"/></symbol>
+ <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+ <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+ <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></symbol>
+ <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M15 8l2 2"/></symbol>
+ <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+ <symbol id="i-park" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9.5 17V7h3.5a3 3 0 0 1 0 6H9.5"/></symbol>
+ <symbol id="i-out" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></symbol>
+ <symbol id="i-towel" viewBox="0 0 24 24"><path d="M6 4h12v16H6zM6 9h12M10 4v5"/></symbol>
+ <symbol id="i-pillow" viewBox="0 0 24 24"><path d="M4 8c3-2 13-2 16 0 1 3 1 5 0 8-3 2-13 2-16 0-1-3-1-5 0-8z"/></symbol>
+ <symbol id="i-bike" viewBox="0 0 24 24"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9 9h6l3.5 7.5M9 9l3 7.5 3-7.5M8 6h3M15 9l1-3h2"/></symbol>
+ <symbol id="i-taxi" viewBox="0 0 24 24"><path d="M4 16V12l2-5h12l2 5v4M4 16h16M4 16v2M20 16v2M9 4h6v3"/><circle cx="8" cy="13.5" r="1"/><circle cx="16" cy="13.5" r="1"/></symbol>
+ <symbol id="i-glass" viewBox="0 0 24 24"><path d="M8 3h8l-1 8a3 3 0 0 1-6 0zM12 14v6M9 21h6"/></symbol>
+ <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
+</svg>
+
+<section id="auth" class="hide">
+ <img class="lg" src="/img/logo_a.png" alt="Villa Amano">
+ <span class="caps" style="text-align:center">Mijn Villa Amano</span>
+ <h1 id="aT">Welkom</h1><p id="aP">Log in om je verblijf, bestellingen en abonnementen te bekijken.</p>
+ <form id="aF" novalidate>
+  <label class="f reg hide"><span>Naam</span><input name="name" autocomplete="name" placeholder="Voor- en achternaam"></label>
+  <label class="f"><span>E-mail</span><input name="email" type="email" inputmode="email" autocomplete="email" placeholder="jij@voorbeeld.be"></label>
+  <label class="f reg hide"><span>Telefoon</span><input name="phone" type="tel" autocomplete="tel" placeholder="+32 …"></label>
+  <label class="f"><span>Wachtwoord</span><input name="password" type="password" autocomplete="current-password" placeholder="Minstens 6 tekens"></label>
+  <div class="err" id="aE"></div>
+  <button class="cta full" id="aB" type="submit">Inloggen</button>
+ </form>
+ <div class="sw" id="aS"></div>
+ <p class="k" style="text-align:center;margin-top:26px"><a href="/">← Naar de website</a></p>
+</section>
+
+<div id="shell" class="hide">
+ <header class="top"><img src="/img/logo_a.png" alt=""><h2 id="title">Home</h2><button class="av" id="av" onclick="go('account')"></button></header>
+ <main id="app"></main>
+ <nav class="tabs" id="tabs"></nav>
+</div>
+<div class="sbg" id="sbg"></div><div class="sheet" id="sheet"></div><div class="toast" id="toast"></div>
+
+<script>
+const R={rose:['Rose Quartz','#e8a0b0','rose-1'],clear:['Clear Quartz','#cfe3ee','clear-1'],sun:['Sunstone','#e6b866','sun-1'],moon:['Moonstone','#9fb8e6','moon-1'],amethyst:['Amethyst','#b48ce6','ame-1']};
+const ADDR='Wijsstraat 1, 3740 Bilzen-Hoeselt',MAIL='info@villa-amano.be',MAPS='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent('Wijsstraat 1, 3740 Bilzen');
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pd=s=>new Date(s+'T12:00'),nice=s=>pd(s).toLocaleDateString('nl-BE',{weekday:'short',day:'numeric',month:'short'});
+const fmt=n=>'€ '+Number(n).toLocaleString('nl-BE',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2});
+const days=(a,b)=>Math.round((pd(b)-pd(a))/864e5);
+let T=null,D={},TAB='home';try{T=localStorage.getItem('va_g_t')}catch(e){}
+function toast(m,e){const t=$('#toast');t.textContent=m;t.className='toast show'+(e?' err':'');clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',2600)}
+async function api(a,b){const r=await fetch('/api/ops?a='+a,{method:b?'POST':'GET',headers:{'content-type':'application/json',...(T?{authorization:'Bearer '+T}:{})},body:b?JSON.stringify(b):undefined});const j=await r.json().catch(()=>({}));
+ if(r.status===401&&!/^g-(login|register)$/.test(a)){logout(1);throw new Error('Log opnieuw in')}if(!r.ok)throw Object.assign(new Error(j.error||'Er ging iets mis'),{status:r.status});return j}
+
+/* auth */
+let MODE='login';
+function authMode(m){MODE=m;document.querySelectorAll('#aF .reg').forEach(x=>x.classList.toggle('hide',m!=='register'));$('#aT').textContent=m==='register'?'Maak je account':'Welkom';
+ $('#aP').textContent=m==='register'?'Eén account voor je verblijf, ontbijt op de kamer, Pottery House en wellness.':'Log in om je verblijf, bestellingen en abonnementen te bekijken.';
+ $('#aB').textContent=m==='register'?'Account aanmaken':'Inloggen';$('#aS').innerHTML=m==='register'?'Al een account? <button type="button" data-m="login">Log in</button>':'Nog geen account? <button type="button" data-m="register">Maak er een</button>';$('#aE').textContent=''}
+$('#aS').onclick=e=>{const b=e.target.closest('[data-m]');if(b)authMode(b.dataset.m)};
+$('#aF').onsubmit=async e=>{e.preventDefault();const f=e.target;$('#aB').disabled=true;try{const r=await api(MODE==='register'?'g-register':'g-login',{name:f.name.value,email:f.email.value,phone:f.phone.value,password:f.password.value});T=r.token;try{localStorage.setItem('va_g_t',T)}catch(x){}start()}catch(x){$('#aE').textContent=x.message;if(x.status===409)authMode('login')}$('#aB').disabled=false};
+function showAuth(){$('#auth').classList.remove('hide');$('#shell').classList.add('hide');authMode('login')}
+function logout(silent){T=null;try{localStorage.removeItem('va_g_t')}catch(e){}if(!silent)toast('Uitgelogd');showAuth()}
+
+/* shell */
+const TABS=[['home','Home','i-home'],['boekingen','Boekingen','i-cal'],['leden','Abonnementen','i-card'],['ontdek','Ontdek','i-map'],['account','Account','i-user']];
+async function start(){try{D=await api('g-me')}catch(e){return}
+ $('#auth').classList.add('hide');$('#shell').classList.remove('hide');$('#av').textContent=(D.me.name||'?')[0].toUpperCase();
+ $('#tabs').innerHTML=TABS.map(t=>`<button data-t="${t[0]}"><svg><use href="#${t[2]}"/></svg>${t[1]}</button>`).join('');
+ $('#tabs').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.t)};
+ const h=location.hash.slice(1);go(TABS.some(t=>t[0]===h)?h:'home');
+ if('serviceWorker' in navigator)navigator.serviceWorker.register('/portaal/sw.js').catch(()=>{})}
+function go(t){TAB=t;history.replaceState(null,'',location.pathname+location.search+'#'+t);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$('#title').textContent=TABS.find(x=>x[0]===t)[1];scrollTo(0,0);render()}
+function render(){({home:vHome,boekingen:vBook,leden:vMem,ontdek:vDisc,account:vAcc})[TAB]()}
+async function reload(){try{D=await api('g-me');render()}catch(e){}}
+const stLabel=s=>s==='geannuleerd'?'<span class="pill r">Geannuleerd</span>':'<span class="pill g">Bevestigd</span>';
+const ordLabel=s=>({nieuw:'<span class="pill y">Ontvangen</span>',bereiding:'<span class="pill y">In bereiding</span>',geleverd:'<span class="pill g">Geleverd</span>',geannuleerd:'<span class="pill r">Geannuleerd</span>'})[s];
+
+/* HOME */
+function vHome(){const t=D.today,rs=D.reservations.filter(r=>r.status!=='geannuleerd');
+ const stay=rs.filter(r=>r.kind==='room'&&r.to>=t).sort((a,b)=>a.from<b.from?-1:1)[0];
+ const pot=rs.filter(r=>r.kind!=='room'&&r.date>=t).slice(0,3);
+ const nw=new URLSearchParams(location.search).get('nieuw');const nr=nw&&D.reservations.find(r=>r.id===nw);
+ const h=new Date().getHours(),hi=h<12?'Goedemorgen':h<18?'Goedemiddag':'Goedenavond';
+ let x=`<div class="hello"><h1>${hi}, ${esc(D.me.name.split(' ')[0])}</h1><p>Rest · Create · Be</p></div>`;
+ if(nr)x+=`<div class="ok"><svg><use href="#i-check"/></svg><div><b>Reservatie bevestigd</b><br><span style="color:var(--muted);font-size:13px">${nr.kind==='room'?esc(nr.roomName)+' · '+nice(nr.from)+' → '+nice(nr.to):(nr.kind==='lessen'?'Lessenreeks':'Vrij atelier')+' · '+nice(nr.date)} · ${fmt(nr.total)}</span></div></div>`;
+ if(stay){const r=R[stay.room],now=stay.from<=t&&stay.to>=t,dl=days(t,stay.from);
+  x+=`<div class="stay" style="--t:${r[1]}"><div class="im" style="background-image:url('/img/${r[2]}.jpg')"><span class="badge">${now?'● Je verblijf loopt':dl===1?'Morgen aankomst':'Nog '+dl+' dagen'}</span></div><div class="bd">
+  <span class="caps" style="color:${r[1]}">Kamer ${String(stay.roomNo).padStart(2,'0')}</span><h2>${esc(stay.roomName)}</h2><div class="dt">${nice(stay.from)} → ${nice(stay.to)} · ${stay.guests} gast${stay.guests>1?'en':''}</div>
+  <div class="facts"><div><span>Check-in</span><b>15–21u</b></div><div><span>Check-out</span><b>${stay.extras&&stay.extras.late?'13u':'11u'}</b></div><div><span>Nachten</span><b>${stay.nights}</b></div></div>
+  <div class="acts"><a class="cta" href="/ontbijt?kamer=${stay.roomNo}">Bestel ontbijt <svg><use href="#i-arrow"/></svg></a><button class="b2" onclick="needSheet()">Iets nodig?</button></div></div></div>
+  <div class="card">${[['i-pin','Adres',ADDR,`<a href="${MAPS}" target="_blank" rel="noopener" style="color:var(--gold2)">Route</a>`],['i-park','Parkeren','Gratis op het domein · EV-laden € 10/dag',''],['i-key','Toegang','Je code ontvang je op de dag van aankomst',''],['i-clock','Ontbijt','07:30 – 10:30 · € 25 p.p.','']].map(([ic,b,s,rt])=>`<div class="row"><span class="ic"><svg><use href="#${ic}"/></svg></span><div class="tx"><b>${b}</b><small>${s}</small></div><div class="rt">${rt}</div></div>`).join('')}</div>`}
+ else x+=`<div class="card" style="text-align:center;padding:26px 18px"><h3 style="font-size:26px">Nog geen verblijf gepland</h3><p style="color:var(--muted);margin:6px 0 16px">Kies een kamer met de sfeer van een edelsteen.</p><a class="cta" href="/#kamers">Bekijk de kamers <svg><use href="#i-arrow"/></svg></a></div>`;
+ const os=D.orders.filter(o=>o.date>=t||o.status!=='geleverd').slice(0,4);
+ x+=`<div class="sec"><h3>Ontbijt op de kamer</h3>${stay?`<a href="/ontbijt?kamer=${stay.roomNo}">Bestellen →</a>`:''}</div><div class="card">${os.length?os.map(o=>`<div class="row"><span class="ic"><svg><use href="#i-tray"/></svg></span><div class="tx"><b>${nice(o.date)} · ${esc(o.time)}</b><small>${o.items.map(i=>i.qty+'× '+esc(i.name)).join(', ')}</small></div><div class="rt">${ordLabel(o.status)}</div></div>`).join(''):'<div class="empty">Nog geen ontbijt besteld.</div>'}</div>`;
+ if(pot.length)x+=`<div class="sec"><h3>Pottery House</h3></div><div class="card">${pot.map(p=>`<div class="row"><span class="ic"><svg><use href="#i-vase"/></svg></span><div class="tx"><b>${p.kind==='lessen'?'Lessenreeks':'Vrij atelier'}</b><small>${nice(p.date)} · ${p.guests} pers.</small></div><div class="rt">${fmt(p.total)}</div></div>`).join('')}</div>`;
+ x+=`<div class="sec"><h3>Snel naar</h3></div><div class="tiles">${[['/#kamers','rose-1','Kamer boeken'],['/#pottery','pottery','Pottery House'],['/#wellness','wellness','Wellness'],['/#agenda','terras','Agenda & events']].map(([h,i,b])=>`<a class="tile" href="${h}"><div class="im" style="background-image:url('/img/${i}.jpg')"></div><b>${b}</b></a>`).join('')}</div>`;
+ $('#app').innerHTML=x}
+
+/* BOEKINGEN */
+function vBook(){const t=D.today,all=D.reservations.slice().sort((a,b)=>(b.from||b.date)<(a.from||a.date)?-1:1);
+ const up=all.filter(r=>(r.to||r.date)>=t&&r.status!=='geannuleerd').reverse(),past=all.filter(r=>!up.includes(r));
+ const card=r=>{const room=r.kind==='room',c=room?R[r.room]:['','#c98d5a','pottery'],d0=r.from||r.date,can=r.status!=='geannuleerd'&&days(t,d0)>=2;
+  const ex=room&&r.extras?Object.entries(r.extras).filter(([,v])=>v).map(([k])=>({ontbijt:'Ontbijt',well:'Wellness',bike:'E-bike',late:'Late check-out'})[k]).join(' · '):'';
+  return `<div class="bk ${r.status==='geannuleerd'?'off':''}" style="--t:${c[1]}"><div class="th" style="background-image:url('/img/${c[2]}.jpg')"></div><div class="tx"><b>${room?esc(r.roomName):r.kind==='lessen'?'Lessenreeks':'Vrij atelier'}</b><small>${room?nice(r.from)+' → '+nice(r.to)+' · '+r.nights+' n.':nice(r.date)} · ${r.guests} pers.</small>${ex?`<small>${ex}</small>`:''}<div class="ft"><span>${stLabel(r.status)} <span class="k" style="margin-left:6px">${fmt(r.total)}</span></span>${can?`<button class="b2 red" style="height:34px;font-size:12.5px" data-c="${r.id}">Annuleer</button>`:''}</div></div></div>`};
+ $('#app').innerHTML=`<a class="cta full" href="/#boeken" style="margin-bottom:16px">+ Nieuwe reservatie</a><div class="sec" style="margin-top:4px"><h3>Komend</h3></div>${up.length?up.map(card).join(''):'<div class="card empty">Geen komende reservaties.</div>'}${past.length?`<div class="sec"><h3>Eerder</h3></div>${past.map(card).join('')}`:''}<p class="k" style="text-align:center;margin-top:14px">Annuleren kan tot 48 uur vooraf.</p>`;
+ $('#app').querySelectorAll('[data-c]').forEach(b=>b.onclick=async()=>{if(!confirm('Reservatie annuleren?'))return;b.disabled=true;try{await api('g-cancel',{id:b.dataset.c});toast('Geannuleerd');reload()}catch(e){toast(e.message,1);b.disabled=false}})}
+
+/* ABONNEMENTEN */
+function vMem(){const M=D.me.memberships||{},P=D.plans,act=Object.entries(M).filter(([,v])=>v.status==='actief');
+ const grp=[['pottery','Pottery House','#c98d5a','Keramiek op je eigen ritme, open tot 22:00.'],['wellness','Wellness','#b06ad0','Kom tot rust in onze wellness.'],['hotel','Hotel','#e6b866','Voordelen bij elk verblijf.']];
+ const btn=(k)=>{const s=M[k]&&M[k].status;return s==='actief'?'<span class="pill g">✓ Actief</span>':s==='aangevraagd'?'<span class="pill y">Aangevraagd · we nemen contact op</span>':`<button class="b2" data-p="${k}">Aanvragen</button>`};
+ $('#app').innerHTML=`<div class="mcard"><img src="/img/logo_a.png" alt=""><div class="no">${esc(D.me.memberNo)}</div><div class="nm">${esc(D.me.name)} · Toon dit nummer aan de receptie</div><div class="pl">${act.length?act.map(([k])=>`<span class="pill g">${esc(P[k].name)}</span>`).join(''):'<span class="pill">Nog geen actief abonnement</span>'}</div></div>`+
+ grp.map(([c,n,col,sub])=>`<div class="grp" style="--c:${col}"><i></i><h3>${n}</h3></div><p class="k" style="margin:-4px 4px 10px;text-transform:none;letter-spacing:0;font-size:13px">${sub}</p>${Object.entries(P).filter(([,p])=>p.cat===c).map(([k,p])=>`<div class="plan"><div class="h"><b>${esc(p.name)}</b><em>${esc(p.price)}</em></div><p>${esc(p.text)}</p>${btn(k)}</div>`).join('')}`).join('')+
+ `<p class="k" style="text-align:center;margin-top:16px;text-transform:none;letter-spacing:0">Na je aanvraag bevestigt ons team je abonnement. Betalen gebeurt bij activatie.</p>`;
+ $('#app').querySelectorAll('[data-p]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await api('g-member',{plan:b.dataset.p});toast('Aangevraagd ✓');reload()}catch(e){toast(e.message,1);b.disabled=false}})}
+
+/* ONTDEK */
+const NEAR=[['🏰','Landcommanderij Alden Biesen','Kasteel, tuinen en wandelpaden, vlak bij Bilzen.','ca. 5 km','Alden Biesen Bilzen'],['🏛️','Tongeren','Oudste stad van België, Gallo-Romeins Museum en zondagse antiekmarkt.','ca. 10 km','Tongeren centrum'],['🌲','Nationaal Park Hoge Kempen','Heide, bossen en uitzichtpunten om te wandelen of fietsen.','ca. 20 km','Nationaal Park Hoge Kempen'],['🚲','Fietsen door Haspengouw','Glooiende fruitstreek, in de lente vol bloesem. Huur een e-bike bij ons.','vanaf de deur','Haspengouw fietsroute'],['🌳','Bokrijk','Openluchtmuseum en ‘Fietsen door het water’.','ca. 20 km','Bokrijk Genk'],['🛍️','Hasselt','Shoppen, Japanse Tuin en gezellige terrassen.','ca. 15 km','Hasselt centrum'],['🇳🇱','Maastricht','Historisch centrum, boekhandel Dominicanen en de Maas.','ca. 20 km','Maastricht centrum']];
+const NEED=[['i-towel','Extra handdoeken'],['i-pillow','Extra kussen'],['i-clock','Late check-out'],['i-bike','E-bike huren'],['i-glass','Bubbels op de kamer'],['i-taxi','Taxi bestellen'],['i-dots','Iets anders']];
+function needSheet(pre){openSheet(`<h3>Iets nodig?</h3><div class="sub">We brengen het zo snel mogelijk in orde.</div><div class="chips" id="nc">${NEED.map(([ic,t])=>`<button data-n="${t}" class="${t===pre?'on':''}"><svg><use href="#${ic}"/></svg>${t}</button>`).join('')}</div>
+ <label class="f" style="margin-top:14px"><span>Opmerking (optioneel)</span><textarea id="nt" placeholder="Bv. tijdstip, aantal…"></textarea></label><button class="cta full" id="ns">Verstuur</button>`);
+ let sel=pre||'';const mark=()=>document.querySelectorAll('#nc button').forEach(b=>{const on=b.dataset.n===sel;b.style.borderColor=on?'var(--gold)':'';b.style.background=on?'#e6b86622':''});mark();
+ $('#nc').onclick=e=>{const b=e.target.closest('button');if(b){sel=b.dataset.n;mark()}};
+ $('#ns').onclick=async()=>{if(!sel){toast('Kies wat je nodig hebt',1);return}try{await api('g-request',{type:sel,text:$('#nt').value});closeSheet();toast('Verstuurd ✓ We zijn onderweg');reload()}catch(e){toast(e.message,1)}}}
+function vDisc(){const rq=(D.requests||[]).slice(0,5);
+ $('#app').innerHTML=`<div class="sec" style="margin-top:4px"><h3>Iets extra nodig?</h3></div><div class="card"><div class="chips">${NEED.map(([ic,t])=>`<button data-q="${t}"><svg><use href="#${ic}"/></svg>${t}</button>`).join('')}</div>
+ ${rq.length?`<div style="margin-top:12px">${rq.map(r=>`<div class="row"><div class="tx"><b>${esc(r.type)}</b><small>${new Date(r.created).toLocaleString('nl-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${r.text?' · '+esc(r.text):''}</small></div><div class="rt">${r.status==='klaar'?'<span class="pill g">Geregeld</span>':'<span class="pill y">Bezig</span>'}</div></div>`).join('')}</div>`:''}</div>
+ <div class="sec"><h3>In de buurt</h3></div><div class="card">${NEAR.map(([e,b,s,d,q])=>`<div class="nb"><span class="ic">${e}</span><div class="tx"><b>${b}</b><small>${s}</small><small style="color:var(--gold2);margin-top:2px">${d}</small></div><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}" target="_blank" rel="noopener">Route →</a></div>`).join('')}</div>
+ <div class="sec"><h3>Bij Villa Amano</h3><a href="/#agenda">Agenda →</a></div><div class="card" id="evs"><div class="empty">Laden…</div></div>`;
+ $('#app').querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>needSheet(b.dataset.q));
+ fetch('/api/ops?a=events').then(r=>r.json()).then(j=>{const ev=(j.events||[]).filter(e=>e.date>=D.today).slice(0,4);$('#evs').innerHTML=ev.length?ev.map(e=>`<div class="row"><span class="ic"><svg><use href="#i-cal"/></svg></span><div class="tx"><b>${esc(e.title)}</b><small>${nice(e.date)} · ${esc(e.time)}</small></div><div class="rt">${esc(e.price)}</div></div>`).join(''):'<div class="empty">Binnenkort nieuwe events.</div>'}).catch(()=>{$('#evs').innerHTML='<div class="empty">Bekijk de agenda op de website.</div>'})}
+
+/* ACCOUNT */
+function vAcc(){const li=(ic,t,s,act)=>`<div class="row" ${act?`onclick="${act}" style="cursor:pointer"`:''}><span class="ic"><svg><use href="#${ic}"/></svg></span><div class="tx"><b>${t}</b><small>${s}</small></div><div class="rt">${act?'→':''}</div></div>`;
+ $('#app').innerHTML=`<div class="card"><div class="row"><span class="ic" style="background:linear-gradient(120deg,#f6dfa4,#c98d3e);color:#24180e;font:500 16px var(--sans)">${esc(D.me.name[0])}</span><div class="tx"><b>${esc(D.me.name)}</b><small>${esc(D.me.email)}${D.me.phone?' · '+esc(D.me.phone):''}</small></div><div class="rt"><button class="b2" style="height:34px" onclick="profileSheet()">Wijzig</button></div></div></div>
+ <div class="sec"><h3>Contact</h3></div><div class="card">${li('i-mail','E-mail',MAIL,`location.href='mailto:${MAIL}'`)}${li('i-pin','Adres',ADDR,`window.open('${MAPS}','_blank')`)}${li('i-clock','Receptie','Check-in 15:00 – 21:00 · check-out 11:00')}</div>
+ <div class="sec"><h3>App</h3></div><div class="card">${li('i-phone','Zet op je beginscherm','Open Villa Amano als app',"installSheet()")}${li('i-home','Naar de website','villa-amano',"location.href='/'")}${li('i-out','Uitloggen','',"logout()")}</div>`}
+function profileSheet(){openSheet(`<h3>Je gegevens</h3><div class="sub">${esc(D.me.email)}</div><label class="f"><span>Naam</span><input id="pn" value="${esc(D.me.name)}"></label><label class="f"><span>Telefoon</span><input id="pp" type="tel" value="${esc(D.me.phone||'')}"></label><label class="f"><span>Nieuw wachtwoord (optioneel)</span><input id="pw" type="password" placeholder="Leeg = behouden"></label><button class="cta full" id="ps">Opslaan</button>`);
+ $('#ps').onclick=async()=>{try{await api('g-profile',{name:$('#pn').value,phone:$('#pp').value,password:$('#pw').value});closeSheet();toast('Opgeslagen ✓');reload()}catch(e){toast(e.message,1)}}}
+function installSheet(){const ios=/iphone|ipad/i.test(navigator.userAgent);openSheet(`<h3>Villa Amano als app</h3><div class="sub">Altijd je verblijf en ontbijt bij de hand.</div><ol class="steps">${ios?'<li>Open deze pagina in <b>Safari</b>.</li><li>Tik onderaan op het <b>deel-icoon</b> (vierkant met pijl).</li><li>Kies <b>Zet op beginscherm</b> en tik op <b>Voeg toe</b>.</li>':'<li>Tik rechtsboven in Chrome op <b>⋮</b>.</li><li>Kies <b>App installeren</b> of <b>Toevoegen aan startscherm</b>.</li>'}</ol><button class="cta full" onclick="closeSheet()">Begrepen</button>`)}
+
+/* sheet */
+function openSheet(h){$('#sheet').innerHTML='<div class="grab"></div>'+h;$('#sheet').classList.add('open');$('#sbg').classList.add('open')}
+function closeSheet(){$('#sheet').classList.remove('open');$('#sbg').classList.remove('open')}
+$('#sbg').onclick=closeSheet;
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&T)reload()});
+if(T)start();else{showAuth();if(location.hash==='#nieuw')authMode('register')}
+</script>
+</body>
+</html>

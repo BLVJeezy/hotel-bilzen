@@ -1,0 +1,14 @@
+{
+  "name": "Villa Amano",
+  "short_name": "Villa Amano",
+  "start_url": "/portaal/",
+  "scope": "/portaal/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#100d0b",
+  "theme_color": "#100d0b",
+  "icons": [
+    { "src": "/portaal/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/portaal/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

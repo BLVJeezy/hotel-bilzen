@@ -8,8 +8,8 @@ try { blob = require('@vercel/blob'); } catch (e) { /* lokaal zonder dependency 
 const ROOMS = ['rose', 'clear', 'sun', 'moon', 'amethyst'];
 const ROOM_NAMES = { rose: 'Rose Quartz', clear: 'Clear Quartz', sun: 'Sunstone', moon: 'Moonstone', amethyst: 'Amethyst' };
 const ROLES = {
-  owner: ['today', 'orders', 'calendar', 'agenda', 'menus', 'prices', 'staff', 'log', 'connect'],
-  receptie: ['today', 'orders', 'calendar', 'agenda', 'connect'],
+  owner: ['today', 'orders', 'calendar', 'agenda', 'menus', 'prices', 'staff', 'log', 'connect', 'guests'],
+  receptie: ['today', 'orders', 'calendar', 'agenda', 'connect', 'guests'],
   keuken: ['today', 'orders', 'menus'],
 };
 
@@ -43,8 +43,32 @@ const DEFAULTS = {
     ],
   }),
   orders: () => ({ orders: [] }),
+  guests: () => ({ guests: [], reservations: [], requests: [] }),
   log: () => ({ log: [] }),
 };
+
+const PLANS = {
+  'pottery-lid': { cat: 'pottery', name: 'Pottery House-lidmaatschap', price: '€ 25 eenmalig', text: 'Nodig voor vrij atelier en lessen. Inclusief Villa Amano-schort.' },
+  'pottery-10': { cat: 'pottery', name: 'Atelierkaart · 10 beurten', price: '€ 270', text: '10 blokken van 3 uur vrij atelier, 1 jaar geldig.' },
+  'pottery-onbeperkt': { cat: 'pottery', name: 'Onbeperkt atelier', price: '€ 95 / maand', text: 'Zo vaak je wil vrij atelier, maandelijks opzegbaar.' },
+  'wellness-5': { cat: 'wellness', name: 'Wellness · 5-beurtenkaart', price: '€ 160', text: '5 bezoeken van max. 3 uur, 6 maanden geldig.' },
+  'wellness-maand': { cat: 'wellness', name: 'Wellness maandabonnement', price: '€ 110 / maand', text: '4 bezoeken per maand, voorrang bij tijdsloten.' },
+  'club': { cat: 'hotel', name: 'Amano Club', price: 'Gratis', text: '10% op elk verblijf, voorrang bij events en een welkomstdrankje.' },
+};
+const EXTRA_PRICES = { ontbijt: 25, well: 35, bike: 45, late: 45 };
+function quote(cfg, r) {
+  if (r.kind === 'room') {
+    const n = Math.max(1, Math.round((new Date(r.to) - new Date(r.from)) / 864e5)), g = r.guests;
+    let t = (cfg.prices[r.room] || 225) * n;
+    if (r.extras.ontbijt) t += 25 * g * n; if (r.extras.well) t += 35 * g; if (r.extras.bike) t += 45 * g * n; if (r.extras.late) t += 45;
+    return { total: t, nights: n };
+  }
+  const base = r.kind === 'lessen' ? 385 : 30;
+  return { total: base * r.guests + (r.member ? 0 : 25 * r.guests), nights: 0 };
+}
+const hashPw = (pw, salt) => crypto.scryptSync(String(pw), salt, 32).toString('hex');
+const today = () => new Date(Date.now() + 3600e3).toISOString().slice(0, 10);
+const daysUntil = d => Math.round((new Date(d + 'T12:00Z') - new Date(today() + 'T12:00Z')) / 864e5);
 
 // ---------- storage ----------
 const mem = {}; // fallback zonder Blob (alleen voor lokaal testen)
@@ -134,6 +158,7 @@ module.exports = async (req, res) => {
     }
     if (a === 'order' && req.method === 'POST') {
       const b = await body(req);
+      const gu = verify((req.headers.authorization || '').replace(/^Bearer /, ''));
       const room = parseInt(b.room, 10);
       if (!(room >= 1 && room <= 5)) return send(res, 400, { error: 'Ongeldig kamernummer' });
       const { data: M } = await load('menus');
@@ -149,7 +174,7 @@ module.exports = async (req, res) => {
         id: 'VA-' + Date.now().toString().slice(-6), created: Date.now(), status: 'nieuw',
         room, roomName: ROOM_NAMES[ROOMS[room - 1]], date: isDate(b.date) ? b.date : new Date(Date.now() + 3600e3).toISOString().slice(0, 10),
         time: /^\d{2}:\d{2}$/.test(b.time) ? b.time : '08:30', where: b.where === 'terras' ? 'terras' : 'kamer',
-        items, extras, diet: (b.diet || []).map(d => clean(d, 40)).slice(0, 6), note: clean(b.note, 300), total,
+        guestId: gu && gu.role === 'guest' ? gu.gid : null, items, extras, diet: (b.diet || []).map(d => clean(d, 40)).slice(0, 6), note: clean(b.note, 300), total,
       };
       await mutate('orders', d => { d.orders.unshift(order); d.orders = d.orders.slice(0, 600); });
       await addLog(null, `Nieuwe ontbijtbestelling ${order.id} · kamer ${room}`);
@@ -202,9 +227,108 @@ module.exports = async (req, res) => {
       return send(res, 200, { token, user, perms: ROLES[user.role] });
     }
 
+    // ===== gasten: account =====
+    if (a === 'plans') return send(res, 200, { plans: PLANS });
+    if ((a === 'g-register' || a === 'g-login') && req.method === 'POST') {
+      const b = await body(req);
+      const email = clean(b.email, 120).toLowerCase(), pw = String(b.password || '');
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return send(res, 400, { error: 'Vul een geldig e-mailadres in' });
+      if (pw.length < 6) return send(res, 400, { error: 'Wachtwoord: minstens 6 tekens' });
+      await new Promise(r => setTimeout(r, 250));
+      let g;
+      if (a === 'g-register') {
+        const name = clean(b.name, 80);
+        if (!name) return send(res, 400, { error: 'Vul je naam in' });
+        const r = await mutate('guests', d => {
+          if (d.guests.some(x => x.email === email)) return 'dup';
+          const salt = crypto.randomBytes(12).toString('hex');
+          g = { id: id(), email, name, phone: clean(b.phone, 40), salt, pw: hashPw(pw, salt), created: Date.now(), memberships: {} };
+          d.guests.push(g); return 'ok';
+        });
+        if (r === 'dup') return send(res, 409, { error: 'Er bestaat al een account met dit e-mailadres. Log in.' });
+        await addLog({ name: g.name }, 'Nieuw gastaccount');
+      } else {
+        const { data } = await load('guests');
+        g = data.guests.find(x => x.email === email);
+        if (!g || hashPw(pw, g.salt) !== g.pw) return send(res, 401, { error: 'E-mail of wachtwoord klopt niet' });
+      }
+      return send(res, 200, { token: sign({ gid: g.id, name: g.name, role: 'guest', exp: Date.now() + 180 * 864e5 }), name: g.name });
+    }
+
     // ===== beveiligd =====
     const u = verify((req.headers.authorization || '').replace(/^Bearer /, ''));
     if (!u) return send(res, 401, { error: 'Log opnieuw in' });
+    if (u.role === 'guest') {
+      const gid = u.gid;
+      if (a === 'g-me') {
+        const [{ data: G }, { data: O }] = await Promise.all([load('guests'), load('orders')]);
+        const g = G.guests.find(x => x.id === gid);
+        if (!g) return send(res, 401, { error: 'Log opnieuw in' });
+        return send(res, 200, {
+          me: { name: g.name, email: g.email, phone: g.phone, memberships: g.memberships || {}, memberNo: 'VA-' + g.id.slice(0, 6).toUpperCase() },
+          reservations: G.reservations.filter(r => r.guestId === gid).sort((x, y) => ((x.from || x.date) < (y.from || y.date) ? -1 : 1)),
+          requests: G.requests.filter(r => r.guestId === gid).slice(0, 30),
+          orders: O.orders.filter(o => o.guestId === gid).slice(0, 30), plans: PLANS, today: today(),
+        });
+      }
+      if (req.method !== 'POST') return send(res, 405, { error: 'POST verwacht' });
+      const b = await body(req);
+      if (a === 'g-reserve') {
+        const kind = ['room', 'pottery', 'lessen'].includes(b.kind) ? b.kind : null;
+        if (!kind) return send(res, 400, { error: 'Ongeldige reservatie' });
+        const { data: C } = await load('config');
+        const { data: G0 } = await load('guests');
+        const g = G0.guests.find(x => x.id === gid);
+        if (!g) return send(res, 401, { error: 'Log opnieuw in' });
+        const r = { id: 'R' + Date.now().toString(36).toUpperCase(), guestId: gid, guestName: g.name, kind, created: Date.now(), status: 'bevestigd', guests: Math.max(1, Math.min(6, parseInt(b.guests, 10) || 1)) };
+        if (kind === 'room') {
+          if (!ROOMS.includes(b.room) || !isDate(b.from) || !isDate(b.to) || b.to <= b.from || b.from < today()) return send(res, 400, { error: 'Kies geldige data' });
+          r.room = b.room; r.roomName = ROOM_NAMES[b.room]; r.roomNo = ROOMS.indexOf(b.room) + 1; r.from = b.from; r.to = b.to;
+          r.guests = Math.min(r.guests, b.room === 'amethyst' ? 3 : 2);
+          r.extras = Object.fromEntries(Object.keys(EXTRA_PRICES).map(k => [k, !!(b.extras || {})[k]]));
+        } else {
+          if (!isDate(b.date) || b.date < today()) return send(res, 400, { error: 'Kies een geldige datum' });
+          r.date = b.date; r.member = !!(g.memberships['pottery-lid'] && g.memberships['pottery-lid'].status === 'actief') || !!b.member;
+        }
+        Object.assign(r, quote(C, r));
+        if (kind === 'room') {
+          const clash = await mutate('calendar', d => { const c = d.entries.find(x => x.room === r.room && x.from < r.to && x.to > r.from); if (c) return c; d.entries.push({ id: 'c' + r.id, ref: r.id, room: r.room, from: r.from, to: r.to, type: 'booking', guest: g.name, guestId: gid, note: 'Online · ' + r.guests + ' pers.' + (r.extras.ontbijt ? ' · ontbijt' : '') + (r.extras.late ? ' · late check-out' : ''), by: 'Website', created: Date.now() }); return null; });
+          if (clash) return send(res, 409, { error: 'Deze kamer is net bezet voor (een deel van) deze periode. Kies andere data.' });
+        }
+        await mutate('guests', d => { d.reservations.push(r); });
+        await addLog({ name: g.name }, `Reservatie ${r.id} · ${kind === 'room' ? r.roomName + ' ' + r.from + ' → ' + r.to : (kind === 'lessen' ? 'Lessenreeks ' : 'Vrij atelier ') + r.date}`);
+        return send(res, 200, { ok: true, reservation: r });
+      }
+      if (a === 'g-cancel') {
+        let out = null;
+        await mutate('guests', d => { const r = d.reservations.find(x => x.id === b.id && x.guestId === gid); if (!r || r.status === 'geannuleerd') { out = 'nf'; return; } if (daysUntil(r.from || r.date) < 2) { out = 'late'; return; } r.status = 'geannuleerd'; r.cancelled = Date.now(); out = r; });
+        if (out === 'nf') return send(res, 404, { error: 'Niet gevonden' });
+        if (out === 'late') return send(res, 400, { error: 'Annuleren kan tot 48 uur vooraf. Neem contact met ons op.' });
+        if (out.kind === 'room') await mutate('calendar', d => { d.entries = d.entries.filter(x => x.ref !== out.id); });
+        await addLog({ name: out.guestName }, `Reservatie ${out.id} geannuleerd door gast`);
+        return send(res, 200, { ok: true });
+      }
+      if (a === 'g-member') {
+        if (!PLANS[b.plan]) return send(res, 400, { error: 'Onbekend abonnement' });
+        let nm = '';
+        await mutate('guests', d => { const g = d.guests.find(x => x.id === gid); if (!g) return; nm = g.name; g.memberships = g.memberships || {}; if (!g.memberships[b.plan] || g.memberships[b.plan].status === 'gestopt') g.memberships[b.plan] = { status: 'aangevraagd', since: Date.now() }; });
+        await addLog({ name: nm }, `Abonnement aangevraagd: ${PLANS[b.plan].name}`);
+        return send(res, 200, { ok: true });
+      }
+      if (a === 'g-request') {
+        const text = clean(b.text, 300), type = clean(b.type, 60);
+        if (!type) return send(res, 400, { error: 'Kies wat je nodig hebt' });
+        let rq;
+        await mutate('guests', d => { const g = d.guests.find(x => x.id === gid); const act = d.reservations.find(r => r.guestId === gid && r.kind === 'room' && r.status !== 'geannuleerd' && r.from <= today() && r.to >= today()); rq = { id: id(), guestId: gid, guestName: g ? g.name : '', room: act ? act.roomName : null, type, text, status: 'open', created: Date.now() }; d.requests.unshift(rq); d.requests = d.requests.slice(0, 500); });
+        await addLog({ name: rq.guestName }, `Verzoek: ${type}${rq.room ? ' · ' + rq.room : ''}`);
+        return send(res, 200, { ok: true });
+      }
+      if (a === 'g-profile') {
+        await mutate('guests', d => { const g = d.guests.find(x => x.id === gid); if (!g) return; if (clean(b.name, 80)) g.name = clean(b.name, 80); g.phone = clean(b.phone, 40); if (b.password && String(b.password).length >= 6) { g.salt = crypto.randomBytes(12).toString('hex'); g.pw = hashPw(b.password, g.salt); } });
+        return send(res, 200, { ok: true });
+      }
+      return send(res, 403, { error: 'Geen toegang' });
+    }
     if (a === 'me') return send(res, 200, { user: u, perms: ROLES[u.role] });
 
     if (a === 'bootstrap') {
@@ -216,6 +340,7 @@ module.exports = async (req, res) => {
       if (can(u, 'prices')) out.prices = C.prices;
       if (can(u, 'staff')) out.staff = C.staff.map(s => ({ id: s.id, name: s.name, role: s.role, active: s.active !== false }));
       if (can(u, 'log')) out.log = (await load('log')).data.log.slice(0, 120);
+      if (can(u, 'guests')) { const { data: G } = await load('guests'); out.guests = G.guests.map(g => ({ id: g.id, name: g.name, email: g.email, phone: g.phone, memberships: g.memberships || {}, n: G.reservations.filter(r => r.guestId === g.id && r.status !== 'geannuleerd').length })); out.reservations = G.reservations.slice(-200); out.requests = G.requests.slice(0, 100); out.plans = PLANS; }
       out.store = hasStore();
       return send(res, 200, out);
     }
@@ -306,6 +431,20 @@ module.exports = async (req, res) => {
       if (r === 'dup') return send(res, 400, { error: 'Deze pincode is al in gebruik' });
       if (r === 'nopin') return send(res, 400, { error: 'Geef een pincode' });
       await addLog(u, `Personeel: ${name} (${role})`);
+      return send(res, 200, { ok: true });
+    }
+    if (a === 'member-set') {
+      if (!can(u, 'guests')) return send(res, 403, { error: 'Geen toegang' });
+      if (!PLANS[b.plan] || !['actief', 'gestopt', 'aangevraagd'].includes(b.status)) return send(res, 400, { error: 'Ongeldig' });
+      let nm = '';
+      await mutate('guests', d => { const g = d.guests.find(x => x.id === b.gid); if (!g) return; nm = g.name; g.memberships = g.memberships || {}; g.memberships[b.plan] = { ...(g.memberships[b.plan] || {}), status: b.status, updated: Date.now(), by: u.name }; });
+      await addLog(u, `${PLANS[b.plan].name} → ${b.status} · ${nm}`);
+      return send(res, 200, { ok: true });
+    }
+    if (a === 'req-done') {
+      if (!can(u, 'guests')) return send(res, 403, { error: 'Geen toegang' });
+      await mutate('guests', d => { const r = d.requests.find(x => x.id === b.id); if (r) { r.status = 'klaar'; r.by = u.name; r.done = Date.now(); } });
+      await addLog(u, 'Gastverzoek afgehandeld');
       return send(res, 200, { ok: true });
     }
     if (a === 'staff-del') {

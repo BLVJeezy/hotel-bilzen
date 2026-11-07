@@ -229,6 +229,7 @@ function setRoom(v){const n=parseInt(v,10),r=ROOMS[n],el=$('roomName');
 ri.addEventListener('input',()=>setRoom(ri.value));
 $('chips').onclick=e=>{const b=e.target.closest('button');if(b){ri.value=b.dataset.n;setRoom(b.dataset.n)}};
 const qp=new URLSearchParams(location.search).get('kamer')||location.hash.replace('#kamer-','');if(ROOMS[qp]){ri.value=qp;setRoom(qp)}
+else{try{const gt=localStorage.getItem('va_g_t');if(gt)fetch('/api/ops?a=g-me',{headers:{authorization:'Bearer '+gt}}).then(r=>r.ok?r.json():null).then(j=>{if(!j||ri.value)return;const s=(j.reservations||[]).find(r=>r.kind==='room'&&r.status!=='geannuleerd'&&r.from<=j.today&&r.to>=j.today);if(s&&ROOMS[s.roomNo]){ri.value=s.roomNo;setRoom(String(s.roomNo))}})}catch(e){}}
 
 // coverflow
 const stage=$('stage');
@@ -297,7 +298,8 @@ $('send').onclick=async()=>{
   if(!st.room){toast('Vul eerst je kamernummer in.');ri.focus();ri.scrollIntoView({behavior:'smooth',block:'center'});return}
   const btn=$('send');btn.disabled=true;let nr;
   try{const n=new Date(),d=n.getHours()>=11?new Date(n.getTime()+864e5):n;
-    const r=await fetch('/api/ops?a=order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({room:st.room,date:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,time:st.time,where:st.where,
+    let gt=null;try{gt=localStorage.getItem('va_g_t')}catch(e){}
+    const r=await fetch('/api/ops?a=order',{method:'POST',headers:{'content-type':'application/json',...(gt?{authorization:'Bearer '+gt}:{})},body:JSON.stringify({room:st.room,date:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,time:st.time,where:st.where,
       items:MENUS.filter(m=>st.qty[m.id]).map(m=>({id:m.id,qty:st.qty[m.id]})),extras:[...st.sug].map(i=>SUGID[i]),diet:[...st.diet],note:$('note').value.trim()})});
     const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Bestellen lukte niet');nr=j.id;
   }catch(e){btn.disabled=false;toast(e.message+' · probeer opnieuw of bel de receptie.');return}

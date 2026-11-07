@@ -283,6 +283,21 @@ async function poll(){if(!S.perms||!S.perms.includes('orders')||document.hidden&
   if(TAB==='orders'||TAB==='today')render();badge()}catch(e){}}
 function badge(){const n=(S.orders||[]).filter(o=>o.status==='nieuw').length,b=$('#bd');if(b){b.textContent=n;b.classList.toggle('hide',!n)}}
 
+
+/* ---------- GASTEN ---------- */
+async function reqDone(id){try{await api('req-done',{id});toast('Afgerond ✓');reload()}catch(e){toast(e.message,1)}}
+async function memSet(gid,plan,status){try{await api('member-set',{gid,plan,status});toast(status==='actief'?'Geactiveerd ✓':'Bijgewerkt');await reload();guestsView()}catch(e){toast(e.message,1)}}
+function guestsView(){TAB='more';$('#title').textContent='Gasten';const P=S.plans||{},G=S.guests||[],q=(guestsView.q||'').toLowerCase();
+ const pend=[];G.forEach(g=>Object.entries(g.memberships||{}).forEach(([k,m])=>{if(m.status==='aangevraagd')pend.push([g,k,m])}));
+ const rq=(S.requests||[]).filter(r=>r.status!=='klaar');
+ const list=G.filter(g=>!q||(g.name+' '+g.email).toLowerCase().includes(q));
+ $('#app').innerHTML=`<button class="btn2" style="margin-bottom:12px" onclick="go('more')">← Terug</button>
+ <div class="sec"><h3>Abonnement-aanvragen</h3></div><div class="card">${pend.length?pend.map(([g,k])=>`<div class="row" style="--c:#c98d5a"><i class="dot"></i><div class="tx"><b>${esc(g.name)}</b><small>${esc((P[k]||{}).name||k)} · ${esc((P[k]||{}).price||'')} · ${esc(g.email)}</small></div><div class="rt" style="display:flex;gap:6px"><button class="btn2" style="height:32px;padding:0 10px" onclick="memSet('${g.id}','${k}','gestopt')">✕</button><button class="cta" style="height:32px;padding:0 12px;font-size:13px" onclick="memSet('${g.id}','${k}','actief')">Activeer</button></div></div>`).join(''):'<div class="empty">Geen open aanvragen.</div>'}</div>
+ <div class="sec"><h3>Open verzoeken</h3></div><div class="card">${rq.length?rq.map(r=>`<div class="row" style="--c:#e6b866"><i class="dot"></i><div class="tx"><b>${esc(r.type)}${r.room?' · '+esc(r.room):''}</b><small>${esc(r.guestName||'')} · ${new Date(r.created).toLocaleString('nl-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${r.text?' · '+esc(r.text):''}</small></div><div class="rt"><button class="btn2" style="height:32px;padding:0 12px" onclick="reqDone('${r.id}')">Klaar</button></div></div>`).join(''):'<div class="empty">Alles geregeld.</div>'}</div>
+ <div class="sec"><h3>Accounts (${G.length})</h3></div><input id="gq" placeholder="Zoek op naam of e-mail" value="${esc(guestsView.q||'')}" style="width:100%;height:46px;border-radius:14px;border:1px solid #ffffff1a;background:#120f0d;padding:0 14px;color:inherit;font:inherit;font-size:16px;margin-bottom:10px">
+ <div class="card">${list.map(g=>{const act=Object.entries(g.memberships||{}).filter(([,m])=>m.status==='actief').map(([k])=>(P[k]||{}).name||k);return `<div class="row" style="--c:${act.length?'#9fc7a8':'#a99b88'}"><i class="dot"></i><div class="tx"><b>${esc(g.name)}</b><small>${esc(g.email)}${g.phone?' · '+esc(g.phone):''}${act.length?' · '+act.map(esc).join(', '):''}</small></div><div class="rt">${g.n} res.</div></div>`}).join('')||'<div class="empty">Nog geen gasten.</div>'}</div>`;
+ const gq=$('#gq');gq.oninput=()=>{guestsView.q=gq.value;const pos=gq.selectionStart;guestsView();const n=$('#gq');n.focus();n.setSelectionRange(pos,pos)}}
+
 /* ---------- VANDAAG ---------- */
 function vToday(){const t=TODAY(),cal=S.calendar||[],ev=(S.events||[]).filter(e=>e.date===t);
  const arr=cal.filter(e=>e.type==='booking'&&e.from===t),dep=cal.filter(e=>e.type==='booking'&&e.to===t),occ=new Set(cal.filter(e=>e.from<=t&&e.to>t).map(e=>e.room));
@@ -292,6 +307,7 @@ function vToday(){const t=TODAY(),cal=S.calendar||[],ev=(S.events||[]).filter(e=
  const row=(c,b,s,r)=>`<div class="row" style="--c:${c}"><i class="dot"></i><div class="tx"><b>${b}</b><small>${s}</small></div><div class="rt">${r||''}</div></div>`;
  $('#app').innerHTML=`<div class="hello"><h1>${hi}, ${esc(S.user.name)}</h1><p>${new Date().toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}</p></div>
  <div class="stats">${S.perms.includes('calendar')?st(arr.length,'Aankomsten')+st(dep.length,'Vertrekken')+st(occ.size+' / 5','Bezet vannacht'):''}${st(open.length,'Open ontbijt',open.length)}</div>
+ ${(S.requests||[]).filter(r=>r.status!=='klaar').length?`<div class="sec"><h3>Gastverzoeken</h3><button onclick="guestsView()">Alles →</button></div><div class="card">${(S.requests||[]).filter(r=>r.status!=='klaar').slice(0,6).map(r=>`<div class="row" style="--c:#e6b866"><i class="dot"></i><div class="tx"><b>${esc(r.type)}${r.room?' · '+esc(r.room):''}</b><small>${esc(r.guestName||'')}${r.text?' · '+esc(r.text):''}</small></div><div class="rt"><button class="btn2" style="height:32px;padding:0 12px" onclick="reqDone('${r.id}')">Klaar</button></div></div>`).join('')}</div>`:''}
  ${S.perms.includes('calendar')?`<div class="sec"><h3>Aankomsten & vertrekken</h3></div><div class="card">${arr.length+dep.length?arr.map(e=>row(RN[e.room][2],'↘ '+esc(e.guest||'Gast')+' · '+RN[e.room][1],'Aankomst · check-in 15:00–21:00',nice(e.to)+' weg')).join('')+dep.map(e=>row(RN[e.room][2],'↗ '+esc(e.guest||'Gast')+' · '+RN[e.room][1],'Vertrek · check-out 11:00','')).join(''):'<div class="empty">Geen aankomsten of vertrekken vandaag.</div>'}</div>`:''}
  <div class="sec"><h3>Ontbijt vandaag</h3><button onclick="go('orders')">Alle bestellingen →</button></div><div class="card">${ords.length?ords.map(o=>row(RBYN[o.room][2],o.time+' · '+esc(o.roomName),o.items.map(i=>i.qty+'× '+esc(i.name)).join(', ')+(o.diet.length?' · ⚠ '+o.diet.map(esc).join(', '):''),stLabel(o.status))).join(''):'<div class="empty">Nog geen bestellingen voor vandaag.</div>'}</div>
  ${S.perms.includes('agenda')?`<div class="sec"><h3>Programma vandaag</h3></div><div class="card">${row('#b06ad0','Wellness open','10:00 – 19:30','')}${ev.map(e=>row(CATS[e.cat][1],esc(e.title),esc(e.time)+' · '+esc(e.price),'')).join('')}</div>`:''}`}
@@ -390,7 +406,8 @@ function eventSheet(e){e=e||{date:TODAY(),cat:'event',time:'',title:'',text:'',p
 /* ---------- MEER ---------- */
 function vMore(){const P=S.perms,li=(ic,t,sub,fn)=>`<button class="list-btn" onclick="${fn}"><svg><use href="#${ic}"/></svg><span>${t}</span><em>${sub||''}</em><svg style="width:16px;stroke:var(--muted)"><use href="#i-arrow"/></svg></button>`;
  const np='Notification' in window?Notification.permission:'unsupported';
- $('#app').innerHTML=`<div class="card">${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'Aan/uit & inhoud',"menusView()"):''}${P.includes('staff')?li('i-team','Personeel',(S.staff||[]).length+' personen',"staffView()"):''}${P.includes('log')?li('i-log','Logboek','Wie deed wat',"logView()"):''}</div>
+ const pend=P.includes('guests')?(S.guests||[]).reduce((n,g)=>n+Object.values(g.memberships||{}).filter(m=>m.status==='aangevraagd').length,0)+(S.requests||[]).filter(r=>r.status!=='klaar').length:0;
+ $('#app').innerHTML=`<div class="card">${P.includes('guests')?li('i-team','Gasten & abonnementen',(pend?pend+' open · ':'')+(S.guests||[]).length+' accounts',"guestsView()"):''}${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'Aan/uit & inhoud',"menusView()"):''}${P.includes('staff')?li('i-team','Personeel',(S.staff||[]).length+' personen',"staffView()"):''}${P.includes('log')?li('i-log','Logboek','Wie deed wat',"logView()"):''}</div>
  <div class="card">${li('i-bell','Meldingen',np==='granted'?'Aan':np==='denied'?'Geblokkeerd':'Uit',"notif()")}${li('i-phone','Zet op beginscherm','',"installSheet()")}${li('i-web','Open de website','',"window.open('/','_blank')")}${li('i-out','Uitloggen','',"logout()")}</div>
  ${S.store===false?'<div class="warn" style="max-width:none">Opslag is nog niet gekoppeld in Vercel. Wijzigingen worden nog niet bewaard.</div>':''}
  <p class="k" style="text-align:center;margin-top:18px">Villa Amano · Operations center v1</p>`}
