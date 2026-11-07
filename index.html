@@ -331,6 +331,7 @@ input:focus,select:focus{outline:none;border-color:var(--beige)}
 #roomPage .rfacts b.g{color:var(--tint)}
 #roomPage .room .tint-name{color:var(--tint)}
 .rhero{position:relative;height:78vh;min-height:520px;display:flex;align-items:flex-end;overflow:hidden}
+.rhero .rvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .rhero .img{position:absolute;inset:0;background-size:cover;background-position:center;animation:kb 14s ease-out forwards}
 .rhero:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,var(--bg) 0%,#16120fa0 30%,transparent 65%),linear-gradient(90deg,#0d0a08d0,transparent 70%)}
 .rhero .in{position:relative;z-index:2;width:100%;max-width:1320px;margin:auto;padding:0 40px 70px}
@@ -700,10 +701,10 @@ const ROOMS=[
   p:225,max:2,tag:'Max. 2 personen',img:'sun-1',gal:['sun-1','sun-bad2','sun-kristal','sun-3','sun-handdoek','sun-douche'],tint:'#e6b866',hl:null},
  {id:'moon',slug:'kamer-moonstone',n:'04',name:'Moonstone',stone:'maansteen',d:'Een rustige, lichte suite met eigen balkon en maansteenaccenten.',
   long:['Moonstone is een rustige, lichte suite met een eigen balkon. Zachte, natuurlijke tinten en veel daglicht maken het een kamer om weg te dromen.','Maansteen staat symbool voor intuïtie en rust. Begin je ochtend met een kop koffie buiten op je balkon.'],
-  p:235,max:2,tag:'Max. 2 · privébalkon',img:'moon-1',gal:['moon-1','moon-balkon','moon-detail','lounge','terras','lounge2'],tint:'#9fb8e6',hl:['Privébalkon','De enige kamer met een eigen balkon, voor rustige ochtenden en zwoele avonden.']},
+  p:235,max:2,tag:'Max. 2 · privébalkon',img:'moon-1',vid:'vid/room-moon.mp4',gal:['moon-1','moon-balkon','moon-detail','lounge','terras','lounge2'],tint:'#9fb8e6',hl:['Privébalkon','De enige kamer met een eigen balkon, voor rustige ochtenden en zwoele avonden.']},
  {id:'amethyst',slug:'kamer-amethyst',n:'05',name:'Amethyst',stone:'amethist',d:'Subtiele amethistaccenten en een extra zetelbed voor een derde gast.',
   long:['Amethyst is een sfeervolle kamer met subtiele amethistaccenten. Natuurlijke materialen, warm licht en rustgevende details bepalen de sfeer, met een vrijstaand bad in de badkamer.','Dankzij het extra volwassenwaardige zetelbed is dit de kamer voor drie gasten: met vrienden, familie of je kind vanaf 16 jaar.'],
-  p:245,max:3,tag:'Max. 3 · extra zetelbed',img:'ame-1',gal:['ame-1','ame-bad','ame-2','ame-detail','lounge','terras'],tint:'#b48ce6',hl:['Extra zetelbed','Een volwaardige slaapplek voor een derde volwassene.']}
+  p:245,max:3,tag:'Max. 3 · extra zetelbed',img:'ame-1',vid:'vid/room-amethyst.mp4',gal:['ame-1','ame-bad','ame-2','ame-detail','lounge','terras'],tint:'#b48ce6',hl:['Extra zetelbed','Een volwaardige slaapplek voor een derde volwassene.']}
 ];
 const arrow='<svg viewBox="0 0 24 24"><use href="#arrow"/></svg>';
 // custom crystal (SVG), per gemstone
@@ -901,7 +902,7 @@ function roomPage(r){
   const gal=r.gal;
   const amen=[...COMMON,r.max===3?['sofa','Extra volwassenwaardig zetelbed']:['bed','Bed als tweepersoonsbed of twee aparte bedden']];
   return `<div style="--tint:${r.tint}">
-  <section class="rhero"><div class="img" style="background-image:url('${IMG(r.img)}')"></div>
+  <section class="rhero"><div class="img" style="background-image:url('${IMG(r.img)}')"></div>${r.vid?`<video class="rvid" src="${r.vid}" poster="${IMG(r.img)}" autoplay muted loop playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-hidden="true"></video>`:''}
    <div class="in"><a class="back" href="#kamers">${arrow} Alle kamers</a><div class="caps">Villa Amano · Boutique Hotel</div><h1>${r.name}</h1><p>${r.d}</p></div></section>
   <section class="wrap" style="padding-top:10px;padding-bottom:120px">
    <div class="rfacts rv"><div><span>Per nacht</span><b class="g">€ ${r.p}</b></div><div><span>Max. bezetting</span><b>${r.max} gasten</b></div><div><span>Check-in</span><b>15:00–21:00</b></div><div><span>Check-out</span><b>11:00</b></div></div>
@@ -960,7 +961,7 @@ function route(){
     rp.innerHTML=roomPage(r);rp.hidden=false;home.hidden=true;
     makeBooking(rp.querySelector('#roomBook'),r);
     rp.querySelectorAll('.gal figure').forEach(f=>f.onclick=()=>{lb.querySelector('img').src=IMG(f.dataset.src);lb.classList.add('open')});
-    document.title=r.name+' · Villa Amano';scrollTo(0,0);reveal(rp);
+    document.title=r.name+' · Villa Amano';const rv=rp.querySelector('.rvid');if(rv){rv.muted=true;const pr=rv.play();pr&&pr.catch&&pr.catch(()=>{});addEventListener('touchstart',()=>{rv.paused&&rv.play().catch(()=>{})},{once:true,passive:true})}scrollTo(0,0);reveal(rp);
   }else{
     const was=home.hidden;home.hidden=false;rp.hidden=true;rp.innerHTML='';document.title='Villa Amano · Boutique Hotel Bilzen-Hoeselt';
     const el=h&&document.getElementById(h);
