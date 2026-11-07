@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /ontbijt
+
+Sitemap: https://hotel-bilzen.vercel.app/sitemap.xml

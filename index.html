@@ -4,6 +4,32 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Villa Amano · Boutique Hotel Bilzen-Hoeselt</title>
+<meta name="description" content="Villa Amano – boutique hotel in Bilzen-Hoeselt met vijf edelsteenkamers, wellness, ontbijt en Pottery House keramiekatelier (open tot 22:00). Rest · Create · Be.">
+<link rel="canonical" href="https://hotel-bilzen.vercel.app/">
+<meta name="theme-color" content="#100d0b">
+<link rel="icon" type="image/png" href="img/favicon.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Villa Amano">
+<meta property="og:locale" content="nl_BE">
+<meta property="og:title" content="Villa Amano · Boutique Hotel Bilzen-Hoeselt">
+<meta property="og:description" content="Vijf edelsteenkamers, wellness, ontbijt en een keramiekatelier tot 22:00. Rest · Create · Be.">
+<meta property="og:url" content="https://hotel-bilzen.vercel.app/">
+<meta property="og:image" content="https://hotel-bilzen.vercel.app/img/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Villa Amano boutique hotel bij avond">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://hotel-bilzen.vercel.app/img/og.jpg">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Hotel","name":"Villa Amano","alternateName":"Villa Amano Boutique Hotel","description":"Boutique hotel met vijf kamers, wellness, ontbijt en Pottery House keramiekatelier.","url":"https://hotel-bilzen.vercel.app/","image":["https://hotel-bilzen.vercel.app/img/og.jpg","https://hotel-bilzen.vercel.app/img/rose-1.jpg","https://hotel-bilzen.vercel.app/img/terras.jpg"],"logo":"https://hotel-bilzen.vercel.app/img/logo_full.png","email":"info@villa-amano.be","address":{"@type":"PostalAddress","streetAddress":"Wijsstraat 1","postalCode":"3740","addressLocality":"Bilzen-Hoeselt","addressCountry":"BE"},"checkinTime":"15:00","checkoutTime":"11:00","numberOfRooms":5,"petsAllowed":false,"priceRange":"€225 – €245","currenciesAccepted":"EUR","paymentAccepted":"Bancontact, Visa, Mastercard","availableLanguage":["nl","fr","en","de"],
+"amenityFeature":[{"@type":"LocationFeatureSpecification","name":"Wellness","value":true},{"@type":"LocationFeatureSpecification","name":"Gratis parkeren","value":true},{"@type":"LocationFeatureSpecification","name":"Gratis wifi","value":true},{"@type":"LocationFeatureSpecification","name":"Airconditioning","value":true},{"@type":"LocationFeatureSpecification","name":"Laadpaal elektrische wagen","value":true},{"@type":"LocationFeatureSpecification","name":"E-bikeverhuur","value":true}],
+"makesOffer":[
+{"@type":"Offer","name":"Rose Quartz","price":"225","priceCurrency":"EUR","url":"https://hotel-bilzen.vercel.app/#kamer-rose-quartz","itemOffered":{"@type":"HotelRoom","name":"Rose Quartz","occupancy":{"@type":"QuantitativeValue","maxValue":2}}},
+{"@type":"Offer","name":"Clear Quartz","price":"225","priceCurrency":"EUR","url":"https://hotel-bilzen.vercel.app/#kamer-clear-quartz","itemOffered":{"@type":"HotelRoom","name":"Clear Quartz","occupancy":{"@type":"QuantitativeValue","maxValue":2}}},
+{"@type":"Offer","name":"Sunstone","price":"225","priceCurrency":"EUR","url":"https://hotel-bilzen.vercel.app/#kamer-sunstone","itemOffered":{"@type":"HotelRoom","name":"Sunstone","occupancy":{"@type":"QuantitativeValue","maxValue":2}}},
+{"@type":"Offer","name":"Moonstone","price":"235","priceCurrency":"EUR","url":"https://hotel-bilzen.vercel.app/#kamer-moonstone","itemOffered":{"@type":"HotelRoom","name":"Moonstone","occupancy":{"@type":"QuantitativeValue","maxValue":2}}},
+{"@type":"Offer","name":"Amethyst","price":"245","priceCurrency":"EUR","url":"https://hotel-bilzen.vercel.app/#kamer-amethyst","itemOffered":{"@type":"HotelRoom","name":"Amethyst","occupancy":{"@type":"QuantitativeValue","maxValue":3}}}]}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&family=Wittgenstein:wght@400&display=swap" rel="stylesheet">
 <style>
@@ -359,6 +385,39 @@ input:focus,select:focus{outline:none;border-color:var(--beige)}
 .bk .msg.show{display:block}
 .bk .fine{text-align:center}
 @media(max-width:560px){.bk{padding:22px!important;gap:18px}.bk-opts{margin:10px -22px 0;padding:2px 22px 4px}.bk-d{padding:14px}.bk-d .dd{font-size:38px}.bk-xs{grid-template-columns:1fr 1fr}.bk-x{padding:12px;gap:9px}.bk-x .tk{top:8px;right:8px;width:16px;height:16px}}
+
+
+/* calendar */
+button.bk-d{background:none;border:0;font:inherit;text-align:left;width:100%}
+.bk-d.act{background:#e6b86614}
+.bk-dates.clash{border-color:#e8a0a080}
+.bk-dates.clash .dd{color:#e8b0b0}
+.cal{border:1px solid #ffffff1f;border-radius:20px;background:#0000003d;padding:14px 14px 12px;margin-top:-8px}
+.cal-h{display:flex;align-items:center;justify-content:space-between}
+.cal-t{font:400 22px var(--serif)}
+.cal-nav{width:38px;height:38px;border-radius:50%;border:1px solid #ffffff26;background:transparent;display:grid;place-items:center;cursor:pointer;color:var(--text)}
+.cal-nav svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.5}
+.cal-nav[data-cm="-1"] svg{transform:scaleX(-1)}.cal-nav:disabled{opacity:.25}
+.cal-hint{text-align:center;font-size:12px;color:var(--gold);letter-spacing:.06em;margin:4px 0 8px}
+.cal-w,.cal-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}
+.cal-w span{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:4px 0}
+.cal-g button{aspect-ratio:1;width:100%;height:auto;min-width:0;min-height:0;padding:0;margin:0;border:0;border-radius:12px;background:transparent;color:var(--text);font:400 15px var(--sans);cursor:pointer;position:relative;transition:background .2s}
+.cal-g button:hover:not(:disabled){background:#ffffff12}
+.cal-g button:disabled{cursor:default;color:#ffffff40}
+.cal-g button.busy{color:#ffffff38;background:repeating-linear-gradient(135deg,#ffffff0a 0 4px,transparent 4px 8px)}
+.cal-g button.busy:after{content:'';position:absolute;left:28%;right:28%;top:50%;height:1px;background:#e8a0a080}
+.cal-g button.in{background:#e6b8662b;border-radius:4px}
+.cal-g button.busy:not(:disabled){color:var(--text)}
+.cal-g button.s1,.cal-g button.s2{background:linear-gradient(120deg,#f6dfa4,#e6b866,#c98d3e);color:#24180e;font-weight:500}
+.cal-leg{display:flex;align-items:center;gap:14px;margin-top:10px;font-size:12px;color:var(--muted)}
+.cal-leg span{display:flex;align-items:center;gap:6px}
+.cal-leg i{width:14px;height:14px;border-radius:4px}
+.lg-b{background:repeating-linear-gradient(135deg,#ffffff26 0 3px,transparent 3px 6px);border:1px solid #ffffff26}
+.lg-s{background:var(--gold)}
+.cal-done{margin-left:auto;border:1px solid #e8d8b84d;background:transparent;color:var(--text);border-radius:999px;padding:7px 16px;font-size:13px;cursor:pointer}
+.bk-cta:disabled{filter:grayscale(.8) brightness(.55);box-shadow:none;cursor:not-allowed}
+.bk .msg.bad{border-color:#e8a0a066;background:#e8a0a012;color:#f0d4d4}
+.bk .msg b{font-weight:500;color:var(--gold2)}.bk .msg.bad b{color:#f3c0c0}
 
 /* FILM */
 .film{position:relative;margin:110px 0 0;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:#0d0a08;box-shadow:0 40px 100px #0008}
@@ -966,6 +1025,12 @@ function reveal(root){root.querySelectorAll('.rv:not(.in)').forEach((el,i)=>{el.
 // booking widget
 const fmt=n=>'€ '+n.toLocaleString('nl-BE',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2});
 const iso=d=>d.toISOString().slice(0,10);
+// availability: /api/availability (iCal-koppeling) → availability.json → leeg
+const AVAIL={},availSubs=[];
+function onAvail(f){availSubs.push(f)}
+function isBooked(id,day){return (AVAIL[id]||[]).some(([a,b])=>day>=a&&day<b)}
+function rangeFree(id,a,b){if(!a||!b||!AVAIL[id])return true;return !(AVAIL[id]).some(([s,e])=>s<b&&e>a)}
+(async()=>{for(const u of ['/api/availability','availability.json']){try{const r=await fetch(u,{cache:'no-store'});if(!r.ok)continue;const j=await r.json();if(j&&j.rooms){Object.assign(AVAIL,j.rooms);availSubs.forEach(f=>f());document.querySelectorAll('form.bk').forEach(fm=>fm.dispatchEvent(new Event('change')));return}}catch(e){}}})();
 const MON=['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'],DAY=['zo','ma','di','wo','do','vr','za'];
 function makeBooking(root,fixed){
   const OPTS=[...ROOMS.map(r=>({v:r.id,t:r.name,p:'€ '+r.p+' / nacht',img:r.img,tint:r.tint})),{v:'pottery',t:'Vrij atelier',p:'€ 30 p.p. · 3 uur',img:'pottery',tint:'#c98d5a'},{v:'lessen',t:'Lessenreeks',p:'€ 385 p.p. · 10 weken',img:'pottery',tint:'#c98d5a'}];
@@ -974,29 +1039,60 @@ function makeBooking(root,fixed){
   const opts=fixed?'':`<div class="bk-sec"><div class="bk-k">Wat wil je boeken?</div><div class="bk-opts" role="radiogroup">${OPTS.map(o=>`<button type="button" class="bk-o" role="radio" data-v="${o.v}" style="--tint:${o.tint}"><i style="background-image:url('${IMG(o.img)}')"></i><span><b>${o.t}</b><small>${o.p}</small></span></button>`).join('')}</div></div>`;
   root.innerHTML=`<form class="bk ${fixed?'glass':''}" novalidate>${head}${opts}
    <div class="bk-dates">
-    <label class="bk-d" data-l="in"><span class="bk-k" data-t="in">Aankomst</span><b class="dd"></b><span class="mm"></span><input type="date" data-k="din" aria-label="Aankomstdatum"></label>
+    <button type="button" class="bk-d" data-l="in" data-pick="in"><span class="bk-k" data-t="in">Aankomst</span><b class="dd"></b><span class="mm"></span><input type="hidden" data-k="din"></button>
     <div class="bk-n" data-l="n"><b></b><span>nachten</span></div>
-    <label class="bk-d" data-l="out"><span class="bk-k">Vertrek</span><b class="dd"></b><span class="mm"></span><input type="date" data-k="dout" aria-label="Vertrekdatum"></label>
+    <button type="button" class="bk-d" data-l="out" data-pick="out"><span class="bk-k">Vertrek</span><b class="dd"></b><span class="mm"></span><input type="hidden" data-k="dout"></button>
    </div>
+   <div class="cal" data-l="cal" hidden><div class="cal-h"><button type="button" class="cal-nav" data-cm="-1" aria-label="Vorige maand"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button><b class="cal-t"></b><button type="button" class="cal-nav" data-cm="1" aria-label="Volgende maand"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button></div><div class="cal-hint"></div><div class="cal-w"><span>ma</span><span>di</span><span>wo</span><span>do</span><span>vr</span><span>za</span><span>zo</span></div><div class="cal-g"></div><div class="cal-leg"><span><i class="lg-b"></i>Bezet</span><span><i class="lg-s"></i>Jouw verblijf</span><button type="button" class="cal-done">Klaar</button></div></div>
    <div class="bk-row"><div><span class="bk-k">Gasten</span><small data-k="gmax"></small></div><div class="step"><button type="button" data-s="-1" aria-label="Minder gasten">−</button><b data-k="g">2</b><button type="button" data-s="1" aria-label="Meer gasten">+</button></div></div>
    <label class="bk-row bk-sw" data-l="mem"><div><span class="bk-k">Ik ben al lid</span><small>Anders + € 25 p.p. eenmalig lidmaatschap</small></div><input type="checkbox" data-k="mem"><i class="sw"></i></label>
    <div data-l="extras"><div class="bk-k" style="margin-bottom:10px">Extra's</div><div class="bk-xs">${X.map(([k,ic,t,p])=>`<label class="bk-x"><input type="checkbox" data-k="x-${k}"><svg viewBox="0 0 24 24"><use href="#i-${ic}"/></svg><span><b>${t}</b><small>${p}</small></span><i class="tk"></i></label>`).join('')}</div></div>
    <div class="sum"></div>
    <button class="bk-cta" type="submit">Controleer beschikbaarheid <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button>
-   <div class="msg">Ontwerpdemo: er is geen beschikbaarheid gecontroleerd en geen reservatie of betaling uitgevoerd. De live boekingsmodule (Mollie) wordt door de webbouwer gekoppeld.</div>
+   <div class="msg"></div>
    <p class="fine">Indicatieve prijs · 100% online vooruitbetaling via Bancontact, Visa of Mastercard.</p></form>`;
   const f=root.querySelector('form'),q=k=>f.querySelector(`[data-k="${k}"]`),L=k=>f.querySelector(`[data-l="${k}"]`);
   let v=fixed?fixed.id:'rose',g=2;
-  const t1=new Date();t1.setDate(t1.getDate()+14);const t2=new Date(t1);t2.setDate(t2.getDate()+2);
-  q('din').value=iso(t1);q('dout').value=iso(t2);q('din').min=iso(new Date());
-  f.querySelectorAll('input[type=date]').forEach(i=>i.addEventListener('click',()=>{try{i.showPicker&&i.showPicker()}catch(e){}}));
   const pd=x=>{const d=new Date(x+'T12:00');return isNaN(d)?null:d};
+  const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+  const today=new Date();today.setHours(12,0,0,0);
+  function firstFree(id,from,len){let d=new Date(from);for(let i=0;i<180;i++){if(rangeFree(id,iso(d),iso(addD(d,len))))return d;d=addD(d,1)}return new Date(from)}
+  const t1=firstFree(v,addD(today,14),2),t2=addD(t1,2);
+  q('din').value=iso(t1);q('dout').value=iso(t2);
+  let calMode=null,calMonth=new Date(t1.getFullYear(),t1.getMonth(),1);
+  const cal=L('cal');
+  function drawCal(){const room=ROOMS.find(r=>r.id===v);
+    cal.querySelector('.cal-t').textContent=['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'][calMonth.getMonth()]+' '+calMonth.getFullYear();
+    cal.querySelector('.cal-hint').textContent=calMode==='in'?'Kies je aankomstdag':'Kies je vertrekdag';
+    const first=new Date(calMonth),pad=(first.getDay()+6)%7,days=new Date(first.getFullYear(),first.getMonth()+1,0).getDate();
+    const din=q('din').value,dout=q('dout').value;let h='';for(let i=0;i<pad;i++)h+='<span></span>';
+    for(let dn=1;dn<=days;dn++){const d=new Date(first.getFullYear(),first.getMonth(),dn,12),k=iso(d),past=d<today;
+      const booked=room&&isBooked(v,k);let ok=!past;
+      if(room&&calMode==='in')ok=ok&&!booked;
+      if(room&&calMode==='out')ok=k>din&&rangeFree(v,din,k);
+      const cls=[past?'past':'',booked?'busy':'',k===din?'s1':'',(k===dout&&room)?'s2':'',(room&&k>din&&k<dout)?'in':'',ok?'':'no'].join(' ');
+      h+=`<button type="button" class="${cls}" data-day="${k}" ${ok?'':'disabled'}>${dn}</button>`}
+    cal.querySelector('.cal-g').innerHTML=h;
+    cal.querySelector('[data-cm="-1"]').disabled=calMonth<=new Date(today.getFullYear(),today.getMonth(),1)}
+  function openCal(m){calMode=m;const d=pd(q(m==='in'?'din':'dout').value)||today;calMonth=new Date(d.getFullYear(),d.getMonth(),1);cal.hidden=false;f.querySelectorAll('.bk-d').forEach(b=>b.classList.toggle('act',b.dataset.pick===m));drawCal()}
+  function closeCal(){cal.hidden=true;calMode=null;f.querySelectorAll('.bk-d').forEach(b=>b.classList.remove('act'))}
+  cal.addEventListener('click',e=>{const nav=e.target.closest('[data-cm]');if(nav){calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+ +nav.dataset.cm,1);drawCal();return}
+    if(e.target.closest('.cal-done')){closeCal();return}
+    const b=e.target.closest('[data-day]');if(!b)return;const k=b.dataset.day,room=ROOMS.find(r=>r.id===v);
+    if(calMode==='in'){q('din').value=k;if(!room){update();closeCal();return}
+      let o=q('dout').value;if(!(o>k)||!rangeFree(v,k,o)){o=iso(addD(pd(k),1));q('dout').value=rangeFree(v,k,o)?o:o}
+      calMode='out';update();drawCal()}
+    else{q('dout').value=k;update();closeCal()}});
+  onAvail(()=>{if(!calMode)return;drawCal()});
   function update(){
     const room=ROOMS.find(r=>r.id===v),pot=!room,max=room?room.max:6;g=Math.max(1,Math.min(max,g));
     f.querySelectorAll('.bk-o').forEach(b=>{const on=b.dataset.v===v;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)});
     let din=pd(q('din').value)||t1,dout=pd(q('dout').value);
-    if(!pot&&(!dout||dout<=din)){dout=new Date(din);dout.setDate(dout.getDate()+1);q('dout').value=iso(dout)}
-    q('dout').min=iso(new Date(din.getTime()+864e5));
+    if(!pot&&(!dout||dout<=din)){dout=addD(din,1);q('dout').value=iso(dout)}
+    const free=pot||rangeFree(v,iso(din),iso(dout));
+    f.querySelector('.bk-dates').classList.toggle('clash',!free);
+    f.querySelector('.bk-cta').disabled=!free;
+    L('n').querySelector('b').title=free?'':'Niet beschikbaar';
     const put=(l,d)=>{L(l).querySelector('.dd').textContent=d.getDate();L(l).querySelector('.mm').textContent=MON[d.getMonth()]+' · '+DAY[d.getDay()]};
     put('in',din);if(!pot)put('out',dout);
     const n=pot?1:Math.max(1,Math.round((dout-din)/864e5));
@@ -1015,11 +1111,14 @@ function makeBooking(root,fixed){
     }else{const base=v==='lessen'?385:30;rows.push([(v==='lessen'?'Lessenreeks':'Vrij atelier')+` · ${g} pers.`,base*g]);if(!q('mem').checked)rows.push([`Lidmaatschap · ${g} × € 25`,25*g]);}
     rows.forEach(r=>tot+=r[1]);
     f.querySelector('.sum').innerHTML=rows.map(r=>`<div class="row"><span>${r[0]}</span><span>${fmt(r[1])}</span></div>`).join('')+`<div class="row tot"><span>Totaal</span><b>${fmt(tot)}</b></div>`;
-    f.querySelector('.msg').classList.remove('show');
+    const m=f.querySelector('.msg');m.classList.toggle('show',!free);m.classList.toggle('bad',!free);
+    if(!free)m.innerHTML=`<b>Niet beschikbaar</b> · ${room.name} is bezet in deze periode. Kies andere data in de kalender.`;
+    if(calMode)drawCal();
   }
-  f.addEventListener('click',e=>{const o=e.target.closest('.bk-o');if(o){v=o.dataset.v;update();return}const s=e.target.closest('[data-s]');if(s){g+=+s.dataset.s;update()}});
+  f.addEventListener('click',e=>{const pk=e.target.closest('[data-pick]');if(pk){calMode===pk.dataset.pick?closeCal():openCal(pk.dataset.pick);return}const o=e.target.closest('.bk-o');if(o){v=o.dataset.v;const r=ROOMS.find(x=>x.id===v);if(r&&!rangeFree(v,q('din').value,q('dout').value)){const n=Math.max(1,Math.round((pd(q('dout').value)-pd(q('din').value))/864e5)),d=firstFree(v,pd(q('din').value),n);q('din').value=iso(d);q('dout').value=iso(addD(d,n))}update();return}const s=e.target.closest('[data-s]');if(s){g+=+s.dataset.s;update()}});
   f.addEventListener('input',update);f.addEventListener('change',update);
-  f.addEventListener('submit',e=>{e.preventDefault();f.querySelector('.msg').classList.add('show')});
+  f.addEventListener('submit',e=>{e.preventDefault();const room=ROOMS.find(r=>r.id===v),m=f.querySelector('.msg');m.classList.remove('bad');
+    m.innerHTML=room?`<b>✓ Beschikbaar</b> · ${room.name} is vrij van ${q('din').value.split('-').reverse().join('/')} tot ${q('dout').value.split('-').reverse().join('/')}. Online betalen via Mollie wordt bij livegang gekoppeld.`:`<b>✓ Aanvraag klaar</b> · Online betalen via Mollie wordt bij livegang gekoppeld.`;m.classList.add('show')});
   update();
   return x=>{if(!fixed){v=x;update();const b=f.querySelector(`.bk-o[data-v="${x}"]`);b&&b.scrollIntoView({block:'nearest',inline:'center'})}};
 }
@@ -1100,9 +1199,9 @@ function route(){
     rp.innerHTML=roomPage(r);rp.hidden=false;home.hidden=true;
     makeBooking(rp.querySelector('#roomBook'),r);
     rp.querySelectorAll('.gal figure').forEach(f=>f.onclick=()=>{lb.querySelector('img').src=IMG(f.dataset.src);lb.classList.add('open')});
-    document.title=r.name+' · Villa Amano';if(AMB.on)AMB.play(r.id);const rv=rp.querySelector('.rvid');if(rv){rv.muted=true;const pr=rv.play();pr&&pr.catch&&pr.catch(()=>{});addEventListener('touchstart',()=>{rv.paused&&rv.play().catch(()=>{})},{once:true,passive:true})}scrollTo(0,0);reveal(rp);
+    document.title=r.name+' · Kamer bij Villa Amano, Bilzen-Hoeselt';(document.querySelector('meta[name=description]')||{}).content=`${r.name} – ${r.d} Vanaf € ${r.p} per nacht in boutique hotel Villa Amano, Bilzen-Hoeselt.`;if(AMB.on)AMB.play(r.id);const rv=rp.querySelector('.rvid');if(rv){rv.muted=true;const pr=rv.play();pr&&pr.catch&&pr.catch(()=>{});addEventListener('touchstart',()=>{rv.paused&&rv.play().catch(()=>{})},{once:true,passive:true})}scrollTo(0,0);reveal(rp);
   }else{
-    const was=home.hidden;home.hidden=false;rp.hidden=true;rp.innerHTML='';document.title='Villa Amano · Boutique Hotel Bilzen-Hoeselt';
+    const was=home.hidden;home.hidden=false;rp.hidden=true;rp.innerHTML='';document.title='Villa Amano · Boutique Hotel Bilzen-Hoeselt';(document.querySelector('meta[name=description]')||{}).content='Villa Amano – boutique hotel in Bilzen-Hoeselt met vijf edelsteenkamers, wellness, ontbijt en Pottery House keramiekatelier (open tot 22:00). Rest · Create · Be.';
     const el=h&&document.getElementById(h);
     if(was){if(el)requestAnimationFrame(()=>{jump(h);cfRooms.layout();cfActs.layout()});else scrollTo(0,0)}
     else if(h&&MQM.matches&&ACT_CF.some(a=>a.k===h))jump(h,true);
