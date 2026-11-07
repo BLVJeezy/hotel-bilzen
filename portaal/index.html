@@ -110,6 +110,7 @@ button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:i
 .sheet.open{transform:none}.sheet .grab{width:42px;height:4px;border-radius:2px;background:#ffffff33;margin:0 auto 14px}
 .sheet h3{font-size:28px;margin-bottom:4px}.sheet .sub{color:var(--muted);font-size:13.5px;margin-bottom:16px}
 .steps{margin:0 0 16px;padding-left:20px;color:#d6cab7;font-size:14px}.steps li{margin-bottom:6px}
+.ist{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #ffffff0d}.ist:last-of-type{border-bottom:0;margin-bottom:12px}.ist .in{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;border:1px solid #e6b86680;color:var(--gold2);font:400 16px var(--serif)}.ist b{display:block;font-weight:400}.ist small{color:var(--muted);font-size:13px}
 .toast{position:fixed;left:50%;bottom:calc(92px + var(--sb));transform:translate(-50%,10px);z-index:60;padding:11px 18px;border-radius:14px;background:#2a2018;border:1px solid #e8d8b833;font-size:13.5px;opacity:0;pointer-events:none;transition:.3s;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}.toast.err{border-color:#e8a0a066;color:#f3d6d6}
 </style>
@@ -197,7 +198,7 @@ async function start(){try{D=await api('g-me')}catch(e){return}
  $('#tabs').innerHTML=TABS.map(t=>`<button data-t="${t[0]}"><svg><use href="#${t[2]}"/></svg>${t[1]}</button>`).join('');
  $('#tabs').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.t)};
  const h=location.hash.slice(1);go(TABS.some(t=>t[0]===h)?h:'home');
- if('serviceWorker' in navigator)navigator.serviceWorker.register('/portaal/sw.js').catch(()=>{})}
+ if('serviceWorker' in navigator)navigator.serviceWorker.register('/portaal/sw.js').catch(()=>{});maybeInstall()}
 function go(t){TAB=t;history.replaceState(null,'',location.pathname+location.search+'#'+t);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$('#title').textContent=TABS.find(x=>x[0]===t)[1];scrollTo(0,0);render()}
 function render(){({home:vHome,boekingen:vBook,leden:vMem,ontdek:vDisc,account:vAcc})[TAB]()}
 async function reload(){try{D=await api('g-me');render()}catch(e){}}
@@ -264,10 +265,24 @@ function vDisc(){const rq=(D.requests||[]).slice(0,5);
 function vAcc(){const li=(ic,t,s,act)=>`<div class="row" ${act?`onclick="${act}" style="cursor:pointer"`:''}><span class="ic"><svg><use href="#${ic}"/></svg></span><div class="tx"><b>${t}</b><small>${s}</small></div><div class="rt">${act?'→':''}</div></div>`;
  $('#app').innerHTML=`<div class="card"><div class="row"><span class="ic" style="background:linear-gradient(120deg,#f6dfa4,#c98d3e);color:#24180e;font:500 16px var(--sans)">${esc(D.me.name[0])}</span><div class="tx"><b>${esc(D.me.name)}</b><small>${esc(D.me.email)}${D.me.phone?' · '+esc(D.me.phone):''}</small></div><div class="rt"><button class="b2" style="height:34px" onclick="profileSheet()">Wijzig</button></div></div></div>
  <div class="sec"><h3>Contact</h3></div><div class="card">${li('i-mail','E-mail',MAIL,`location.href='mailto:${MAIL}'`)}${li('i-pin','Adres',ADDR,`window.open('${MAPS}','_blank')`)}${li('i-clock','Receptie','Check-in 15:00 – 21:00 · check-out 11:00')}</div>
- <div class="sec"><h3>App</h3></div><div class="card">${li('i-phone','Zet op je beginscherm','Open Villa Amano als app',"installSheet()")}${li('i-home','Naar de website','villa-amano',"location.href='/'")}${li('i-out','Uitloggen','',"logout()")}</div>`}
+ <div class="sec"><h3>App</h3></div><div class="card">${STANDALONE()?'':li('i-phone','Zet op je beginscherm','Open Villa Amano als app',"installSheet()")}${li('i-home','Naar de website','villa-amano',"location.href='/'")}${li('i-out','Uitloggen','',"logout()")}</div>`}
 function profileSheet(){openSheet(`<h3>Je gegevens</h3><div class="sub">${esc(D.me.email)}</div><label class="f"><span>Naam</span><input id="pn" value="${esc(D.me.name)}"></label><label class="f"><span>Telefoon</span><input id="pp" type="tel" value="${esc(D.me.phone||'')}"></label><label class="f"><span>Nieuw wachtwoord (optioneel)</span><input id="pw" type="password" placeholder="Leeg = behouden"></label><button class="cta full" id="ps">Opslaan</button>`);
  $('#ps').onclick=async()=>{try{await api('g-profile',{name:$('#pn').value,phone:$('#pp').value,password:$('#pw').value});closeSheet();toast('Opgeslagen ✓');reload()}catch(e){toast(e.message,1)}}}
-function installSheet(){const ios=/iphone|ipad/i.test(navigator.userAgent);openSheet(`<h3>Villa Amano als app</h3><div class="sub">Altijd je verblijf en ontbijt bij de hand.</div><ol class="steps">${ios?'<li>Open deze pagina in <b>Safari</b>.</li><li>Tik onderaan op het <b>deel-icoon</b> (vierkant met pijl).</li><li>Kies <b>Zet op beginscherm</b> en tik op <b>Voeg toe</b>.</li>':'<li>Tik rechtsboven in Chrome op <b>⋮</b>.</li><li>Kies <b>App installeren</b> of <b>Toevoegen aan startscherm</b>.</li>'}</ol><button class="cta full" onclick="closeSheet()">Begrepen</button>`)}
+let BIP=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();BIP=e});addEventListener('appinstalled',()=>{try{localStorage.setItem('va_inst','1')}catch(e){}toast('Geïnstalleerd ✓ Je vindt Villa Amano op je beginscherm')});
+const STANDALONE=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+function installSheet(first){const ua=navigator.userAgent,ios=/iphone|ipad|ipod/i.test(ua)||(/macintosh/i.test(ua)&&navigator.maxTouchPoints>1),safari=ios&&!/crios|fxios|edgios|gsa\//i.test(ua);
+ const st=(n,h,t)=>`<div class="ist"><span class="in">${n}</span><div><b>${h}</b><small>${t}</small></div></div>`;
+ const share='<svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;stroke:var(--gold2);fill:none;stroke-width:1.6"><path d="M12 3v12M8 7l4-4 4 4M6 11H5v10h14V11h-1"/></svg>';
+ let body;
+ if(ios&&!safari)body=st(1,'Open in Safari','Op iPhone kan dit alleen via Safari. Kopieer de link hieronder en plak hem in Safari.')+`<button class="b2" style="width:100%;margin:4px 0 14px" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.origin+'/portaal/').then(()=>toast('Link gekopieerd'))">Kopieer link</button>`+st(2,'Volg daarna de stappen','Deel-icoon → Zet op beginscherm → Voeg toe.');
+ else if(ios)body=st(1,'Tik op '+share+' Deel','Onderaan in Safari (of bovenaan op iPad).')+st(2,'Kies “Zet op beginscherm”','Scroll even naar beneden in het menu als je het niet meteen ziet.')+st(3,'Tik op “Voeg toe”','Villa Amano staat nu als app op je beginscherm.');
+ else if(BIP)body=`<p style="color:#d6cab7;font-size:14px;margin:0 0 14px">Eén tik en Villa Amano staat als app op je toestel.</p>`;
+ else body=st(1,'Tik op ⋮ rechtsboven','In Chrome (of het menu van je browser).')+st(2,'Kies “App installeren”','Of “Toevoegen aan startscherm”.')+st(3,'Bevestig met “Installeren”','Villa Amano staat nu als app op je beginscherm.');
+ openSheet(`<span class="caps">${first?'Welkom bij Villa Amano':'App'}</span><h3 style="margin-top:6px">Zet Villa Amano op je telefoon</h3><div class="sub">Dan heb je je verblijf, ontbijt bestellen en je ledenkaart altijd bij de hand, in één tik.</div>${body}
+ ${BIP&&!ios?'<button class="cta full" id="ibip">Installeer de app</button>':'<button class="cta full" onclick="closeSheet()">Begrepen</button>'}${first?'<button class="b2" style="width:100%;margin-top:8px;border:0;color:var(--muted)" onclick="closeSheet()">Later</button>':''}`);
+ const b=$('#ibip');if(b)b.onclick=async()=>{BIP.prompt();const r=await BIP.userChoice;BIP=null;closeSheet();if(r.outcome!=='accepted')toast('Kan later via Account → Zet op beginscherm')};
+ try{localStorage.setItem('va_inst_seen','1')}catch(e){}}
+function maybeInstall(){if(STANDALONE())return;let seen=0;try{seen=localStorage.getItem('va_inst_seen')}catch(e){}if(seen)return;setTimeout(()=>installSheet(1),1400)}
 
 /* sheet */
 function openSheet(h){$('#sheet').innerHTML='<div class="grab"></div>'+h;$('#sheet').classList.add('open');$('#sbg').classList.add('open')}
