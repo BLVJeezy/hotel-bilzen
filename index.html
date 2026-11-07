@@ -381,6 +381,23 @@ input:focus,select:focus{outline:none;border-color:var(--beige)}
 .exclusive .btn.gold{border-radius:999px;box-shadow:none}
 @media(max-width:560px){.exclusive .btn.gold{width:100%;justify-content:center}}
 
+
+/* ambient sound buttons */
+.cf-snd,.r-snd{display:inline-flex;align-items:center;gap:10px;padding:8px 14px 8px 10px;border-radius:999px;background:#0d0a0880;border:1px solid color-mix(in srgb,var(--tint,#e8d8b8) 55%,#ffffff30);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;cursor:pointer;text-align:left;transition:.35s}
+.cf-snd{position:absolute;z-index:3;top:12px;right:12px;opacity:0;transform:translateY(-6px);pointer-events:none}
+.cf-card.on .cf-snd{opacity:1;transform:none;pointer-events:auto}
+.sl b{display:block;font:500 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;line-height:1.2}
+.sl em{display:block;font-style:normal;font-size:11.5px;color:#ffffffb3;line-height:1.2}
+.eqs{display:flex;align-items:flex-end;gap:2px;height:16px;width:18px}
+.eqs i{flex:1;height:4px;border-radius:2px;background:var(--tint,var(--gold));transition:height .3s}
+.on>.eqs i{animation:eqb 1s ease-in-out infinite}
+.on>.eqs i:nth-child(2){animation-delay:-.3s}.on>.eqs i:nth-child(3){animation-delay:-.6s}.on>.eqs i:nth-child(4){animation-delay:-.15s}
+@keyframes eqb{0%,100%{height:4px}50%{height:16px}}
+.cf-snd.on,.r-snd.on{background:color-mix(in srgb,var(--tint,#e6b866) 30%,#0d0a08a0);box-shadow:0 0 24px color-mix(in srgb,var(--tint,#e6b866) 40%,transparent)}
+.r-snd{margin:0 12px 12px 0}
+.rh-cta{display:flex;flex-wrap:wrap;align-items:center}
+@media(max-width:1000px){.r-snd{width:100%;justify-content:center;margin:0 0 12px}}
+
 /* ROOM PAGE */
 #roomPage{min-height:100vh}
 .rhero .caps,.rbody .caps{color:var(--tint)}
@@ -839,10 +856,39 @@ function drawer(o){document.getElementById('drawer').classList.toggle('open',o);
 
 // glassy coverflow carousel
 const ICO={prev:'<svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>',next:'<svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5l11 7-11 7z"/></svg>',play:'<svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>',pause:'<svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>'};
-function coverflow(root,items){
+// ambient room soundscapes (Web Audio, generated live)
+const AMB=(()=>{let ctx,master,cur=null,curId=null,on=false;const subs=new Set();
+ const P={
+  rose:{vibe:'Zacht & romantisch',root:130.81,ch:[0,4,7,11,16],wave:'triangle',lp:1300,lfo:.07,bell:.05,bn:[0,4,7,11,14],be:2600,noise:0},
+  clear:{vibe:'Helder & fris',root:146.83,ch:[0,7,12,14,19],wave:'sine',lp:3200,lfo:.11,bell:.07,bn:[0,2,7,9,12,14],be:1500,noise:.012,nf:2600},
+  sun:{vibe:'Warm & zonnig',root:110,ch:[0,4,7,9,14],wave:'triangle',lp:1800,lfo:.09,bell:.045,bn:[0,4,7,9],be:2100,noise:0},
+  moon:{vibe:'Rustig & dromerig',root:98,ch:[0,3,7,10,14],wave:'sine',lp:900,lfo:.05,bell:.035,bn:[3,7,10,14],be:3400,noise:.05,nf:500},
+  amethyst:{vibe:'Diep & mystiek',root:108,ch:[0,3,7,12,15],wave:'triangle',lp:1000,lfo:.04,bell:.04,bn:[0,3,7,10],be:3000,noise:.025,nf:700}};
+ function init(){if(ctx)return;ctx=new (window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();master.gain.value=.55;
+  const rv=ctx.createConvolver(),len=ctx.sampleRate*3.5,ir=ctx.createBuffer(2,len,ctx.sampleRate);
+  for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6)}
+  rv.buffer=ir;const wet=ctx.createGain();wet.gain.value=.55;master.connect(ctx.destination);master.connect(rv);rv.connect(wet);wet.connect(ctx.destination)}
+ function voice(d){const g=ctx.createGain(),now=ctx.currentTime;g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(1,now+2.5);g.connect(master);const ns=[];
+  const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=d.lp;lp.Q.value=.6;lp.connect(g);
+  d.ch.forEach((st,i)=>[-5,5].forEach(dt=>{const o=ctx.createOscillator(),og=ctx.createGain();o.type=d.wave;o.frequency.value=d.root*Math.pow(2,st/12);o.detune.value=dt;og.gain.value=.045/(1+i*.35);o.connect(og);og.connect(lp);o.start();ns.push(o)}));
+  const l=ctx.createOscillator(),lg=ctx.createGain();l.frequency.value=d.lfo;lg.gain.value=d.lp*.45;l.connect(lg);lg.connect(lp.frequency);l.start();ns.push(l);
+  if(d.noise){const b=ctx.createBuffer(1,ctx.sampleRate*3,ctx.sampleRate),a=b.getChannelData(0);let z=0;for(let i=0;i<a.length;i++){z=(z+.02*(Math.random()*2-1))/1.02;a[i]=z*3.5}
+   const sN=ctx.createBufferSource(),f=ctx.createBiquadFilter(),ng=ctx.createGain();sN.buffer=b;sN.loop=true;f.type='bandpass';f.frequency.value=d.nf;ng.gain.value=d.noise*6;sN.connect(f);f.connect(ng);ng.connect(g);sN.start();ns.push(sN)}
+  const ring=()=>{const t=ctx.currentTime,o=ctx.createOscillator(),e=ctx.createGain();o.type='sine';o.frequency.value=d.root*4*Math.pow(2,d.bn[Math.floor(Math.random()*d.bn.length)]/12);
+   e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(d.bell,t+.03);e.gain.exponentialRampToValueAtTime(.0001,t+4.5);o.connect(e);e.connect(g);o.start(t);o.stop(t+4.6)};
+  const tm=setInterval(()=>{if(Math.random()<.8)ring()},d.be);setTimeout(ring,600);
+  return{stop(){const t=ctx.currentTime;g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(0,t+1.6);clearInterval(tm);setTimeout(()=>{ns.forEach(x=>{try{x.stop()}catch(e){}});g.disconnect()},1800)}}}
+ function emit(){subs.forEach(f=>f(on,curId))}
+ function play(id){init();ctx.resume&&ctx.resume();if(curId===id&&cur){on=true;emit();return}cur&&cur.stop();cur=P[id]?voice(P[id]):null;curId=id;on=!!cur;emit()}
+ function stop(){cur&&cur.stop();cur=null;on=false;emit()}
+ return{P,play,stop,switchTo(id){if(on&&id!==curId)play(id)},toggle(id){on&&curId===id?stop():play(id)},get on(){return on},get id(){return curId},sub(f){subs.add(f)}};
+})();
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&AMB.on)AMB.stop()});
+
+function coverflow(root,items,opts={}){
   const n=items.length,mod=x=>((x%n)+n)%n;
   let pos=0,target=0,raf=0,last=0,dragging=false,moved=false,sx=0,sp=0,vel=0,lx=0,lt=0,idx=0;
-  root.innerHTML=`<div class="cf-stage">${items.map((it,i)=>`<article class="cf-card" data-i="${i}" style="--tint:${it.tint||'#e8d8b8'}"><div class="cf-img" style="background-image:url('${IMG(it.img)}')"><a class="cf-cta" href="${it.href}" ${it.on?`data-on="${it.on}"`:''}>${it.cta} <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div><div class="cf-txt"><h3>${it.title}</h3><p>${it.meta}</p></div></article>`).join('')}</div>
+  root.innerHTML=`<div class="cf-stage">${items.map((it,i)=>`<article class="cf-card" data-i="${i}" style="--tint:${it.tint||'#e8d8b8'}"><div class="cf-img" style="background-image:url('${IMG(it.img)}')">${it.snd?`<button type="button" class="cf-snd" aria-label="Speel de sfeer van ${it.title}"><span class="eqs"><i></i><i></i><i></i><i></i></span><span class="sl"><b>Sfeer</b><em>${AMB.P[it.snd].vibe}</em></span></button>`:''}<a class="cf-cta" href="${it.href}" ${it.on?`data-on="${it.on}"`:''}>${it.cta} <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div><div class="cf-txt"><h3>${it.title}</h3><p>${it.meta}</p></div></article>`).join('')}</div>
    <div class="cf-nav"><button class="cf-btn" data-a="prev" aria-label="Vorige"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button><div class="cf-dots">${items.map((_,i)=>`<button data-d="${i}" aria-label="${i+1}"></button>`).join('')}</div><button class="cf-btn" data-a="next" aria-label="Volgende"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button></div>`;
   const stage=root.querySelector('.cf-stage'),cards=[...stage.children],dots=[...root.querySelectorAll('.cf-dots button')];
   let w=0,step=0;const measure=()=>{w=cards[0].offsetWidth;step=w*.64;stage.style.height=Math.max(...cards.map(c=>c.offsetHeight))+'px'};
@@ -850,7 +896,7 @@ function coverflow(root,items){
     cards.forEach((c,i)=>{let d=i-pos;d=((d%n)+n)%n;if(d>n/2)d-=n;const a=Math.abs(d),cl=Math.max(-1.6,Math.min(1.6,d)),e=Math.min(a,2);
       c.style.transform=`translate3d(${(d*step).toFixed(2)}px,0,${(-a*170).toFixed(1)}px) rotateY(${(-cl*32).toFixed(2)}deg) scale(${(1-e*.07).toFixed(4)})`;
       c.style.opacity=a>2.6?0:(1-e*.22).toFixed(3);c.style.zIndex=100-Math.round(a*10);c.classList.toggle('on',a<.5)});
-    const k=mod(Math.round(pos));if(k!==idx||!root.dataset.r){idx=k;root.dataset.r=1;root.style.setProperty('--cf',items[k].tint||'#e8d8b8');dots.forEach((d,j)=>d.classList.toggle('on',j===k))}
+    const k=mod(Math.round(pos));if(k!==idx||!root.dataset.r){idx=k;root.dataset.r=1;root.style.setProperty('--cf',items[k].tint||'#e8d8b8');dots.forEach((d,j)=>d.classList.toggle('on',j===k));opts.onChange&&opts.onChange(k,items[k])}
   }
   function tick(t){const dt=Math.min(.05,(t-(last||t))/1000);last=t;
     if(!dragging){const f=1-Math.exp(-dt*7.5);pos+= (target-pos)*f;if(Math.abs(target-pos)<.0008){pos=target;render();raf=0;last=0;return}}
@@ -865,6 +911,7 @@ function coverflow(root,items){
   addEventListener('pointerup',end);addEventListener('pointercancel',end);
   stage.addEventListener('click',e=>{if(moved){e.preventDefault();e.stopPropagation();moved=false;return}const c=e.target.closest('.cf-card');if(!c)return;const i=+c.dataset.i;
     if(i!==idx){e.preventDefault();go(i);return}
+    if(e.target.closest('.cf-snd')){e.preventDefault();e.stopPropagation();opts.onSound&&opts.onSound(idx,items[idx]);return}
     const a=e.target.closest('a');if(a&&a.dataset.on)pick(a.dataset.on);if(!a){c.querySelector('.cf-cta').click()}},true);
   root.querySelector('[data-a=prev]').onclick=()=>go(Math.round(target)-1);root.querySelector('[data-a=next]').onclick=()=>go(Math.round(target)+1);
   dots.forEach((d,k)=>d.onclick=()=>go(k));
@@ -872,7 +919,7 @@ function coverflow(root,items){
   measure();render();setTimeout(()=>{measure();render()},300);
   return {go:i=>{go(i)},layout:()=>{measure();render()}};
 }
-const cfRooms=coverflow(document.getElementById('cfRooms'),ROOMS.map(r=>({img:r.img,title:r.name,short:'€ '+r.p+' / nacht',meta:`<b>€ ${r.p}</b> / nacht · ${r.tag}`,href:'#'+r.slug,cta:'Bekijk kamer',tint:r.tint,play:'bed'})));
+const cfRooms=coverflow(document.getElementById('cfRooms'),ROOMS.map(r=>({snd:r.id,img:r.img,title:r.name,short:'€ '+r.p+' / nacht',meta:`<b>€ ${r.p}</b> / nacht · ${r.tag}`,href:'#'+r.slug,cta:'Bekijk kamer',tint:r.tint,play:'bed'})),{onSound:(k,it)=>AMB.toggle(it.snd),onChange:(k,it)=>AMB.switchTo(it.snd)});
 const ACT_CF=[
  {k:'pottery',img:'pottery',title:'Pottery House',short:'Open tot 22:00',meta:'<b>€ 30</b> vrij atelier · € 385 lessenreeks · open tot 22:00',href:'#boeken',on:'pottery',cta:'Reserveer nu',tint:'#c98d5a',play:'clock'},
  {k:'wellness',img:'wellness',title:'Wellness & ontspanning',short:'10:00–19:30',meta:'<b>€ 35</b> p.p. · max. 3 uur · alleen hotelgasten',href:'#boeken',cta:'Ontdek wellness',tint:'#b06ad0',play:'lotus'},
@@ -883,6 +930,9 @@ coverflow(document.getElementById('cfMore'),[
  {img:'lounge',title:'Amano Therapy',meta:'Begeleiding en coaching in een warme omgeving',href:'#contact',cta:'Meer info',tint:'#a8b8e6'},
  {img:'shop',title:'The Amano Shop',meta:'Keramiek, verzorging en sfeer voor thuis',href:'#contact',cta:'Naar de shop',tint:'#e6b866'},
  {img:'rose-handdoek',title:'Cadeaubon',meta:'Schenk een verblijf, wellness of keramiek',href:'#contact',cta:'Bon kiezen',tint:'#e8a0b0'}]);
+(function(){const el=document.getElementById('cfRooms');
+ AMB.sub((on,id)=>{document.querySelectorAll('.cf-snd,.r-snd').forEach(b=>{const c=b.closest('[data-i]');const mine=b.dataset.room||(c&&ROOMS[+c.dataset.i]&&ROOMS[+c.dataset.i].id);b.classList.toggle('on',on&&mine===id)})});
+ new IntersectionObserver(es=>{if(!es[0].isIntersecting&&AMB.on&&location.hash.indexOf('kamer-')<0)AMB.stop()},{threshold:0}).observe(el)})();
 const MQM=matchMedia('(max-width:1000px)');
 function jump(h,smooth){let el=document.getElementById(h);const k=ACT_CF.findIndex(a=>a.k===h);
   if(MQM.matches&&k>-1){cfActs.go(k);el=document.getElementById('activiteiten')}
@@ -983,7 +1033,7 @@ function roomPage(r){
   const amen=[...COMMON,r.max===3?['sofa','Extra volwassenwaardig zetelbed']:['bed','Bed als tweepersoonsbed of twee aparte bedden']];
   return `<div style="--tint:${r.tint}">
   <section class="rhero${r.vid?' has-vid':''}"><div class="img" style="background-image:url('${IMG(r.img)}')"></div>${r.vid?`<video class="rvid" src="${r.vid}" poster="${IMG(r.img)}" autoplay muted loop playsinline webkit-playsinline preload="auto" disablepictureinpicture aria-hidden="true"></video>`:''}
-   <div class="in"><a class="back" href="#kamers">${arrow} Alle kamers</a><div class="caps">Villa Amano · Boutique Hotel</div><h1>${r.name}</h1><p>${r.d}</p><div class="rh-cta"><button type="button" class="btn gold qbook" onclick="document.getElementById('roomBook').scrollIntoView({behavior:'smooth',block:'start'})">Reserveer nu <span>· € ${r.p} / nacht</span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><use href="#arrow"/></svg></button></div></div></section>
+   <div class="in"><a class="back" href="#kamers">${arrow} Alle kamers</a><div class="caps">Villa Amano · Boutique Hotel</div><h1>${r.name}</h1><p>${r.d}</p><div class="rh-cta"><button type="button" class="r-snd" data-room="${r.id}" onclick="AMB.toggle('${r.id}')"><span class="eqs"><i></i><i></i><i></i><i></i></span><span class="sl"><b>Voel de sfeer</b><em>${AMB.P[r.id].vibe}</em></span></button><button type="button" class="btn gold qbook" onclick="document.getElementById('roomBook').scrollIntoView({behavior:'smooth',block:'start'})">Reserveer nu <span>· € ${r.p} / nacht</span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><use href="#arrow"/></svg></button></div></div></section>
   <section class="wrap" style="padding-top:10px;padding-bottom:120px">
    <div class="rfacts rv"><div><span>Per nacht</span><b class="g">€ ${r.p}</b></div><div><span>Max. bezetting</span><b>${r.max} gasten</b></div><div><span>Check-in</span><b>15:00–21:00</b></div><div><span>Check-out</span><b>11:00</b></div></div>
    <div class="rbody">
@@ -1050,7 +1100,7 @@ function route(){
     rp.innerHTML=roomPage(r);rp.hidden=false;home.hidden=true;
     makeBooking(rp.querySelector('#roomBook'),r);
     rp.querySelectorAll('.gal figure').forEach(f=>f.onclick=()=>{lb.querySelector('img').src=IMG(f.dataset.src);lb.classList.add('open')});
-    document.title=r.name+' · Villa Amano';const rv=rp.querySelector('.rvid');if(rv){rv.muted=true;const pr=rv.play();pr&&pr.catch&&pr.catch(()=>{});addEventListener('touchstart',()=>{rv.paused&&rv.play().catch(()=>{})},{once:true,passive:true})}scrollTo(0,0);reveal(rp);
+    document.title=r.name+' · Villa Amano';if(AMB.on)AMB.play(r.id);const rv=rp.querySelector('.rvid');if(rv){rv.muted=true;const pr=rv.play();pr&&pr.catch&&pr.catch(()=>{});addEventListener('touchstart',()=>{rv.paused&&rv.play().catch(()=>{})},{once:true,passive:true})}scrollTo(0,0);reveal(rp);
   }else{
     const was=home.hidden;home.hidden=false;rp.hidden=true;rp.innerHTML='';document.title='Villa Amano · Boutique Hotel Bilzen-Hoeselt';
     const el=h&&document.getElementById(h);
