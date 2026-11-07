@@ -21,7 +21,7 @@ async function feed(url) {
 }
 
 module.exports = async (req, res) => {
-  let cal = { entries: [] }, cfg = { ical: {} }, haveStore = !!process.env.BLOB_READ_WRITE_TOKEN;
+  let cal = { entries: [] }, cfg = { ical: {} }, haveStore = !!(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
   if (haveStore) { try { cal = (await load('calendar')).data; cfg = (await load('config')).data; } catch (e) { haveStore = false; } }
   const rooms = {}; let sources = 0;
   await Promise.all(Object.entries(ROOMS).map(async ([id, env]) => {

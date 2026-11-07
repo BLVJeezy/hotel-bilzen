@@ -48,7 +48,7 @@ const DEFAULTS = {
 
 // ---------- storage ----------
 const mem = {}; // fallback zonder Blob (alleen voor lokaal testen)
-const hasStore = () => !!(blob && process.env.BLOB_READ_WRITE_TOKEN);
+const hasStore = () => !!(blob && (process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID));
 async function load(name) {
   if (!hasStore()) { if (!mem[name]) mem[name] = { data: DEFAULTS[name](), etag: null }; return { data: JSON.parse(JSON.stringify(mem[name].data)), etag: 'mem' }; }
   const r = await blob.get(`ops/${name}.json`, { access: 'private', useCache: false }).catch(e => (e && e.name === 'BlobNotFoundError' ? null : Promise.reject(e)));
@@ -73,7 +73,7 @@ async function mutate(name, fn) {
 }
 
 // ---------- auth ----------
-const secret = () => process.env.OPS_SECRET || crypto.createHash('sha256').update('va:' + (process.env.BLOB_READ_WRITE_TOKEN || 'local-dev')).digest('hex');
+const secret = () => process.env.OPS_SECRET || crypto.createHash('sha256').update('va:' + (process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID || 'local-dev')).digest('hex');
 const hashPin = pin => crypto.createHmac('sha256', secret()).update('pin:' + String(pin)).digest('hex');
 function sign(payload) {
   const b = Buffer.from(JSON.stringify(payload)).toString('base64url');
@@ -117,7 +117,7 @@ module.exports = async (req, res) => {
   const a = url.searchParams.get('a') || '';
   try {
     // ===== publiek =====
-    if (a === 'status') return send(res, 200, { ok: true, store: hasStore() });
+    if (a === 'status') return send(res, 200, { ok: true, store: hasStore(), sdk: !!blob, env: { token: !!process.env.BLOB_READ_WRITE_TOKEN, storeId: !!process.env.BLOB_STORE_ID, oidc: !!process.env.VERCEL_OIDC_TOKEN } });
     if (a === 'menus') {
       const { data } = await load('menus');
       return send(res, 200, data, { 'cache-control': 's-maxage=20, stale-while-revalidate=60' });
