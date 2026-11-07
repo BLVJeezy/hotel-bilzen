@@ -465,6 +465,16 @@ footer ul a:hover{color:var(--beige)}
 .opt em{font:normal 400 18px var(--serif);color:var(--text);white-space:nowrap}
 .opt .ar{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:1.4;flex:none}
 .sheet-f{padding:0 22px 20px}
+.sh-back{display:inline-flex;align-items:center;gap:8px;background:none;border:0;padding:0;color:var(--muted);font:400 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.sh-back svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5;transform:scaleX(-1)}
+.sh-room{position:relative;margin:0 4px 12px}
+.sh-img{height:150px;border-radius:18px;background-size:cover;background-position:center}
+.sh-link{position:absolute;right:10px;bottom:10px;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:#16120f99;border:1px solid #ffffff40;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-size:12.5px;color:#fff}
+.sh-link svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5}
+.sh-bk .bk{padding:4px!important;background:none!important;border:0!important;box-shadow:none!important;gap:16px}
+.sh-bk .bk-head{display:none}
+.sheet{max-height:min(80vh,760px)}
+
 @media(min-width:1001px){.dock,.sheet,.sheet-bg{display:none!important}footer{padding-bottom:40px!important}}
 
 /* reveal */
@@ -1013,11 +1023,20 @@ function openSheet(p){
   dock.querySelectorAll('.pill').forEach(b=>b.setAttribute('aria-expanded',b.dataset.p===p));
   const ar='<svg class="ar" viewBox="0 0 24 24"><use href="#arrow"/></svg>';
   if(p==='stay'){document.getElementById('sheetK').textContent='Reserveer je bezoek';document.getElementById('sheetT').textContent='Kies je kamer';
-    document.getElementById('sheetL').innerHTML=ROOMS.map(r=>`<a class="opt" style="--tint:${r.tint}" href="#${r.slug}"><div class="th" style="background-image:url('${IMG(r.img)}')"></div><div class="tx"><b>${r.name}</b><span>${r.tag}</span></div><em>€ ${r.p}</em>${ar}</a>`).join('');
+    document.getElementById('sheetL').innerHTML=ROOMS.map(r=>`<a class="opt" style="--tint:${r.tint}" href="#${r.slug}" data-room="${r.id}"><div class="th" style="background-image:url('${IMG(r.img)}')"></div><div class="tx"><b>${r.name}</b><span>${r.tag}</span></div><em>€ ${r.p}</em>${ar}</a>`).join('');
   }else{document.getElementById('sheetK').textContent='Ontdek Villa Amano';document.getElementById('sheetT').textContent='Activiteiten';
     document.getElementById('sheetL').innerHTML=ACTS.map(([img,t,sub,h,c])=>`<a class="opt" style="--tint:${c}" href="${h}"><div class="th" style="background-image:url('${IMG(img)}')"></div><div class="tx"><b>${t}</b><span>${sub}</span></div>${ar}</a>`).join('');}
   sheet.classList.add('open');sbg.classList.add('open');
-  document.getElementById('sheetL').querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{closeSheet();const h=a.getAttribute('href');if(location.hash===h)jump(h.slice(1),true)}));
+  document.getElementById('sheetL').querySelectorAll('a').forEach(a=>a.addEventListener('click',e=>{if(a.dataset.room){e.preventDefault();sheetBook(a.dataset.room);return}closeSheet();const h=a.getAttribute('href');if(location.hash===h)jump(h.slice(1),true)}));
+}
+function sheetBook(id){
+  const r=ROOMS.find(x=>x.id===id),L=document.getElementById('sheetL');
+  document.getElementById('sheetK').innerHTML='<button type="button" class="sh-back" onclick="openP=null;openSheet(\'stay\')"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg> Alle kamers</button>';
+  document.getElementById('sheetT').textContent=r.name;
+  L.innerHTML=`<div class="sh-room" style="--tint:${r.tint}"><div class="sh-img" style="background-image:url('${IMG(r.img)}')"></div><a class="sh-link" href="#${r.slug}">Bekijk de kamer <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div><div class="sh-bk" style="--tint:${r.tint}"></div>`;
+  makeBooking(L.querySelector('.sh-bk'),r);
+  L.querySelector('.sh-link').addEventListener('click',()=>closeSheet());
+  L.scrollTop=0;
 }
 function closeSheet(){openP=null;sheet.classList.remove('open');sbg.classList.remove('open');dock.querySelectorAll('.pill').forEach(b=>b.setAttribute('aria-expanded','false'))}
 dock.querySelectorAll('.pill').forEach(b=>b.onclick=()=>openSheet(b.dataset.p));
