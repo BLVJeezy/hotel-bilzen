@@ -150,7 +150,14 @@ button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:i
  .evc{width:auto}.evc .et b{white-space:normal}
  .hcol .hs:not(#hEv):not(.ic2){grid-template-columns:1fr 1fr}
  .ic2{display:flex;flex-wrap:wrap;margin:0 0 4px}
- .duo{grid-template-columns:1fr}.mini{padding:12px}.mini .th{width:54px;height:54px}.mini b{font-size:14.5px}.mini small{font-size:12px}
+ .duo{grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+ .duo .mini{position:relative;display:block;padding:0;height:230px;border-radius:24px;overflow:hidden;border-color:#ffffff1a;transition:transform .3s,border-color .3s}
+ .duo .mini:hover{transform:translateY(-3px);border-color:#e6b86666}
+ .duo .mini .th{position:absolute;inset:0;width:auto;height:auto;border-radius:0;transition:transform .6s}.duo .mini:hover .th{transform:scale(1.04)}
+ .duo .mini:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#0d0a08f2 10%,#0d0a0833 60%,transparent)}
+ .duo .mini>span:last-child{position:absolute;z-index:2;left:20px;right:20px;bottom:18px}
+ .duo .mini b{font:400 26px/1.1 var(--serif)}.duo .mini small{font-size:13px;margin-top:6px;color:#d6cab7}
+ .duo .mini>span:last-child:after{content:'Boeken →';display:inline-block;margin-top:12px;padding:7px 14px;border-radius:999px;background:linear-gradient(120deg,#f6dfa4,#e6b866 55%,#c98d3e);color:#24180e;font:500 12.5px var(--sans)}
  .nbc{min-width:0}
  .hero0{padding:60px 30px!important}.hero0 h3{font-size:36px!important}
  #app>.bkg{max-width:1160px}
@@ -284,16 +291,16 @@ function vHome(){const t=D.today,rs=D.reservations.filter(r=>r.status!=='geannul
  else x+=`<div class="card hero0" style="text-align:center;padding:26px 18px"><h3 style="font-size:26px">Nog geen verblijf gepland</h3><p style="color:var(--muted);margin:6px 0 16px">Kies een kamer met de sfeer van een edelsteen.</p><a class="cta" href="/#kamers">Bekijk de kamers <svg><use href="#i-arrow"/></svg></a></div>`;
  if(pot.length)x+=`<div class="sec"><h3>Je reservaties</h3><button onclick="go('boekingen')">Alles →</button></div><div class="card">${pot.map(p=>`<div class="row" style="cursor:pointer" onclick="qrSheet('${p.id}')"><span class="ic"><svg><use href="#${p.kind==='event'?'i-cal':'i-vase'}"/></svg></span><div class="tx"><b>${esc(KN(p))}</b><small>${nice(p.date)}${p.time?' · '+esc(p.time.split(' ')[0]):''} · ${p.guests} pers.</small></div><div class="rt"><span class="qrt"><svg><use href="#i-qr"/></svg>QR</span></div></div>`).join('')}</div>`;
  const pact=Object.entries(D.me.memberships||{}).find(([k,m])=>m.status==='actief'&&/^pottery/.test(k));
- x+=`</div><div class="hcol">`;
- x+=`<div class="sec"><h3>Binnenkort</h3><a href="/#agenda">Agenda →</a></div><div class="hs" id="hEv"><div class="evc sk"></div><div class="evc sk"></div></div>
- <div class="duo"><a class="mini" href="/#pottery"><span class="th" style="background-image:url('/img/pottery.jpg')"></span><span><b>Boek je volgende pottery-sessie</b><small>${pact?'Je abonnement is actief':'Vrij atelier of lessenreeks · tot 22u'}</small></span></a>
- <a class="mini" href="/#wellness"><span class="th" style="background-image:url('/img/wellness.jpg')"></span><span><b>Plan een wellness-moment</b><small>Sauna, stoombad & massage</small></span></a></div>
- <div class="sec"><h3>Ontdek de buurt</h3><button onclick="go('ontdek')">Alles →</button></div><div class="hs">${NEAR.slice(0,6).map(([e,b,,d,q])=>`<a class="nbc" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}" target="_blank" rel="noopener"><span>${e}</span><b>${b.replace('Landcommanderij ','').replace('Nationaal Park ','')}</b><small>${d}</small></a>`).join('')}</div>`;
+ x+=`<div class="duo"><a class="mini" href="/#pottery"><span class="th" style="background-image:url('/img/pottery.jpg')"></span><span><b>Boek je volgende pottery-sessie</b><small>${pact?'Je abonnement is actief':'Vrij atelier of lessenreeks · tot 22u'}</small></span></a>
+ <a class="mini" href="/#wellness"><span class="th" style="background-image:url('/img/wellness.jpg')"></span><span><b>Plan een wellness-moment</b><small>Sauna, stoombad & massage</small></span></a></div>`;
  const os=D.orders.filter(o=>o.date>=t||o.status!=='geleverd').slice(0,4);
  if(os.length)x+=`<div class="sec"><h3>Ontbijt op de kamer</h3>${stay?`<a href="/ontbijt?kamer=${stay.roomNo}">Bestellen →</a>`:''}</div><div class="card">${os.length?os.map(o=>`<div class="row"><span class="ic"><svg><use href="#i-tray"/></svg></span><div class="tx"><b>${nice(o.date)} · ${esc(o.time)}</b><small>${o.items.map(i=>i.qty+'× '+esc(i.name)).join(', ')}</small></div><div class="rt">${ordLabel(o.status)}</div></div>`).join(''):'<div class="empty">Nog geen ontbijt besteld.</div>'}</div>`;
+ x+=`</div><div class="hcol">`;
+ x+=`<div class="sec"><h3>Binnenkort</h3><a href="/#agenda">Agenda →</a></div><div class="hs" id="hEv"><div class="evc sk"></div><div class="evc sk"></div></div>
+ <div class="sec"><h3>Ontdek de buurt</h3><button onclick="go('ontdek')">Alles →</button></div><div class="hs">${NEAR.slice(0,6).map(([e,b,,d,q])=>`<a class="nbc" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}" target="_blank" rel="noopener"><span>${e}</span><b>${b.replace('Landcommanderij ','').replace('Nationaal Park ','')}</b><small>${d}</small></a>`).join('')}</div>`;
  x+=`</div></div>`;
  $('#app').innerHTML=x;homeEvents()}
-let EV=null;function homeEvents(){const put=()=>{const el=$('#hEv');if(!el)return;const ev=(EV||[]).filter(e=>e.date>=D.today).slice(0,6);
+let EV=null;function homeEvents(){const put=()=>{const el=$('#hEv');if(!el)return;const ev=(EV||[]).filter(e=>e.date>=D.today).slice(0,matchMedia('(min-width:960px)').matches?4:6);
  el.innerHTML=ev.length?ev.map(e=>{const d=pd(e.date);return `<button class="evc" data-e="${e.id}" style="--c:${e.cat==='pottery'?'#c98d5a':e.cat==='wellness'?'#b06ad0':'#e6b866'}"><span class="dd"><b>${d.getDate()}</b>${d.toLocaleDateString('nl-BE',{month:'short'}).replace('.','')}</span><span class="et"><b>${esc(e.title)}</b><small>${esc(e.time.split(' ')[0])} · ${esc(e.price)}</small></span></button>`}).join(''):'<div class="empty" style="padding:6px 4px;text-align:left">Binnenkort nieuwe events.</div>';
  el.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>evSheet(EV.find(x=>x.id===b.dataset.e)))};
  if(EV)return put();fetch('/api/ops?a=events').then(r=>r.json()).then(j=>{EV=j.events||[];put()}).catch(()=>{EV=[];put()})}
