@@ -1178,7 +1178,7 @@ function makeBooking(root,fixed,mini){
    <div class="bk-row"><div><span class="bk-k">Gasten</span><small data-k="gmax"></small></div><div class="step"><button type="button" data-s="-1" aria-label="Minder gasten">−</button><b data-k="g">2</b><button type="button" data-s="1" aria-label="Meer gasten">+</button></div></div>
    <label class="bk-row bk-sw" data-l="mem"><div><span class="bk-k">Ik ben al lid</span><small>Anders + € 25 p.p. eenmalig lidmaatschap</small></div><input type="checkbox" data-k="mem"><i class="sw"></i></label>
    <div data-l="extras"><div class="bk-k" style="margin-bottom:10px">Extra's</div><div class="bk-xs">${X.map(([k,ic,t,p])=>`<label class="bk-x"><input type="checkbox" data-k="x-${k}"><svg viewBox="0 0 24 24"><use href="#i-${ic}"/></svg><span><b>${t}</b><small>${p}</small></span><i class="tk"></i></label>`).join('')}</div></div>
-   ${mini?'<button type="button" class="x-tog" onclick="this.closest(\'form\').classList.toggle(\'show-x\');this.closest(\'form\').dispatchEvent(new Event(\'change\'))"></button>':''}<div class="sum"></div>
+   <div class="sum"></div>
    <button class="bk-cta" type="submit">Controleer beschikbaarheid <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button>
    <div class="msg"></div>
    <p class="fine">Indicatieve prijs · 100% online vooruitbetaling via Bancontact, Visa of Mastercard.</p></form>`;
@@ -1241,7 +1241,7 @@ function makeBooking(root,fixed,mini){
       if(q('x-late').checked)rows.push(['Late check-out',45]);
     }else{const base=v==='lessen'?385:30;rows.push([(v==='lessen'?'Lessenreeks':'Vrij atelier')+` · ${g} pers.`,base*g]);if(!q('mem').checked)rows.push([`Lidmaatschap · ${g} × € 25`,25*g]);}
     rows.forEach(r=>tot+=r[1]);
-    if(mini){const c=f.querySelector('.bk-cta');c.innerHTML=`Reserveer <span class="ct">· ${fmt(tot)}</span> <svg viewBox="0 0 24 24"><use href="#arrow"/></svg>`;const xt=f.querySelector('.x-tog');if(xt)xt.textContent=f.classList.contains('show-x')?'− Verberg extra\'s':'+ Extra\'s toevoegen (ontbijt, wellness…)'}
+    if(mini){const c=f.querySelector('.bk-cta');c.innerHTML=`Reserveer <span class="ct">· ${fmt(tot)}</span> <svg viewBox="0 0 24 24"><use href="#arrow"/></svg>`;}
     f.querySelector('.sum').innerHTML=rows.map(r=>`<div class="row"><span>${r[0]}</span><span>${fmt(r[1])}</span></div>`).join('')+`<div class="row tot"><span>Totaal</span><b>${fmt(tot)}</b></div>`;
     const m=f.querySelector('.msg');m.classList.toggle('show',!free);m.classList.toggle('bad',!free);
     if(!free)m.innerHTML=`<b>Niet beschikbaar</b> · ${room.name} is bezet in deze periode. Kies andere data in de kalender.`;
