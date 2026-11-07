@@ -8,9 +8,9 @@ try { blob = require('@vercel/blob'); } catch (e) { /* lokaal zonder dependency 
 const ROOMS = ['rose', 'clear', 'sun', 'moon', 'amethyst'];
 const ROOM_NAMES = { rose: 'Rose Quartz', clear: 'Clear Quartz', sun: 'Sunstone', moon: 'Moonstone', amethyst: 'Amethyst' };
 const ROLES = {
-  owner: ['today', 'orders', 'calendar', 'agenda', 'menus', 'prices', 'staff', 'log', 'connect', 'guests'],
-  receptie: ['today', 'orders', 'calendar', 'agenda', 'connect', 'guests'],
-  keuken: ['today', 'orders', 'menus'],
+  owner: ['today', 'orders', 'calendar', 'agenda', 'menus', 'prices', 'staff', 'log', 'connect', 'guests', 'scan'],
+  receptie: ['today', 'orders', 'calendar', 'agenda', 'connect', 'guests', 'scan'],
+  keuken: ['today', 'orders', 'menus', 'scan'],
 };
 
 const DEFAULTS = {
@@ -112,6 +112,25 @@ function verify(token) {
   if (s.length !== exp.length || !crypto.timingSafeEqual(Buffer.from(s), Buffer.from(exp))) return null;
   const p = JSON.parse(Buffer.from(b, 'base64url').toString());
   return p.exp > Date.now() ? p : null;
+}
+const qrSig = (t, x) => crypto.createHmac('sha256', secret()).update('qr:' + t + ':' + x).digest('base64url').slice(0, 14);
+const qrCode = (t, x) => 'VA' + t + '-' + x + '-' + qrSig(t, x);
+function qrParse(code) {
+  const m = /^VA([RM])-([A-Za-z0-9]+)-([\w-]{14})$/.exec(String(code || '').trim().replace(/^.*[?#&]qr=/, ''));
+  if (!m || m[3] !== qrSig(m[1], m[2])) return null;
+  return { t: m[1], x: m[2] };
+}
+const addDays = (d, n) => { const x = new Date(d + 'T12:00:00Z'); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
+function validity(r) {
+  const t = today();
+  if (r.status === 'geannuleerd') return { ok: false, why: 'Geannuleerd' };
+  const from = r.from || r.date, to = r.kind === 'room' ? r.to : r.kind === 'lessen' ? addDays(r.date, 56) : r.date;
+  if (t < from) return { ok: false, why: 'Nog niet geldig · vanaf ' + from, early: true };
+  if (t > to) return { ok: false, why: 'Verlopen · was geldig t/m ' + to };
+  const single = r.kind === 'pottery' || r.kind === 'event';
+  const used = (r.scans || []).some(s => s.ok && new Date(s.t).toISOString().slice(0, 10) === t);
+  if (single && (r.scans || []).some(s => s.ok)) return { ok: false, why: 'Al gebruikt', used: true };
+  return { ok: true, why: r.kind === 'room' ? 'Geldig verblijf' : r.kind === 'lessen' ? 'Geldige lessenreeks' : 'Geldig voor vandaag', again: used };
 }
 const can = (u, perm) => u && (ROLES[u.role] || []).includes(perm);
 async function addLog(u, text) {
@@ -287,8 +306,8 @@ module.exports = async (req, res) => {
         const g = G.guests.find(x => x.id === gid);
         if (!g) return send(res, 401, { error: 'Log opnieuw in' });
         return send(res, 200, {
-          me: { name: g.name, email: g.email, phone: g.phone, memberships: g.memberships || {}, memberNo: 'VA-' + g.id.slice(0, 6).toUpperCase() },
-          reservations: G.reservations.filter(r => r.guestId === gid).sort((x, y) => ((x.from || x.date) < (y.from || y.date) ? -1 : 1)),
+          me: { name: g.name, email: g.email, phone: g.phone, memberships: g.memberships || {}, memberNo: 'VA-' + g.id.slice(0, 6).toUpperCase(), qr: qrCode('M', g.id) },
+          reservations: G.reservations.filter(r => r.guestId === gid).map(r => ({ ...r, qr: qrCode('R', r.id), valid: validity(r), lastScan: (r.scans || [])[0] || null })).sort((x, y) => ((x.from || x.date) < (y.from || y.date) ? -1 : 1)),
           requests: G.requests.filter(r => r.guestId === gid).slice(0, 30),
           orders: O.orders.filter(o => o.guestId === gid).slice(0, 30), plans: PLANS, today: today(),
         });
@@ -296,7 +315,7 @@ module.exports = async (req, res) => {
       if (req.method !== 'POST') return send(res, 405, { error: 'POST verwacht' });
       const b = await body(req);
       if (a === 'g-reserve') {
-        const kind = ['room', 'pottery', 'lessen'].includes(b.kind) ? b.kind : null;
+        const kind = ['room', 'pottery', 'lessen', 'event'].includes(b.kind) ? b.kind : null;
         if (!kind) return send(res, 400, { error: 'Ongeldige reservatie' });
         const { data: C } = await load('config');
         const { data: G0 } = await load('guests');
@@ -308,17 +327,24 @@ module.exports = async (req, res) => {
           r.room = b.room; r.roomName = ROOM_NAMES[b.room]; r.roomNo = ROOMS.indexOf(b.room) + 1; r.from = b.from; r.to = b.to;
           r.guests = Math.min(r.guests, b.room === 'amethyst' ? 3 : 2);
           r.extras = Object.fromEntries(Object.keys(EXTRA_PRICES).map(k => [k, !!(b.extras || {})[k]]));
+        } else if (kind === 'event') {
+          const { data: A } = await load('agenda');
+          const ev = A.events.find(e => e.id === b.eventId);
+          if (!ev || ev.date < today()) return send(res, 400, { error: 'Dit event is niet meer beschikbaar' });
+          if (G0.reservations.some(x => x.guestId === gid && x.eventId === ev.id && x.status !== 'geannuleerd')) return send(res, 409, { error: 'Je bent al ingeschreven voor dit event' });
+          r.eventId = ev.id; r.title = ev.title; r.date = ev.date; r.time = ev.time;
         } else {
           if (!isDate(b.date) || b.date < today()) return send(res, 400, { error: 'Kies een geldige datum' });
           r.date = b.date; r.member = !!(g.memberships['pottery-lid'] && g.memberships['pottery-lid'].status === 'actief') || !!b.member;
         }
-        Object.assign(r, quote(C, r));
+        if (kind === 'event') { const { data: A } = await load('agenda'); const ev = A.events.find(e => e.id === r.eventId); const n = parseFloat(String(ev.price).replace(/[^\d,.]/g, '').replace(',', '.')) || 0; r.total = n * r.guests; }
+        else Object.assign(r, quote(C, r));
         if (kind === 'room') {
           const clash = await mutate('calendar', d => { const c = d.entries.find(x => x.room === r.room && x.from < r.to && x.to > r.from); if (c) return c; d.entries.push({ id: 'c' + r.id, ref: r.id, room: r.room, from: r.from, to: r.to, type: 'booking', guest: g.name, guestId: gid, note: 'Online · ' + r.guests + ' pers.' + (r.extras.ontbijt ? ' · ontbijt' : '') + (r.extras.late ? ' · late check-out' : ''), by: 'Website', created: Date.now() }); return null; });
           if (clash) return send(res, 409, { error: 'Deze kamer is net bezet voor (een deel van) deze periode. Kies andere data.' });
         }
         await mutate('guests', d => { d.reservations.push(r); });
-        await addLog({ name: g.name }, `Reservatie ${r.id} · ${kind === 'room' ? r.roomName + ' ' + r.from + ' → ' + r.to : (kind === 'lessen' ? 'Lessenreeks ' : 'Vrij atelier ') + r.date}`);
+        await addLog({ name: g.name }, `Reservatie ${r.id} · ${kind === 'room' ? r.roomName + ' ' + r.from + ' → ' + r.to : (kind === 'event' ? r.title + ' ' : kind === 'lessen' ? 'Lessenreeks ' : 'Vrij atelier ') + r.date}`);
         return send(res, 200, { ok: true, reservation: r });
       }
       if (a === 'g-cancel') {
@@ -431,6 +457,30 @@ module.exports = async (req, res) => {
       });
       await addLog(u, "Menu's bijgewerkt");
       return send(res, 200, { ok: true });
+    }
+    if (a === 'scan') {
+      if (!can(u, 'scan')) return send(res, 403, { error: 'Geen toegang' });
+      let q = qrParse(b.code);
+      const raw = String(b.code || '').trim().toUpperCase();
+      if (!q && /^R[A-Z0-9]{5,14}$/.test(raw)) q = { t: 'R', x: raw };
+      if (!q && /^VA-[A-F0-9]{6}$/.test(raw)) { const { data: G } = await load('guests'); const g = G.guests.find(x => x.id.slice(0, 6).toUpperCase() === raw.slice(3)); if (g) q = { t: 'M', x: g.id }; }
+      if (!q) { await addLog(u, 'Ongeldige QR gescand'); return send(res, 200, { ok: false, kind: 'onbekend', why: 'Geen geldige Villa Amano-code' }); }
+      let out;
+      if (q.t === 'M') {
+        await mutate('guests', d => { const g = d.guests.find(x => x.id === q.x); if (!g) { out = { ok: false, kind: 'lid', why: 'Account bestaat niet meer' }; return; }
+          const act = Object.entries(g.memberships || {}).filter(([, m]) => m.status === 'actief').map(([k]) => (PLANS[k] || {}).name || k);
+          const prev = (g.scans || []).slice(0, 10); g.scans = [{ t: Date.now(), by: u.name, ok: act.length > 0 }, ...(g.scans || [])].slice(0, 50);
+          const now = d.reservations.filter(r => r.guestId === g.id && r.status !== 'geannuleerd' && validity(r).ok).map(r => r.kind === 'room' ? r.roomName : r.title || (r.kind === 'lessen' ? 'Lessenreeks' : 'Vrij atelier'));
+          out = { ok: act.length > 0, kind: 'lid', why: act.length ? 'Actief lid' : 'Geen actief abonnement', guest: g.name, email: g.email, phone: g.phone, memberNo: 'VA-' + g.id.slice(0, 6).toUpperCase(), plans: act, today: now, prev }; });
+      } else {
+        await mutate('guests', d => { const r = d.reservations.find(x => x.id === q.x); if (!r) { out = { ok: false, kind: 'reservatie', why: 'Reservatie niet gevonden' }; return; }
+          const v = validity(r), prev = (r.scans || []).slice(0, 10);
+          r.scans = [{ t: Date.now(), by: u.name, ok: v.ok }, ...(r.scans || [])].slice(0, 50);
+          if (v.ok && r.kind === 'room' && !r.checkedIn) r.checkedIn = Date.now();
+          out = { ok: v.ok, why: v.why, used: !!v.used, early: !!v.early, kind: r.kind, id: r.id, guest: r.guestName, guests: r.guests, roomName: r.roomName, roomNo: r.roomNo, title: r.title, from: r.from, to: r.to, date: r.date, time: r.time, status: r.status, total: r.total, extras: r.extras, prev }; });
+      }
+      await addLog(u, `QR ${out.ok ? '✓' : '✕'} ${out.guest || ''} · ${out.why}`);
+      return send(res, 200, out);
     }
     if (a === 'google-set') {
       if (!can(u, 'connect')) return send(res, 403, { error: 'Geen toegang' });

@@ -166,6 +166,18 @@ button{cursor:pointer}
 .live i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:bl 2s infinite}
 @keyframes bl{50%{opacity:.3}}
 @media(min-width:760px){.stats{grid-template-columns:repeat(4,1fr)}.grid button{height:58px}}
+.scanb{width:40px;height:40px;border-radius:50%;border:0;display:grid;place-items:center;background:linear-gradient(120deg,#f6dfa4,#e6b866 55%,#c98d3e);color:#24180e;box-shadow:0 6px 20px #e6b86640;flex:none;margin-right:6px}.scanb svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7}
+.scan{position:fixed;inset:0;z-index:80;background:#0d0a08;display:flex;flex-direction:column;padding:calc(12px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}.scan.open{transform:none}
+.sc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.sc-top b{font:300 26px var(--serif)}.scan .sx{width:40px;height:40px;border-radius:50%;border:1px solid #e8d8b84d;background:none;color:inherit;font-size:22px}
+.sc-cam{position:relative;flex:1;min-height:300px;border-radius:26px;overflow:hidden;background:#000}.sc-cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sc-frame{position:absolute;left:50%;top:46%;width:min(66vw,260px);aspect-ratio:1;transform:translate(-50%,-50%);box-shadow:0 0 0 999px #0008;border-radius:22px}
+.sc-frame i{position:absolute;width:34px;height:34px;border:3px solid #f6dfa4}.sc-frame i:nth-child(1){top:-2px;left:-2px;border-right:0;border-bottom:0;border-radius:20px 0 0 0}.sc-frame i:nth-child(2){top:-2px;right:-2px;border-left:0;border-bottom:0;border-radius:0 20px 0 0}.sc-frame i:nth-child(3){bottom:-2px;left:-2px;border-right:0;border-top:0;border-radius:0 0 0 20px}.sc-frame i:nth-child(4){bottom:-2px;right:-2px;border-left:0;border-top:0;border-radius:0 0 20px 0}
+.sc-line{position:absolute;left:8%;right:8%;height:2px;background:linear-gradient(90deg,transparent,#f6dfa4,transparent);animation:scl 2s ease-in-out infinite alternate}@keyframes scl{from{top:8%}to{top:92%}}
+.sc-msg{position:absolute;left:16px;right:16px;bottom:16px;text-align:center;font-size:14px;color:#efe6d6;text-shadow:0 1px 8px #000}
+.sc-man{display:flex;gap:8px;margin-top:12px}.sc-man input{flex:1;min-width:0;height:50px;border-radius:999px;border:1px solid #ffffff22;background:#120f0d;color:inherit;padding:0 18px;font:inherit;font-size:16px;outline:none}.sc-man .cta{height:50px}
+.verdict{border-radius:26px;padding:24px 18px;text-align:center;margin-bottom:12px;display:flex;flex-direction:column;align-items:center;gap:4px}.verdict .vi{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-size:32px;margin-bottom:6px;color:#14100d}
+.verdict b{font:400 30px var(--serif)}.verdict span{font-size:14px;opacity:.85}
+.verdict.green{background:#9fc7a822;border:1px solid #9fc7a8aa}.verdict.green .vi{background:#9fc7a8}.verdict.red{background:#e8a0a01f;border:1px solid #e8a0a0aa}.verdict.red .vi{background:#e8a0a0}.verdict.amber{background:#e6b8661f;border:1px solid #e6b866aa}.verdict.amber .vi{background:#e6b866}
 </style>
 </head>
 <body>
@@ -175,7 +187,8 @@ button{cursor:pointer}
  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
  <symbol id="i-agenda" viewBox="0 0 24 24"><path d="M12 3l2.4 5 5.6.8-4 3.9.9 5.5L12 15.6 7.1 18.2 8 12.7 4 8.8 9.6 8z"/></symbol>
  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
- <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M3 12h17M14 6l6 6-6 6"/></symbol>
+ <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M3 12h17M14 6l6 6-6 6"/></symbol>
  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M8 3v8a3 3 0 0 1-3 3v7M5 3v6M11 3v6M8 9H5M17 3c-2 0-3 3-3 6s1 4 3 4v8"/></symbol>
  <symbol id="i-euro" viewBox="0 0 24 24"><path d="M18 6a7 7 0 1 0 0 12M4 10h10M4 14h10"/></symbol>
  <symbol id="i-team" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.5c2 .7 3.5 2.6 3.5 5.5"/></symbol>
@@ -203,7 +216,11 @@ button{cursor:pointer}
 
 <!-- APP -->
 <div id="shell" class="hide">
- <header class="top"><img src="/img/logo_a.png" alt=""><h2 id="title">Vandaag</h2><span class="chip" id="me"></span></header>
+ <header class="top"><img src="/img/logo_a.png" alt=""><h2 id="title">Vandaag</h2><button class="scanb" id="scanB" onclick="scanOpen()" aria-label="Scan QR"><svg><use href="#i-scan"/></svg></button><span class="chip" id="me"></span></header>
+<div class="scan" id="scan"><div class="sc-top"><b>Scan QR-code</b><button class="sx" onclick="scanClose()" aria-label="Sluiten">×</button></div>
+ <div class="sc-cam" id="scCam"><video id="scV" playsinline muted autoplay></video><div class="sc-frame"><i></i><i></i><i></i><i></i><span class="sc-line"></span></div><div class="sc-msg" id="scMsg">Richt de camera op de QR-code van de gast</div></div>
+ <div class="sc-res hide" id="scRes"></div>
+ <form class="sc-man" id="scMan"><input id="scIn" placeholder="Of typ de code (bv. R… of VA-…)" autocapitalize="characters" autocomplete="off"><button class="cta" type="submit">Check</button></form></div>
  <main id="app"></main>
  <nav class="tabs" id="tabs"></nav>
 </div>
@@ -283,6 +300,39 @@ async function poll(){if(!S.perms||!S.perms.includes('orders')||document.hidden&
   if(TAB==='orders'||TAB==='today')render();badge()}catch(e){}}
 function badge(){const n=(S.orders||[]).filter(o=>o.status==='nieuw').length,b=$('#bd');if(b){b.textContent=n;b.classList.toggle('hide',!n)}}
 
+
+/* ---------- SCAN ---------- */
+let SC={stream:null,raf:0,busy:false,det:null,cv:null};
+async function scanOpen(){$('#scan').classList.add('open');$('#scRes').classList.add('hide');$('#scCam').classList.remove('hide');$('#scIn').value='';$('#scMsg').textContent='Camera starten…';
+ try{SC.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});const v=$('#scV');v.srcObject=SC.stream;await v.play();$('#scMsg').textContent='Richt de camera op de QR-code van de gast'}
+ catch(e){$('#scMsg').textContent='Geen toegang tot de camera. Sta camera toe in je instellingen, of typ de code hieronder.';return}
+ if('BarcodeDetector' in window){try{const f=await BarcodeDetector.getSupportedFormats();if(f.includes('qr_code'))SC.det=new BarcodeDetector({formats:['qr_code']})}catch(e){}}
+ if(!SC.det&&!window.jsQR){await new Promise(r=>{const s=document.createElement('script');s.src='/lib/jsQR.js';s.onload=r;s.onerror=r;document.head.appendChild(s)})}
+ SC.busy=false;loop()}
+function scanStop(){cancelAnimationFrame(SC.raf);if(SC.stream)SC.stream.getTracks().forEach(t=>t.stop());SC.stream=null}
+function scanClose(){scanStop();$('#scan').classList.remove('open')}
+async function loop(){const v=$('#scV');if(!SC.stream)return;
+ if(!SC.busy&&v.readyState>=2){let code=null;
+  try{if(SC.det){const r=await SC.det.detect(v);if(r[0])code=r[0].rawValue}
+   else if(window.jsQR){const c=SC.cv||(SC.cv=document.createElement('canvas')),w=Math.min(640,v.videoWidth),h=Math.round(v.videoHeight*w/v.videoWidth);c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(v,0,0,w,h);const r=jsQR(x.getImageData(0,0,w,h).data,w,h,{inversionAttempts:'dontInvert'});if(r)code=r.data}}catch(e){}
+  if(code){SC.busy=true;navigator.vibrate&&navigator.vibrate(60);return check(code)}}
+ SC.raf=requestAnimationFrame(loop)}
+$('#scMan').onsubmit=e=>{e.preventDefault();const v=$('#scIn').value.trim();if(v)check(v)};
+const fdt=s=>s?new Date(s+'T12:00').toLocaleDateString('nl-BE',{weekday:'short',day:'numeric',month:'short'}):'';
+const ftm=t=>new Date(t).toLocaleString('nl-BE',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+async function check(code){scanStop();$('#scCam').classList.add('hide');const R=$('#scRes');R.classList.remove('hide');R.innerHTML='<div class="empty">Controleren…</div>';
+ let r;try{r=await api('scan',{code})}catch(e){r={ok:false,why:e.message,kind:'onbekend'}}
+ const col=r.ok?(r.prev&&r.prev.some(p=>p.ok)?'amber':'green'):(r.used?'amber':'red');
+ if(r.ok)chime();else navigator.vibrate&&navigator.vibrate([200,80,200]);
+ const what=r.kind==='room'?`${esc(r.roomName)} · kamer ${String(r.roomNo).padStart(2,'0')}`:r.kind==='event'?esc(r.title):r.kind==='lessen'?'Lessenreeks Pottery':r.kind==='pottery'?'Vrij atelier Pottery':r.kind==='lid'?'Ledenkaart '+esc(r.memberNo||''):'';
+ const when=r.kind==='room'?`${fdt(r.from)} → ${fdt(r.to)}`:r.date?fdt(r.date)+(r.time?' · '+esc(r.time):''):'';
+ const ex=r.extras?Object.entries(r.extras).filter(([,v])=>v).map(([k])=>({ontbijt:'Ontbijt',well:'Wellness',bike:'E-bike',late:'Late check-out'})[k]).join(' · '):'';
+ const prev=r.prev||[];
+ R.innerHTML=`<div class="verdict ${col}"><div class="vi">${r.ok?(col==='amber'?'!':'✓'):r.used?'!':'✕'}</div><b>${r.ok?(col==='amber'?'Geldig · al eerder gescand':'Geldig'):r.used?'Al gebruikt':'Niet geldig'}</b><span>${r.used&&prev.find(p=>p.ok)?'Eerste scan: '+ftm(prev.filter(p=>p.ok).slice(-1)[0].t)+' door '+esc(prev.filter(p=>p.ok).slice(-1)[0].by):esc(r.why||'')}</span></div>
+ ${r.guest?`<div class="card"><div class="row"><div class="tx"><b style="font-size:18px">${esc(r.guest)}</b><small>${what}${r.guests?' · '+r.guests+' pers.':''}</small></div></div>${when?`<div class="row"><div class="tx"><small>Datum</small><b>${when}</b></div></div>`:''}${ex?`<div class="row"><div class="tx"><small>Extra's</small><b>${ex}</b></div></div>`:''}${r.plans?`<div class="row"><div class="tx"><small>Abonnementen</small><b>${r.plans.length?r.plans.map(esc).join(', '):'Geen actief'}</b></div></div>`:''}${r.today&&r.today.length?`<div class="row"><div class="tx"><small>Nu geldig</small><b>${r.today.map(esc).join(', ')}</b></div></div>`:''}${r.phone?`<div class="row"><div class="tx"><small>Telefoon</small><b><a href="tel:${esc(r.phone)}">${esc(r.phone)}</a></b></div></div>`:''}${r.id?`<div class="row"><div class="tx"><small>Code</small><b>${esc(r.id)}</b></div></div>`:''}</div>`:''}
+ <div class="sec"><h3>Scangeschiedenis</h3></div><div class="card">${prev.length?prev.map(p=>`<div class="row" style="--c:${p.ok?'#9fc7a8':'#e8a0a0'}"><i class="dot"></i><div class="tx"><b>${ftm(p.t)}</b><small>door ${esc(p.by)}${p.ok?'':' · geweigerd'}</small></div></div>`).join(''):'<div class="empty">Eerste keer gescand — nu.</div>'}</div>
+ <button class="cta full" onclick="scanOpen()" style="margin-top:6px">Volgende scannen</button>`;
+ if(TAB==='today')reload()}
 
 /* ---------- GOOGLE ---------- */
 function googleSheet(){const cur=S.googleClientId||'',o=location.origin;openSheet(`<h3>Google-login</h3><div class="sub">Gasten loggen dan in met één tik op “Doorgaan met Google”.</div>
