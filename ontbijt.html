@@ -70,6 +70,7 @@ section{margin-top:38px}
 .step button{width:38px;height:38px;border-radius:50%;border:1px solid #e8d8b84d;background:transparent;font-size:19px;line-height:1;cursor:pointer;transition:.25s}
 .step button:disabled{opacity:.28}
 .step .add{width:auto;padding:0 16px;border-radius:999px;border:0;font-size:13px;font-weight:500;color:#24180e;background:linear-gradient(120deg,#f6dfa4,#e6b866,#c98d3e)}
+.mc.soldout .art{filter:grayscale(1) brightness(.45)!important}.mc.soldout .step{pointer-events:none;opacity:.35}.sx.soldout{opacity:.35;pointer-events:none}
 .dots{display:flex;justify-content:center;gap:8px;margin-top:20px}
 .dots button{width:7px;height:7px;padding:0;border:0;border-radius:4px;background:#ffffff40;cursor:pointer;transition:.35s}
 .dots button.on{width:24px;background:var(--cf)}
@@ -285,15 +286,26 @@ function update(){
   $('send').disabled=!pers;
 }
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600)}
-$('send').onclick=()=>{
+const SUGID=['prosecco','jus','benedict','bday'];
+$('send').onclick=async()=>{
   if(!st.room){toast('Vul eerst je kamernummer in.');ri.focus();ri.scrollIntoView({behavior:'smooth',block:'center'});return}
-  const nr='VA-'+String(Date.now()).slice(-5);
+  const btn=$('send');btn.disabled=true;let nr;
+  try{const n=new Date(),d=n.getHours()>=11?new Date(n.getTime()+864e5):n;
+    const r=await fetch('/api/ops?a=order',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({room:st.room,date:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,time:st.time,where:st.where,
+      items:MENUS.filter(m=>st.qty[m.id]).map(m=>({id:m.id,qty:st.qty[m.id]})),extras:[...st.sug].map(i=>SUGID[i]),diet:[...st.diet],note:$('note').value.trim()})});
+    const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Bestellen lukte niet');nr=j.id;
+  }catch(e){btn.disabled=false;toast(e.message+' · probeer opnieuw of bel de receptie.');return}
   $('doneTxt').innerHTML=`Je ontbijt wordt om <b>${st.time}</b> ${st.where==='kamer'?'naar <b>'+ROOMS[st.room][0]+'</b> gebracht':'op het terras geserveerd'}. Bestelnummer <b>${nr}</b>.`;
   const note=$('note').value.trim();
   $('recap').innerHTML=sumHTML()[0]+(note?`<div class="row" style="margin-top:8px"><span>Opmerking</span><span style="max-width:60%;text-align:right">${note.replace(/</g,'&lt;')}</span></div>`:'');
   $('done').classList.add('show');scrollTo(0,0);
 };
 update();measure();go(0);render();setTimeout(()=>{measure();render()},300);
+fetch('/api/ops?a=menus').then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.menus)return;
+  j.menus.forEach(o=>{const m=MENUS.find(x=>x.id===o.id),i=MENUS.indexOf(m);if(!m)return;m.p=o.price;m.name=o.name;m.items=o.items;const c=cards[i];if(!c)return;
+    c.querySelector('h3').textContent=o.name;c.querySelector('ul').innerHTML=o.items.map(x=>`<li>${x.replace(/</g,'&lt;')}</li>`).join('');c.querySelector('.mfoot b').textContent=fmt(o.price);
+    if(!o.active){st.qty[m.id]=0;c.classList.add('soldout');c.querySelector('.tag').textContent='Vandaag niet beschikbaar'}});
+  (j.extras||[]).forEach(x=>{const i=SUGID.indexOf(x.id);if(i<0)return;SUG[i][3]=x.price;const b=document.querySelector(`.sx[data-s="${i}"]`);if(b&&!x.active){b.disabled=true;b.classList.add('soldout');st.sug.delete(i)}});update()}).catch(()=>{});
 </script>
 </body>
 </html>

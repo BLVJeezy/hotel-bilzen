@@ -1056,38 +1056,47 @@ const AMB=(()=>{let ctx,master,cur=null,curId=null,on=false;const subs=new Set()
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&AMB.on)AMB.stop()});
 
 function coverflow(root,items,opts={}){
-  const n=items.length,mod=x=>((x%n)+n)%n;
-  let pos=0,target=0,raf=0,last=0,dragging=false,moved=false,sx=0,sp=0,vel=0,lx=0,lt=0,idx=0;
-  root.innerHTML=`<div class="cf-stage">${items.map((it,i)=>`<article class="cf-card" data-i="${i}" style="--tint:${it.tint||'#e8d8b8'}"><div class="cf-img" style="background-image:url('${IMG(it.img)}')">${it.snd?`<button type="button" class="cf-snd" aria-label="Speel de sfeer van ${it.title}"><span class="eqs"><i></i><i></i><i></i><i></i></span><span class="sl"><b>Sfeer</b><em>${AMB.P[it.snd].vibe}</em></span></button>`:''}<a class="cf-cta" href="${it.href}" ${it.on?`data-on="${it.on}"`:''}>${it.cta} <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div><div class="cf-txt"><h3>${it.title}</h3><p>${it.meta}</p></div></article>`).join('')}</div>
+  const n=items.length,rep=n<6?Math.ceil(6/n):1,N=n*rep,V=Array.from({length:N},(_,i)=>i%n);
+  const modN=x=>((x%N)+N)%N,modn=x=>((x%n)+n)%n;
+  let pos=0,target=0,v=0,raf=0,last=0,dragging=false,moved=false,sx=0,sp=0,vel=0,lx=0,lt=0,idx=-1;
+  root.innerHTML=`<div class="cf-stage">${V.map((ri,i)=>{const it=items[ri];return `<article class="cf-card" data-i="${i}" data-r="${ri}" style="--tint:${it.tint||'#e8d8b8'}"><div class="cf-img" style="background-image:url('${IMG(it.img)}')">${it.snd?`<button type="button" class="cf-snd" aria-label="Speel de sfeer van ${it.title}"><span class="eqs"><i></i><i></i><i></i><i></i></span><span class="sl"><b>Sfeer</b><em>${AMB.P[it.snd].vibe}</em></span></button>`:''}<a class="cf-cta" href="${it.href}" ${it.on?`data-on="${it.on}"`:''}>${it.cta} <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div><div class="cf-txt"><h3>${it.title}</h3><p>${it.meta}</p></div></article>`}).join('')}</div>
    <button type="button" class="cf-side l" data-a="sprev" aria-label="Vorige"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button><button type="button" class="cf-side r" data-a="snext" aria-label="Volgende"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button><div class="cf-nav"><button class="cf-btn" data-a="prev" aria-label="Vorige"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button><div class="cf-dots">${items.map((_,i)=>`<button data-d="${i}" aria-label="${i+1}"></button>`).join('')}</div><button class="cf-btn" data-a="next" aria-label="Volgende"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button></div>`;
   const stage=root.querySelector('.cf-stage'),cards=[...stage.children],dots=[...root.querySelectorAll('.cf-dots button')];
-  let w=0,step=0;const measure=()=>{w=cards[0].offsetWidth;step=w*.64;stage.style.height=Math.max(...cards.map(c=>c.offsetHeight))+'px'};
+  let step=0;const measure=()=>{step=cards[0].offsetWidth*.64;stage.style.height=Math.max(...cards.map(c=>c.offsetHeight))+'px'};
+  const ease=x=>x*x*(3-2*x);
   function render(){
-    cards.forEach((c,i)=>{let d=i-pos;d=((d%n)+n)%n;if(d>n/2)d-=n;const a=Math.abs(d),cl=Math.max(-1.6,Math.min(1.6,d)),e=Math.min(a,2);
+    cards.forEach((c,i)=>{let d=modN(i-pos);if(d>N/2)d-=N;const a=Math.abs(d),cl=Math.max(-1.6,Math.min(1.6,d)),e=Math.min(a,2.2);
+      const fade=a<=1.7?1:a>=2.7?0:1-ease((a-1.7)/1);
       c.style.transform=`translate3d(${(d*step).toFixed(2)}px,0,${(-a*170).toFixed(1)}px) rotateY(${(-cl*32).toFixed(2)}deg) scale(${(1-e*.07).toFixed(4)})`;
-      c.style.opacity=a>2.6?0:(1-e*.22).toFixed(3);c.style.zIndex=100-Math.round(a*10);c.classList.toggle('on',a<.5)});
-    const k=mod(Math.round(pos));if(k!==idx||!root.dataset.r){idx=k;root.dataset.r=1;root.style.setProperty('--cf',items[k].tint||'#e8d8b8');dots.forEach((d,j)=>d.classList.toggle('on',j===k));opts.onChange&&opts.onChange(k,items[k])}
+      c.style.opacity=((1-Math.min(a,1.7)*.2)*fade).toFixed(3);c.style.zIndex=1000-Math.round(a*100);c.style.visibility=fade<=0?'hidden':'visible';
+      c.classList.toggle('on',a<.5)});
+    const k=modn(Math.round(pos));if(k!==idx){idx=k;root.style.setProperty('--cf',items[k].tint||'#e8d8b8');dots.forEach((d,j)=>d.classList.toggle('on',j===k));opts.onChange&&opts.onChange(k,items[k])}
   }
-  function tick(t){const dt=Math.min(.05,(t-(last||t))/1000);last=t;
-    if(!dragging){const f=1-Math.exp(-dt*7.5);pos+= (target-pos)*f;if(Math.abs(target-pos)<.0008){pos=target;render();raf=0;last=0;return}}
+  const K=95,C=2*Math.sqrt(K)*.92;
+  function tick(t){let dt=Math.min(.05,(t-(last||t))/1000);last=t;
+    if(!dragging){while(dt>0){const h=Math.min(dt,1/120);v+=(K*(target-pos)-C*v)*h;pos+=v*h;dt-=h}
+      if(Math.abs(target-pos)<.0006&&Math.abs(v)<.01){pos=target;v=0;render();raf=0;last=0;return}}
     render();raf=requestAnimationFrame(tick)}
   const run=()=>{if(!raf){last=0;raf=requestAnimationFrame(tick)}};
-  function go(i){const cur=Math.round(target);let dd=mod(i)-mod(cur);if(dd>n/2)dd-=n;if(dd<-n/2)dd+=n;target=cur+dd;run()}
-  stage.addEventListener('pointerdown',e=>{if(e.button)return;dragging=true;moved=false;sx=lx=e.clientX;lt=performance.now();sp=pos;vel=0;stage.classList.add('drag');run()});
+  function goV(i){const cur=Math.round(target);let dd=modN(i)-modN(cur);if(dd>N/2)dd-=N;if(dd<-N/2)dd+=N;target=cur+dd;run()}
+  function go(k){const cur=Math.round(target);let best=null;for(let i=0;i<N;i++){if(V[i]!==modn(k))continue;let dd=modN(i)-modN(cur);if(dd>N/2)dd-=N;if(dd<-N/2)dd+=N;if(best===null||Math.abs(dd)<Math.abs(best))best=dd}target=cur+best;run()}
+  stage.addEventListener('pointerdown',e=>{if(e.button)return;dragging=true;moved=false;sx=lx=e.clientX;lt=performance.now();sp=pos;vel=0;v=0;stage.classList.add('drag');run()});
   addEventListener('pointermove',e=>{if(!dragging)return;const now=performance.now(),d=e.clientX-sx;if(Math.abs(d)>6)moved=true;
-    const inst=-(e.clientX-lx)/step/Math.max(1,now-lt)*1000;vel=vel*.7+inst*.3;lx=e.clientX;lt=now;pos=sp-d/step},{passive:true});
+    const dtm=Math.max(1,now-lt),inst=-(e.clientX-lx)/step/dtm*1000;vel=vel*.6+inst*.4;lx=e.clientX;lt=now;pos=sp-d/step},{passive:true});
   const end=()=>{if(!dragging)return;dragging=false;stage.classList.remove('drag');
-    if(performance.now()-lt>90)vel=0;let t=Math.round(pos+vel*.22);t=Math.max(Math.round(sp)-2,Math.min(Math.round(sp)+2,t));target=t;run()};
+    if(performance.now()-lt>100)vel=0;vel=Math.max(-12,Math.min(12,vel));
+    let t=Math.round(pos+vel*.18);t=Math.max(Math.round(sp)-2,Math.min(Math.round(sp)+2,t));target=t;v=vel;run()};
   addEventListener('pointerup',end);addEventListener('pointercancel',end);
   stage.addEventListener('click',e=>{if(moved){e.preventDefault();e.stopPropagation();moved=false;return}const c=e.target.closest('.cf-card');if(!c)return;const i=+c.dataset.i;
-    if(i!==idx){e.preventDefault();go(i);return}
+    if(i!==modN(Math.round(pos))){e.preventDefault();goV(i);return}
     if(e.target.closest('.cf-snd')){e.preventDefault();e.stopPropagation();opts.onSound&&opts.onSound(idx,items[idx]);return}
     const a=e.target.closest('a');if(a&&a.dataset.on)pick(a.dataset.on);if(!a){c.querySelector('.cf-cta').click()}},true);
-  root.querySelector('[data-a=prev]').onclick=root.querySelector('[data-a=sprev]').onclick=()=>go(Math.round(target)-1);root.querySelector('[data-a=snext]').onclick=()=>go(Math.round(target)+1);root.querySelector('[data-a=next]').onclick=()=>go(Math.round(target)+1);
+  const prev=()=>{target=Math.round(target)-1;run()},next=()=>{target=Math.round(target)+1;run()};
+  root.querySelector('[data-a=prev]').onclick=root.querySelector('[data-a=sprev]').onclick=prev;root.querySelector('[data-a=snext]').onclick=root.querySelector('[data-a=next]').onclick=next;
   dots.forEach((d,k)=>d.onclick=()=>go(k));
   addEventListener('resize',()=>{measure();render()});
   measure();render();setTimeout(()=>{measure();render()},300);
-  return {go:i=>{go(i)},layout:()=>{measure();render()}};
+  return {go,layout:()=>{measure();render()}};
 }
 const cfRooms=coverflow(document.getElementById('cfRooms'),ROOMS.map(r=>({snd:r.id,img:r.img,title:r.name,short:'€ '+r.p+' / nacht',meta:`<b>€ ${r.p}</b> / nacht · ${r.tag}`,href:'#'+r.slug,cta:'Bekijk kamer',tint:r.tint,play:'bed'})),{onSound:(k,it)=>AMB.toggle(it.snd),onChange:(k,it)=>AMB.switchTo(it.snd)});
 const ACT_CF=[
@@ -1101,7 +1110,7 @@ coverflow(document.getElementById('cfMore'),[
  {img:'shop',title:'The Amano Shop',meta:'Keramiek, verzorging en sfeer voor thuis',href:'#contact',cta:'Naar de shop',tint:'#e6b866'},
  {img:'rose-handdoek',title:'Cadeaubon',meta:'Schenk een verblijf, wellness of keramiek',href:'#contact',cta:'Bon kiezen',tint:'#e8a0b0'}]);
 (function(){const el=document.getElementById('cfRooms');
- AMB.sub((on,id)=>{document.querySelectorAll('.cf-snd,.r-snd').forEach(b=>{const c=b.closest('[data-i]');const mine=b.dataset.room||(c&&ROOMS[+c.dataset.i]&&ROOMS[+c.dataset.i].id);b.classList.toggle('on',on&&mine===id)})});
+ AMB.sub((on,id)=>{document.querySelectorAll('.cf-snd,.r-snd').forEach(b=>{const c=b.closest('[data-i]');const mine=b.dataset.room||(c&&ROOMS[+(c.dataset.r??c.dataset.i)]&&ROOMS[+(c.dataset.r??c.dataset.i)].id);b.classList.toggle('on',on&&mine===id)})});
  new IntersectionObserver(es=>{if(!es[0].isIntersecting&&AMB.on&&location.hash.indexOf('kamer-')<0)AMB.stop()},{threshold:0}).observe(el)})();
 const MQM=matchMedia('(max-width:1000px)');
 function jump(h,smooth){let el=document.getElementById(h);const k=ACT_CF.findIndex(a=>a.k===h);
@@ -1156,7 +1165,7 @@ function jump(h,smooth){let el=document.getElementById(h);const k=ACT_CF.findInd
     const desc=x.list?x.list.join(' · '):(x.text||'');
     return `<div class="ag-it" style="--c:${c}"><svg viewBox="0 0 ${vb} ${vb}"><use href="#${ic}"/></svg><div><span class="k">${n} · ${x.time}</span><b>${x.title}${x.vibe?`<span class="vibe">${x.vibe}</span>`:''}</b><p>${desc}</p></div><div class="rt"><span>${x.price||''}</span>${btn}</div></div>`}).join(''):'<div class="ag-empty">Niets gepland voor deze filter op deze dag.</div>')+'</div>'}
  window.agToday=()=>{const f=filter;filter=new Set(Object.keys(C));const r=itemsFor(new Date(today));filter=f;return r.map(x=>[C[x.cat][1],x.title,x.time])};
- fetch('agenda.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.events){SPECIAL=j.events;draw()}}).catch(()=>{});
+ fetch('/api/ops?a=events').then(r=>r.ok?r.json():Promise.reject()).catch(()=>fetch('agenda.json',{cache:'no-store'}).then(r=>r.ok?r.json():null)).then(j=>{if(j&&j.events){SPECIAL=j.events;draw()}}).catch(()=>{});
  draw();
 })();
 

@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /ontbijt
+Disallow: /ops
+Disallow: /admin
 
 Sitemap: https://hotel-bilzen.vercel.app/sitemap.xml

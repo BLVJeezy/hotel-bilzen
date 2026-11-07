@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#100d0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Amano Ops">
+<title>Villa Amano · Operations</title>
+<link rel="manifest" href="/ops/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/ops/icon-192.png">
+<link rel="icon" href="/ops/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400;500&family=Wittgenstein&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#16120f;--night:#100d0b;--line:#ffffff1a;--beige:#E8D8B8;--gold:#e6b866;--gold2:#f6dfa4;--text:#efe6d6;--muted:#a99b88;--red:#e8a0a0;--green:#9fc7a8;--blue:#9fb8e6;
+--serif:'Cormorant Garamond',Georgia,serif;--caps:'Wittgenstein',Georgia,serif;--sans:'Jost',Arial,sans-serif;--safe-b:env(safe-area-inset-bottom);--safe-t:env(safe-area-inset-top)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:300 15px/1.5 var(--sans);-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
+body{min-height:100vh;background:radial-gradient(ellipse 90% 35% at 50% 0%,#2a2018,transparent 70%),var(--bg)}
+h1,h2,h3{font-family:var(--serif);font-weight:300;margin:0;line-height:1.1}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.caps{font-family:var(--caps);text-transform:uppercase;letter-spacing:.32em;font-size:10px;color:var(--gold)}
+.k{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.hide{display:none!important}
+/* login */
+#login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(30px + var(--safe-t)) 24px 30px;text-align:center}
+#login img{height:64px;margin-bottom:18px}
+#login h1{font-size:34px;margin:8px 0 4px}
+#login p{color:var(--muted);margin:0 0 26px;font-size:14px;max-width:320px}
+.dots{display:flex;gap:14px;justify-content:center;margin:6px 0 24px;height:16px}
+.dots i{width:14px;height:14px;border-radius:50%;border:1px solid #e8d8b880;transition:.2s}
+.dots i.on{background:var(--gold);border-color:var(--gold);box-shadow:0 0 12px #e6b86680}
+.dots.err{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.pad{display:grid;grid-template-columns:repeat(3,76px);gap:14px;justify-content:center}
+.pad button{height:76px;border-radius:50%;border:1px solid #ffffff22;background:#ffffff08;font:300 30px var(--serif);transition:.15s}
+.pad button:active{background:#e6b86633;transform:scale(.95)}
+.pad button.ghost{border:0;background:none;font:400 13px var(--sans);color:var(--muted)}
+.field{display:block;text-align:left;margin-bottom:12px;width:100%}
+.field span{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;height:50px;border-radius:14px;border:1px solid var(--line);background:#120f0d;padding:0 14px;outline:none;font-size:16px}
+.field textarea{height:auto;min-height:90px;padding:12px 14px;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--gold)}
+.cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:52px;padding:0 24px;border:0;border-radius:999px;font:500 15px var(--sans);color:#24180e;background:linear-gradient(120deg,#f6dfa4,#e6b866 55%,#c98d3e);box-shadow:0 10px 30px #e6b86633}
+.cta:disabled{filter:grayscale(.7) brightness(.6)}
+.cta.full{width:100%}
+.btn2{height:44px;padding:0 18px;border-radius:999px;border:1px solid #e8d8b84d;background:transparent;font-size:14px}
+.btn2.red{border-color:#e8a0a066;color:var(--red)}
+.warn{background:#e8a0a014;border:1px solid #e8a0a055;color:#f0d4d4;border-radius:16px;padding:12px 14px;font-size:13px;text-align:left;margin:0 0 16px;max-width:360px}
+/* shell */
+#app{padding:calc(72px + var(--safe-t)) 16px calc(96px + var(--safe-b));max-width:720px;margin:auto}
+.top{position:fixed;inset:0 0 auto;z-index:20;padding:calc(10px + var(--safe-t)) 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#100d0bd9;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid #ffffff0f}
+.top img{height:34px}
+.top h2{font-size:24px;flex:1;margin-left:6px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;border:1px solid var(--line);background:#ffffff08;font-size:12.5px}
+.chip b{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(120deg,#f6dfa4,#c98d3e);color:#24180e;font:500 12px var(--sans)}
+.tabs{position:fixed;inset:auto 0 0;z-index:20;display:flex;justify-content:space-around;padding:8px 6px calc(8px + var(--safe-b));background:#100d0bf0;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid #ffffff12}
+.tabs button{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;padding:6px 0;font-size:10.5px;color:var(--muted);letter-spacing:.03em}
+.tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.tabs button.on{color:var(--gold2)}
+.tabs .bd{position:absolute;top:0;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e86a6a;color:#fff;font:500 11px/18px var(--sans)}
+/* cards */
+.card{border:1px solid var(--line);border-radius:22px;background:linear-gradient(160deg,#ffffff0b,#ffffff03);padding:16px;margin-bottom:12px}
+.hello{margin:4px 2px 16px}.hello h1{font-size:34px}.hello p{margin:2px 0 0;color:var(--muted);text-transform:capitalize}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{border:1px solid var(--line);border-radius:20px;padding:14px;background:#0000002e}
+.stat b{display:block;font:300 38px/1 var(--serif);margin-top:6px}
+.stat small{color:var(--muted);font-size:12px}
+.stat.hot{border-color:#e6b86680;background:linear-gradient(140deg,#e6b8661f,transparent)}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:20px 4px 10px}
+.sec h3{font-size:22px}.sec a,.sec button{font-size:12.5px;color:var(--gold2);background:none;border:0}
+.row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid #ffffff0d}
+.row:last-child{border-bottom:0}
+.row .dot{width:9px;height:9px;border-radius:50%;background:var(--c,var(--gold));flex:none}
+.row .tx{flex:1;min-width:0}.row .tx b{display:block;font-weight:400}.row .tx small{color:var(--muted);font-size:12.5px}
+.row .rt{font-size:12.5px;color:var(--muted);text-align:right}
+.empty{color:var(--muted);text-align:center;padding:22px 10px;font-size:14px}
+/* orders */
+.seg{display:flex;gap:6px;padding:4px;border-radius:999px;border:1px solid var(--line);background:#0000002e;margin-bottom:14px}
+.seg button{flex:1;height:38px;border-radius:999px;border:0;background:transparent;font-size:13.5px;color:var(--muted)}
+.seg button.on{background:#e6b86626;color:var(--gold2)}
+.seg button i{font-style:normal;opacity:.7;margin-left:4px}
+.ord{position:relative;border:1px solid color-mix(in srgb,var(--t) 40%,#ffffff1a);border-radius:22px;padding:16px;margin-bottom:12px;background:linear-gradient(150deg,color-mix(in srgb,var(--t) 12%,transparent),transparent 60%)}
+.ord.new{animation:pulse 1.6s ease-in-out 3}
+@keyframes pulse{50%{box-shadow:0 0 0 3px #e6b86655}}
+.ord-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ord-h .tm{font:300 40px/1 var(--serif)}
+.ord-h .rm{text-align:right}.ord-h .rm b{display:block;font:400 20px var(--serif);color:color-mix(in srgb,var(--t) 70%,#fff)}.ord-h .rm small{color:var(--muted);font-size:12px}
+.ord ul{list-style:none;margin:12px 0 0;padding:0}
+.ord li{display:flex;justify-content:space-between;padding:4px 0;font-size:15px}
+.ord li b{font-weight:500;color:var(--gold2);margin-right:8px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{padding:4px 10px;border-radius:999px;font-size:12px;border:1px solid var(--line);background:#ffffff08}
+.tag.diet{border-color:#e8a0a066;color:#f3c0c0;background:#e8a0a012}
+.note{margin-top:10px;padding:10px 12px;border-radius:14px;background:#e6b86614;border-left:2px solid var(--gold);font-size:14px}
+.ord-f{display:flex;gap:8px;align-items:center;margin-top:14px}
+.ord-f .cta{flex:1;height:48px}
+.ord-f .meta{font-size:11.5px;color:var(--muted)}
+/* calendar */
+.rooms{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 12px;padding:0 16px}
+.rooms::-webkit-scrollbar{display:none}
+.rooms button{flex:none;display:flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:#ffffff06;font-size:13px}
+.rooms button i{width:8px;height:8px;border-radius:50%;background:var(--t)}
+.rooms button.on{border-color:var(--t);background:color-mix(in srgb,var(--t) 18%,transparent)}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.mh b{font:400 22px var(--serif)}
+.nav{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:transparent;display:grid;place-items:center}
+.nav svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5}
+.wk{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.grid button{position:relative;height:46px;border-radius:11px;border:1px solid transparent;background:#ffffff05;font-size:14px;padding:0}
+.grid button.past{opacity:.35}
+.grid button.today{border-color:#ffffff40}
+.grid button.bk{background:color-mix(in srgb,var(--t) 38%,#1d1814);color:#fff}
+.grid button.bl{background:repeating-linear-gradient(135deg,#ffffff14 0 4px,#ffffff05 4px 8px)}
+.grid button.ext{background:#9fb8e633}
+.grid button.st,.grid button.en{border-color:var(--t)}
+.grid button.sel{background:linear-gradient(120deg,#f6dfa4,#e6b866);color:#24180e;font-weight:500}
+.grid button.rng{background:#e6b86640}
+.grid button small{position:absolute;left:0;right:0;bottom:3px;font-size:8.5px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
+.leg{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-top:10px}
+.leg span{display:flex;align-items:center;gap:6px}.leg i{width:12px;height:12px;border-radius:4px}
+.hint{font-size:12.5px;color:var(--gold2);text-align:center;margin:10px 0 0;min-height:18px}
+.conn{display:flex;gap:8px;margin-bottom:12px}
+.conn button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:42px;border-radius:14px;border:1px solid var(--line);background:#0000002e;font-size:13px}
+.conn button i{width:8px;height:8px;border-radius:50%;background:#ffffff40}
+.conn button.ok i{background:var(--green);box-shadow:0 0 8px var(--green)}
+/* sheet */
+.sbg{position:fixed;inset:0;z-index:40;background:#000a;opacity:0;pointer-events:none;transition:.3s}
+.sbg.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;z-index:41;left:0;right:0;bottom:0;max-height:88vh;overflow-y:auto;padding:12px 18px calc(22px + var(--safe-b));border-radius:26px 26px 0 0;background:linear-gradient(170deg,#241c16,#14100d);border:1px solid #e8d8b826;border-bottom:0;transform:translateY(105%);transition:transform .4s cubic-bezier(.2,.8,.2,1);max-width:720px;margin:auto}
+.sheet.open{transform:none}
+.sheet .grab{width:42px;height:4px;border-radius:2px;background:#ffffff33;margin:0 auto 14px}
+.sheet h3{font-size:28px;margin-bottom:4px}
+.sheet .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.opts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.opts button{height:40px;padding:0 15px;border-radius:999px;border:1px solid var(--line);background:#ffffff06;font-size:13.5px}
+.opts button.on{border-color:var(--gold);background:#e6b86622;color:var(--gold2)}
+.acts{display:flex;gap:8px;margin-top:8px}.acts .cta{flex:1}
+.steps{margin:0 0 14px;padding-left:18px;color:#d6cab7;font-size:13.5px}.steps li{margin-bottom:4px}
+.copy{display:flex;gap:8px;align-items:center;margin-bottom:16px}
+.copy input{flex:1;min-width:0;height:44px;border-radius:12px;border:1px solid var(--line);background:#120f0d;padding:0 12px;font-size:12px;color:var(--muted)}
+/* menus */
+.mi{display:flex;align-items:center;gap:12px}
+.mi .tx{flex:1;min-width:0}.mi b{font:400 20px var(--serif);display:block}.mi small{color:var(--muted);font-size:12px}
+.sw{position:relative;width:52px;height:30px;flex:none}
+.sw input{position:absolute;opacity:0;inset:0;margin:0;z-index:2;cursor:pointer}
+.sw i{position:absolute;inset:0;border-radius:20px;background:#ffffff1f;transition:.3s}
+.sw i:after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.3s cubic-bezier(.3,.7,.3,1.3)}
+.sw input:checked+i{background:linear-gradient(120deg,#9fc7a8,#6fa57e)}.sw input:checked+i:after{transform:translateX(22px)}
+.off{opacity:.5}
+.list-btn{display:flex;align-items:center;gap:14px;width:100%;padding:15px 6px;border:0;border-bottom:1px solid #ffffff0d;background:none;text-align:left;font-size:15px}
+.list-btn svg{width:22px;height:22px;fill:none;stroke:var(--gold);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.list-btn span{flex:1}.list-btn em{font-style:normal;color:var(--muted);font-size:12.5px}
+.log{font-size:13px}.log .row{padding:9px 4px}
+.fab{position:fixed;right:18px;bottom:calc(86px + var(--safe-b));z-index:19;height:52px;padding:0 20px}
+.toast{position:fixed;left:50%;bottom:calc(92px + var(--safe-b));transform:translate(-50%,10px);z-index:60;padding:11px 18px;border-radius:14px;background:#2a2018;border:1px solid #e8d8b833;font-size:13.5px;opacity:0;pointer-events:none;transition:.3s;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{border-color:#e8a0a066;color:#f3d6d6}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:bl 2s infinite}
+@keyframes bl{50%{opacity:.3}}
+@media(min-width:760px){.stats{grid-template-columns:repeat(4,1fr)}.grid button{height:58px}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+ <symbol id="i-today" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+ <symbol id="i-orders" viewBox="0 0 24 24"><path d="M3 17h18M5 17a7 7 0 0 1 14 0M12 10V8M10.5 8h3M3 20h18"/></symbol>
+ <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+ <symbol id="i-agenda" viewBox="0 0 24 24"><path d="M12 3l2.4 5 5.6.8-4 3.9.9 5.5L12 15.6 7.1 18.2 8 12.7 4 8.8 9.6 8z"/></symbol>
+ <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
+ <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M3 12h17M14 6l6 6-6 6"/></symbol>
+ <symbol id="i-menu" viewBox="0 0 24 24"><path d="M8 3v8a3 3 0 0 1-3 3v7M5 3v6M11 3v6M8 9H5M17 3c-2 0-3 3-3 6s1 4 3 4v8"/></symbol>
+ <symbol id="i-euro" viewBox="0 0 24 24"><path d="M18 6a7 7 0 1 0 0 12M4 10h10M4 14h10"/></symbol>
+ <symbol id="i-team" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.5c2 .7 3.5 2.6 3.5 5.5"/></symbol>
+ <symbol id="i-log" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h7"/></symbol>
+ <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4"/></symbol>
+ <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></symbol>
+ <symbol id="i-web" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/></symbol>
+ <symbol id="i-out" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></symbol>
+ <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+</svg>
+
+<!-- LOGIN -->
+<section id="login">
+ <img src="/img/logo_a.png" alt="Villa Amano">
+ <span class="caps">Operations center</span>
+ <h1 id="lgT">Welkom terug</h1>
+ <p id="lgP">Voer je persoonlijke pincode in.</p>
+ <div id="lgWarn"></div>
+ <div id="lgSetup" class="hide" style="width:100%;max-width:340px">
+  <label class="field"><span>Jouw naam</span><input id="suName" autocomplete="name" placeholder="Bv. Leen"></label>
+ </div>
+ <div class="dots" id="dots"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+ <div class="pad" id="pad"></div>
+</section>
+
+<!-- APP -->
+<div id="shell" class="hide">
+ <header class="top"><img src="/img/logo_a.png" alt=""><h2 id="title">Vandaag</h2><span class="chip" id="me"></span></header>
+ <main id="app"></main>
+ <nav class="tabs" id="tabs"></nav>
+</div>
+<div class="sbg" id="sbg"></div>
+<div class="sheet" id="sheet"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const ROOMS=[['rose','Rose Quartz','#e8a0b0',1],['clear','Clear Quartz','#cfe3ee',2],['sun','Sunstone','#e6b866',3],['moon','Moonstone','#9fb8e6',4],['amethyst','Amethyst','#b48ce6',5]];
+const RN=Object.fromEntries(ROOMS.map(r=>[r[0],r])),RBYN=Object.fromEntries(ROOMS.map(r=>[r[3],r]));
+const CATS={event:['Event','#9fb8e6'],pottery:['Pottery House','#c98d5a'],wellness:['Wellness','#b06ad0'],ontbijt:['Ontbijt','#e6b866']};
+const ROLE_NL={owner:'Eigenaar',receptie:'Receptie',keuken:'Keuken'};
+const MON=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const pd=s=>new Date(s+'T12:00');const addD=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return iso(d)};
+const fmt=n=>'€ '+Number(n).toLocaleString('nl-BE',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2});
+const nice=s=>{const d=pd(s);return d.toLocaleDateString('nl-BE',{weekday:'short',day:'numeric',month:'short'})};
+const TODAY=()=>iso(new Date());
+let TOKEN=null,S={},TAB='today',seenOrders=new Set(),pollT=null;
+try{TOKEN=localStorage.getItem('va_ops_t')}catch(e){}
+
+function toast(m,err){const t=$('#toast');t.textContent=m;t.className='toast show'+(err?' err':'');clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',2600)}
+async function api(a,body){const r=await fetch('/api/ops?a='+a,{method:body?'POST':'GET',headers:{'content-type':'application/json',...(TOKEN?{authorization:'Bearer '+TOKEN}:{})},body:body?JSON.stringify(body):undefined});
+ let j={};try{j=await r.json()}catch(e){}
+ if(r.status===401&&a!=='login'){logout(true);throw new Error(j.error||'Log opnieuw in')}
+ if(!r.ok)throw Object.assign(new Error(j.error||'Er ging iets mis'),{data:j});return j}
+
+/* ---------- LOGIN ---------- */
+let pin='',setupMode=false,setupFirst=null;
+$('#pad').innerHTML=[1,2,3,4,5,6,7,8,9,'wis',0,'ok'].map(k=>`<button type="button" class="${typeof k==='string'?'ghost':''}" data-k="${k}">${k==='wis'?'Wissen':k==='ok'?'OK':k}</button>`).join('');
+function drawDots(){[...$('#dots').children].forEach((d,i)=>d.classList.toggle('on',i<pin.length))}
+$('#pad').onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.k;
+ if(k==='wis'){pin=pin.slice(0,-1)}else if(k==='ok'){submitPin();return}else if(pin.length<6){pin+=k;navigator.vibrate&&navigator.vibrate(8)}
+ drawDots();if(pin.length===6||(!setupMode&&pin.length>=4&&false))submitPin()};
+document.addEventListener('keydown',e=>{if($('#login').classList.contains('hide'))return;if(document.activeElement&&document.activeElement.tagName==='INPUT')return;if(/^\d$/.test(e.key)&&pin.length<6){pin+=e.key;drawDots();if(pin.length===6)submitPin()}else if(e.key==='Backspace'){pin=pin.slice(0,-1);drawDots()}else if(e.key==='Enter')submitPin()});
+function shake(){const d=$('#dots');d.classList.remove('err');void d.offsetWidth;d.classList.add('err');navigator.vibrate&&navigator.vibrate([30,40,30])}
+async function submitPin(){if(pin.length<4){shake();return}
+ const p=pin;pin='';drawDots();
+ if(setupMode){if(!setupFirst){setupFirst=p;$('#lgP').textContent='Herhaal je nieuwe pincode.';return}
+  if(setupFirst!==p){setupFirst=null;shake();$('#lgP').textContent='Pincodes kwamen niet overeen. Kies opnieuw.';return}
+  try{await api('setup',{pin:p,name:$('#suName').value});toast('Ingesteld ✓');setupMode=false}catch(e){toast(e.message,1);return}}
+ try{const r=await api('login',{pin:p});TOKEN=r.token;try{localStorage.setItem('va_ops_t',TOKEN)}catch(e){}start()}catch(e){shake();$('#lgP').textContent=e.message}}
+async function showLogin(){$('#login').classList.remove('hide');$('#shell').classList.add('hide');
+ try{const r=await fetch('/api/ops?a=setup-needed').then(r=>r.json());
+  $('#lgWarn').innerHTML=r.store?'':'<div class="warn"><b>Opslag nog niet gekoppeld.</b> Maak in Vercel een Blob-store aan en koppel die aan dit project. Tot dan wordt niets bewaard.</div>';
+  if(r.setup){setupMode=true;$('#lgSetup').classList.remove('hide');$('#lgT').textContent='Eerste keer instellen';$('#lgP').textContent='Kies een pincode van 6 cijfers voor de eigenaar.'}
+ }catch(e){$('#lgWarn').innerHTML='<div class="warn">Geen verbinding met de server.</div>'}}
+function logout(silent){TOKEN=null;try{localStorage.removeItem('va_ops_t')}catch(e){}clearInterval(pollT);if(!silent)toast('Uitgelogd');showLogin()}
+
+/* ---------- SHELL ---------- */
+const TABDEF=[['today','Vandaag','i-today'],['orders','Bestellingen','i-orders'],['calendar','Kalender','i-cal'],['agenda','Agenda','i-agenda'],['more','Meer','i-more']];
+async function start(){try{S=await api('bootstrap')}catch(e){return}
+ $('#login').classList.add('hide');$('#shell').classList.remove('hide');
+ S.orders.forEach(o=>seenOrders.add(o.id));
+ $('#me').innerHTML=`<b>${esc(S.user.name[0]||'?')}</b>${esc(S.user.name)} · ${ROLE_NL[S.user.role]}`;
+ const tabs=TABDEF.filter(t=>t[0]==='more'||S.perms.includes(t[0]));
+ $('#tabs').innerHTML=tabs.map(t=>`<button data-t="${t[0]}"><svg><use href="#${t[2]}"/></svg>${t[1]}${t[0]==='orders'?'<span class="bd hide" id="bd"></span>':''}</button>`).join('');
+ $('#tabs').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.t)};
+ const h=location.hash.slice(1);go(tabs.some(t=>t[0]===h)?h:S.user.role==='keuken'?'orders':'today');
+ if('serviceWorker' in navigator)navigator.serviceWorker.register('/ops/sw.js').catch(()=>{});
+ clearInterval(pollT);pollT=setInterval(poll,8000);badge()}
+function go(t){TAB=t;history.replaceState(null,'','#'+t);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+ $('#title').textContent=TABDEF.find(x=>x[0]===t)[1];scrollTo(0,0);render()}
+function render(){({today:vToday,orders:vOrders,calendar:vCal,agenda:vAgenda,more:vMore})[TAB]()}
+async function reload(){try{S={...S,...await api('bootstrap')};render();badge()}catch(e){}}
+
+/* ---------- live orders ---------- */
+let actx;function chime(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const t=actx.currentTime;[784,1047,1319].forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t+i*.12);g.gain.linearRampToValueAtTime(.25,t+i*.12+.02);g.gain.exponentialRampToValueAtTime(.0001,t+i*.12+.9);o.connect(g);g.connect(actx.destination);o.start(t+i*.12);o.stop(t+i*.12+1)})}catch(e){}}
+document.addEventListener('pointerdown',()=>{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume()}catch(e){}},{once:true});
+async function poll(){if(!S.perms||!S.perms.includes('orders')||document.hidden&&!('Notification' in window))return;
+ try{const r=await api('orders');const fresh=r.orders.filter(o=>!seenOrders.has(o.id));S.orders=r.orders;
+  if(fresh.length){fresh.forEach(o=>seenOrders.add(o.id));chime();navigator.vibrate&&navigator.vibrate([120,60,120]);
+   toast(`Nieuwe bestelling · ${fresh[0].roomName} · ${fresh[0].time}`);
+   if('Notification' in window&&Notification.permission==='granted'&&navigator.serviceWorker){navigator.serviceWorker.ready.then(sw=>sw.showNotification('Nieuwe ontbijtbestelling',{body:`${fresh[0].roomName} · ${fresh[0].time} · ${fresh[0].items.map(i=>i.qty+'× '+i.name).join(', ')}`,icon:'/ops/icon-192.png',badge:'/ops/icon-192.png',tag:fresh[0].id,vibrate:[120,60,120]}))}
+   fresh.forEach(o=>o._new=1)}
+  if(TAB==='orders'||TAB==='today')render();badge()}catch(e){}}
+function badge(){const n=(S.orders||[]).filter(o=>o.status==='nieuw').length,b=$('#bd');if(b){b.textContent=n;b.classList.toggle('hide',!n)}}
+
+/* ---------- VANDAAG ---------- */
+function vToday(){const t=TODAY(),cal=S.calendar||[],ev=(S.events||[]).filter(e=>e.date===t);
+ const arr=cal.filter(e=>e.type==='booking'&&e.from===t),dep=cal.filter(e=>e.type==='booking'&&e.to===t),occ=new Set(cal.filter(e=>e.from<=t&&e.to>t).map(e=>e.room));
+ const ords=(S.orders||[]).filter(o=>o.date===t&&o.status!=='geannuleerd').sort((a,b)=>a.time<b.time?-1:1),open=ords.filter(o=>o.status!=='geleverd');
+ const h=new Date().getHours(),hi=h<12?'Goedemorgen':h<18?'Goedemiddag':'Goedenavond';
+ const st=(n,l,hot)=>`<div class="stat ${hot?'hot':''}"><small>${l}</small><b>${n}</b></div>`;
+ const row=(c,b,s,r)=>`<div class="row" style="--c:${c}"><i class="dot"></i><div class="tx"><b>${b}</b><small>${s}</small></div><div class="rt">${r||''}</div></div>`;
+ $('#app').innerHTML=`<div class="hello"><h1>${hi}, ${esc(S.user.name)}</h1><p>${new Date().toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}</p></div>
+ <div class="stats">${S.perms.includes('calendar')?st(arr.length,'Aankomsten')+st(dep.length,'Vertrekken')+st(occ.size+' / 5','Bezet vannacht'):''}${st(open.length,'Open ontbijt',open.length)}</div>
+ ${S.perms.includes('calendar')?`<div class="sec"><h3>Aankomsten & vertrekken</h3></div><div class="card">${arr.length+dep.length?arr.map(e=>row(RN[e.room][2],'↘ '+esc(e.guest||'Gast')+' · '+RN[e.room][1],'Aankomst · check-in 15:00–21:00',nice(e.to)+' weg')).join('')+dep.map(e=>row(RN[e.room][2],'↗ '+esc(e.guest||'Gast')+' · '+RN[e.room][1],'Vertrek · check-out 11:00','')).join(''):'<div class="empty">Geen aankomsten of vertrekken vandaag.</div>'}</div>`:''}
+ <div class="sec"><h3>Ontbijt vandaag</h3><button onclick="go('orders')">Alle bestellingen →</button></div><div class="card">${ords.length?ords.map(o=>row(RBYN[o.room][2],o.time+' · '+esc(o.roomName),o.items.map(i=>i.qty+'× '+esc(i.name)).join(', ')+(o.diet.length?' · ⚠ '+o.diet.map(esc).join(', '):''),stLabel(o.status))).join(''):'<div class="empty">Nog geen bestellingen voor vandaag.</div>'}</div>
+ ${S.perms.includes('agenda')?`<div class="sec"><h3>Programma vandaag</h3></div><div class="card">${row('#b06ad0','Wellness open','10:00 – 19:30','')}${ev.map(e=>row(CATS[e.cat][1],esc(e.title),esc(e.time)+' · '+esc(e.price),'')).join('')}</div>`:''}`}
+const stLabel=s=>({nieuw:'<span style="color:var(--gold2)">Nieuw</span>',bereiding:'In bereiding',geleverd:'<span style="color:var(--green)">Geleverd</span>',geannuleerd:'Geannuleerd'})[s];
+
+/* ---------- BESTELLINGEN ---------- */
+let OSEG='nieuw';
+function vOrders(){const all=S.orders||[],t=TODAY();
+ const grp={nieuw:all.filter(o=>o.status==='nieuw'),bereiding:all.filter(o=>o.status==='bereiding'),geleverd:all.filter(o=>(o.status==='geleverd'||o.status==='geannuleerd')&&o.date>=addD(t,-1))};
+ const list=grp[OSEG].sort((a,b)=>(a.date+a.time<b.date+b.time?-1:1));
+ $('#app').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin:0 4px 10px"><span class="live"><i></i>Live · ververst elke 8 sec.</span><button class="btn2" style="height:34px;font-size:12.5px" onclick="poll()">Vernieuwen</button></div>
+ <div class="seg">${[['nieuw','Nieuw'],['bereiding','Bezig'],['geleverd','Klaar']].map(([k,l])=>`<button class="${OSEG===k?'on':''}" data-s="${k}">${l}<i>${grp[k].length}</i></button>`).join('')}</div>
+ ${list.length?list.map(o=>{const r=RBYN[o.room];const nxt=o.status==='nieuw'?['bereiding','Start bereiding']:o.status==='bereiding'?['geleverd','✓ Geleverd']:null;
+  return `<div class="ord ${o._new?'new':''}" style="--t:${r[2]}"><div class="ord-h"><div><div class="tm">${esc(o.time)}</div><small class="k">${o.date===t?'Vandaag':nice(o.date)} · ${o.where==='terras'?'Terras':'Op de kamer'}</small></div><div class="rm"><b>${esc(o.roomName)}</b><small>Kamer ${String(o.room).padStart(2,'0')} · ${esc(o.id)}</small></div></div>
+  <ul>${o.items.map(i=>`<li><span><b>${i.qty}×</b>${esc(i.name)}</span></li>`).join('')}${o.extras.map(x=>`<li><span><b>+</b>${esc(x.name)}</span></li>`).join('')}</ul>
+  ${o.diet.length?`<div class="tags">${o.diet.map(d=>`<span class="tag diet">⚠ ${esc(d)}</span>`).join('')}</div>`:''}
+  ${o.note?`<div class="note">${esc(o.note)}</div>`:''}
+  <div class="ord-f">${nxt?`<button class="cta" data-st="${nxt[0]}" data-id="${esc(o.id)}">${nxt[1]}</button>`:`<span class="meta">${stLabel(o.status)} ${o.by?'door '+esc(o.by):''}</span>`}<span class="meta">${fmt(o.total)}</span>${o.status==='nieuw'?`<button class="btn2 red" data-st="geannuleerd" data-id="${esc(o.id)}">Annuleer</button>`:''}</div></div>`}).join(''):`<div class="card empty">${OSEG==='nieuw'?'Geen nieuwe bestellingen. Je hoort een signaal zodra er één binnenkomt.':'Niets in deze lijst.'}</div>`}`;
+ $('#app').querySelector('.seg').onclick=e=>{const b=e.target.closest('button');if(b){OSEG=b.dataset.s;vOrders()}};
+ $('#app').querySelectorAll('[data-st]').forEach(b=>b.onclick=async()=>{if(b.dataset.st==='geannuleerd'&&!confirmBox('Bestelling annuleren?'))return;
+  const o=S.orders.find(x=>x.id===b.dataset.id);b.disabled=true;try{await api('order-status',{id:o.id,status:b.dataset.st});o.status=b.dataset.st;o.by=S.user.name;delete o._new;toast(b.dataset.st==='geleverd'?'Geleverd ✓':b.dataset.st==='bereiding'?'In bereiding':'Geannuleerd');vOrders();badge()}catch(e){toast(e.message,1);b.disabled=false}})}
+function confirmBox(m){return window.confirm?confirm(m):true}
+
+/* ---------- KALENDER ---------- */
+let CR='rose',CM=null,SEL=null,EXT={};
+async function loadExt(){try{const r=await fetch('/api/availability',{cache:'no-store'});if(r.ok){const j=await r.json();EXT=j.rooms||{};if(TAB==='calendar')vCal()}}catch(e){}}
+function vCal(){if(!CM){const d=new Date();CM=new Date(d.getFullYear(),d.getMonth(),1)}
+ const r=RN[CR],own=(S.calendar||[]).filter(e=>e.room===CR),ext=(EXT[CR]||[]).filter(([a,b])=>!own.some(e=>e.from===a&&e.to===b));
+ const ic=(S.ical||{})[CR]||{};
+ const pad=(CM.getDay()+6)%7,n=new Date(CM.getFullYear(),CM.getMonth()+1,0).getDate(),t=TODAY();let g='';
+ for(let i=0;i<pad;i++)g+='<span></span>';
+ for(let d=1;d<=n;d++){const k=iso(new Date(CM.getFullYear(),CM.getMonth(),d));const e=own.find(x=>x.from<=k&&x.to>k),x=!e&&ext.find(([a,b])=>a<=k&&b>k);
+  let c=[k<t?'past':'',k===t?'today':''];if(e)c.push(e.type==='booking'?'bk':'bl');else if(x)c.push('ext');if(e&&e.from===k)c.push('st');
+  if(SEL){if(k===SEL.a||k===SEL.b)c.push('sel');else if(SEL.b&&k>SEL.a&&k<SEL.b)c.push('rng')}
+  g+=`<button data-d="${k}" class="${c.join(' ')}">${d}${e&&e.from===k&&e.guest?`<small>${esc(e.guest.split(' ')[0])}</small>`:''}</button>`}
+ $('#app').innerHTML=`<div class="rooms">${ROOMS.map(x=>`<button class="${x[0]===CR?'on':''}" data-r="${x[0]}" style="--t:${x[2]}"><i></i>${x[1]}</button>`).join('')}</div>
+ ${S.perms.includes('connect')?`<div class="conn"><button class="${ic.booking?'ok':''}" data-c="booking"><i></i>Booking.com</button><button class="${ic.airbnb?'ok':''}" data-c="airbnb"><i></i>Airbnb</button></div>`:''}
+ <div class="card" style="--t:${r[2]}"><div class="mh"><button class="nav" data-m="-1" aria-label="Vorige"><svg style="transform:scaleX(-1)"><use href="#i-arrow"/></svg></button><b>${MON[CM.getMonth()]} ${CM.getFullYear()}</b><button class="nav" data-m="1" aria-label="Volgende"><svg><use href="#i-arrow"/></svg></button></div>
+ <div class="wk"><span>ma</span><span>di</span><span>wo</span><span>do</span><span>vr</span><span>za</span><span>zo</span></div><div class="grid" id="cg" style="--t:${r[2]}">${g}</div>
+ <div class="hint" id="hint">${SEL?(SEL.b?'':'Tik de vertrekdag aan'):'Tik een vrije dag om te boeken of te blokkeren · tik een boeking om te bekijken'}</div>
+ <div class="leg"><span><i style="background:color-mix(in srgb,${r[2]} 38%,#1d1814)"></i>Boeking</span><span><i style="background:repeating-linear-gradient(135deg,#ffffff26 0 3px,#ffffff08 3px 6px)"></i>Geblokkeerd</span><span><i style="background:#9fb8e655"></i>Booking.com / Airbnb</span></div></div>
+ <div class="sec"><h3>Komende boekingen</h3></div><div class="card">${own.filter(e=>e.to>=t).sort((a,b)=>a.from<b.from?-1:1).slice(0,8).map(e=>`<div class="row" style="--c:${e.type==='booking'?r[2]:'#ffffff55'}" data-e="${e.id}"><i class="dot"></i><div class="tx"><b>${e.type==='booking'?esc(e.guest||'Boeking'):'Geblokkeerd'}</b><small>${nice(e.from)} → ${nice(e.to)}${e.note?' · '+esc(e.note):''}</small></div><div class="rt">${Math.round((pd(e.to)-pd(e.from))/864e5)} n.</div></div>`).join('')||'<div class="empty">Nog niets gepland voor deze kamer.</div>'}</div>`;
+ const A=$('#app');
+ A.querySelector('.rooms').onclick=e=>{const b=e.target.closest('button');if(b){CR=b.dataset.r;SEL=null;vCal()}};
+ A.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{CM=new Date(CM.getFullYear(),CM.getMonth()+ +b.dataset.m,1);vCal()});
+ A.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>connectSheet(b.dataset.c));
+ A.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>entrySheet(own.find(x=>x.id===b.dataset.e)));
+ $('#cg').onclick=e=>{const b=e.target.closest('[data-d]');if(!b)return;const k=b.dataset.d,hit=own.find(x=>x.from<=k&&x.to>k);
+  if(!SEL&&hit){entrySheet(hit);return}
+  if(!SEL&&ext.find(([a,c])=>a<=k&&c>k)){toast('Geboekt via Booking.com of Airbnb');return}
+  if(!SEL||SEL.b||k<=SEL.a){SEL={a:k};vCal();return}
+  SEL.b=k;vCal();newEntrySheet(SEL.a,SEL.b)}}
+function entrySheet(e){const r=RN[e.room];openSheet(`<h3>${e.type==='booking'?esc(e.guest||'Boeking'):'Geblokkeerd'}</h3><div class="sub">${r[1]} · ${nice(e.from)} → ${nice(e.to)} · ${Math.round((pd(e.to)-pd(e.from))/864e5)} nachten</div>
+ ${e.note?`<div class="note" style="margin-bottom:14px">${esc(e.note)}</div>`:''}<div class="k" style="margin-bottom:16px">Toegevoegd door ${esc(e.by||'?')}</div>
+ <div class="acts"><button class="btn2 red" id="del">Verwijderen</button><button class="cta" onclick="closeSheet()">Sluiten</button></div>`);
+ $('#del').onclick=async()=>{if(!confirmBox('Verwijderen?'))return;try{await api('cal-del',{id:e.id});S.calendar=S.calendar.filter(x=>x.id!==e.id);closeSheet();toast('Verwijderd');vCal()}catch(er){toast(er.message,1)}}}
+function newEntrySheet(a,b){let type='booking';const r=RN[CR];const n=Math.round((pd(b)-pd(a))/864e5);
+ openSheet(`<h3>${r[1]}</h3><div class="sub">${nice(a)} → ${nice(b)} · ${n} ${n>1?'nachten':'nacht'}</div>
+ <div class="opts" id="ty"><button class="on" data-v="booking">Boeking</button><button data-v="block">Blokkeren</button></div>
+ <label class="field" id="gf"><span>Naam gast</span><input id="eg" placeholder="Bv. Familie Peeters"></label>
+ <label class="field"><span>Notitie (optioneel)</span><input id="en" placeholder="Bv. telefoon, verjaardag, onderhoud…"></label>
+ <div class="acts"><button class="btn2" onclick="closeSheet()">Annuleer</button><button class="cta" id="sv">Opslaan</button></div>`,()=>{SEL=null;vCal()});
+ $('#ty').onclick=e=>{const x=e.target.closest('button');if(!x)return;type=x.dataset.v;[...$('#ty').children].forEach(y=>y.classList.toggle('on',y===x));$('#gf').classList.toggle('hide',type!=='booking')};
+ $('#sv').onclick=async()=>{const btn=$('#sv');btn.disabled=true;try{const r2=await api('cal-add',{room:CR,from:a,to:b,type,guest:$('#eg').value,note:$('#en').value});S.calendar.push(r2.entry);SEL=null;closeSheet(true);toast('Opgeslagen ✓');vCal()}catch(e){toast(e.message,1);btn.disabled=false}}}
+function connectSheet(ch){const nm=ch==='booking'?'Booking.com':'Airbnb',r=RN[CR],cur=((S.ical||{})[CR]||{})[ch]||'';
+ const exp=`${location.origin}/api/ops?a=ical&room=${CR}&k=${S.icalKey}`;
+ const how=ch==='booking'?['Ga in de Booking.com Extranet naar <b>Tarieven & Beschikbaarheid → Kalender synchroniseren</b>.','Kies <b>Kalender exporteren</b> en kopieer de link. Plak die hieronder.','Kies daarna <b>Kalender importeren</b> en plak daar <b>onze link</b>.']:['Ga in Airbnb naar <b>Kalender → Beschikbaarheid → Agenda\'s koppelen</b>.','Kopieer bij <b>Agenda exporteren</b> de link en plak die hieronder.','Kies <b>Agenda importeren</b> en plak daar <b>onze link</b>.'];
+ openSheet(`<h3>${nm} koppelen</h3><div class="sub">${r[1]} · ${cur?'<span style="color:var(--green)">● Gekoppeld</span>':'Nog niet gekoppeld'}</div>
+ <ol class="steps">${how.map(x=>`<li>${x}</li>`).join('')}</ol>
+ <label class="field"><span>Link van ${nm}</span><input id="il" value="${esc(cur)}" placeholder="https://…ics" inputmode="url"></label>
+ <div class="k" style="margin:4px 0 6px">Onze link (plak bij ${nm})</div><div class="copy"><input readonly value="${esc(exp)}" id="ol"><button class="btn2" id="cp">Kopieer</button></div>
+ <div class="acts">${cur?'<button class="btn2 red" id="un">Ontkoppel</button>':''}<button class="cta" id="sv">${cur?'Bijwerken':'Verbind '+nm}</button></div>`);
+ $('#cp').onclick=async()=>{try{await navigator.clipboard.writeText(exp);toast('Gekopieerd ✓')}catch(e){$('#ol').select();toast('Selecteer en kopieer')}};
+ const set=async url=>{try{await api('ical-set',{room:CR,channel:ch,url});S.ical=S.ical||{};S.ical[CR]=S.ical[CR]||{};S.ical[CR][ch]=url;closeSheet();toast(url?nm+' gekoppeld ✓':'Ontkoppeld');vCal();loadExt()}catch(e){toast(e.message,1)}};
+ $('#sv').onclick=()=>set($('#il').value.trim());if($('#un'))$('#un').onclick=()=>set('')}
+
+/* ---------- AGENDA ---------- */
+function vAgenda(){const t=TODAY(),ev=(S.events||[]).filter(e=>e.date>=addD(t,-1)).sort((a,b)=>a.date<b.date?-1:1);let cur='',h='';
+ ev.forEach(e=>{const m=MON[pd(e.date).getMonth()]+' '+pd(e.date).getFullYear();if(m!==cur){if(cur)h+='</div>';cur=m;h+=`<div class="sec"><h3 style="text-transform:capitalize">${m}</h3></div><div class="card">`}
+  h+=`<div class="row" style="--c:${CATS[e.cat][1]}" data-id="${e.id}"><i class="dot"></i><div class="tx"><b>${esc(e.title)}</b><small>${nice(e.date)} · ${esc(e.time)} · ${CATS[e.cat][0]}</small></div><div class="rt">${esc(e.price)}</div></div>`});
+ if(cur)h+='</div>';
+ $('#app').innerHTML=`<p class="k" style="margin:2px 4px 0">Vaste weekschema's (wellness, lessen, ontbijtmenu) staan automatisch op de site. Hier beheer je speciale events.</p>${h||'<div class="card empty" style="margin-top:14px">Nog geen events gepland.</div>'}<button class="cta fab" onclick="eventSheet()">+ Nieuw event</button>`;
+ $('#app').querySelectorAll('[data-id]').forEach(r=>r.onclick=()=>eventSheet(S.events.find(e=>e.id===r.dataset.id)))}
+function eventSheet(e){e=e||{date:TODAY(),cat:'event',time:'',title:'',text:'',price:''};let cat=e.cat;
+ openSheet(`<h3>${e.id?'Event bewerken':'Nieuw event'}</h3><div class="sub">Verschijnt meteen in de agenda op de website.</div>
+ <div class="opts" id="ct">${Object.entries(CATS).map(([k,[n]])=>`<button data-v="${k}" class="${k===cat?'on':''}">${n}</button>`).join('')}</div>
+ <label class="field"><span>Titel</span><input id="et" value="${esc(e.title)}" placeholder="Bv. Raku-avond"></label>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><label class="field"><span>Datum</span><input id="ed" type="date" value="${e.date}"></label><label class="field"><span>Uur</span><input id="eu" value="${esc(e.time)}" placeholder="19:00 – 21:00"></label></div>
+ <label class="field"><span>Prijs</span><input id="ep" value="${esc(e.price)}" placeholder="€ 35 p.p."></label>
+ <label class="field"><span>Beschrijving</span><textarea id="ex" placeholder="Wat gebeurt er?">${esc(e.text)}</textarea></label>
+ <div class="acts">${e.id?'<button class="btn2 red" id="dl">Verwijder</button>':''}<button class="cta" id="sv">Opslaan</button></div>`);
+ $('#ct').onclick=x=>{const b=x.target.closest('button');if(!b)return;cat=b.dataset.v;[...$('#ct').children].forEach(y=>y.classList.toggle('on',y===b))};
+ $('#sv').onclick=async()=>{try{const r=await api('event-save',{id:e.id,cat,title:$('#et').value,date:$('#ed').value,time:$('#eu').value,price:$('#ep').value,text:$('#ex').value});S.events=(S.events||[]).filter(x=>x.id!==r.event.id).concat(r.event);closeSheet();toast('Opgeslagen ✓');vAgenda()}catch(er){toast(er.message,1)}};
+ if($('#dl'))$('#dl').onclick=async()=>{if(!confirmBox('Event verwijderen?'))return;try{await api('event-del',{id:e.id});S.events=S.events.filter(x=>x.id!==e.id);closeSheet();toast('Verwijderd');vAgenda()}catch(er){toast(er.message,1)}}}
+
+/* ---------- MEER ---------- */
+function vMore(){const P=S.perms,li=(ic,t,sub,fn)=>`<button class="list-btn" onclick="${fn}"><svg><use href="#${ic}"/></svg><span>${t}</span><em>${sub||''}</em><svg style="width:16px;stroke:var(--muted)"><use href="#i-arrow"/></svg></button>`;
+ const np='Notification' in window?Notification.permission:'unsupported';
+ $('#app').innerHTML=`<div class="card">${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'Aan/uit & inhoud',"menusView()"):''}${P.includes('staff')?li('i-team','Personeel',(S.staff||[]).length+' personen',"staffView()"):''}${P.includes('log')?li('i-log','Logboek','Wie deed wat',"logView()"):''}</div>
+ <div class="card">${li('i-bell','Meldingen',np==='granted'?'Aan':np==='denied'?'Geblokkeerd':'Uit',"notif()")}${li('i-phone','Zet op beginscherm','',"installSheet()")}${li('i-web','Open de website','',"window.open('/','_blank')")}${li('i-out','Uitloggen','',"logout()")}</div>
+ ${S.store===false?'<div class="warn" style="max-width:none">Opslag is nog niet gekoppeld in Vercel. Wijzigingen worden nog niet bewaard.</div>':''}
+ <p class="k" style="text-align:center;margin-top:18px">Villa Amano · Operations center v1</p>`}
+async function notif(){if(!('Notification' in window)){toast('Meldingen werken op iPhone pas als de app op je beginscherm staat',1);return}const p=await Notification.requestPermission();toast(p==='granted'?'Meldingen aan ✓':'Meldingen niet toegestaan',p!=='granted');if(p==='granted')chime();vMore()}
+function installSheet(){const ios=/iphone|ipad/i.test(navigator.userAgent);openSheet(`<h3>Op je beginscherm</h3><div class="sub">Dan opent het als een echte app, met meldingen.</div><ol class="steps">${ios?'<li>Open deze pagina in <b>Safari</b>.</li><li>Tik onderaan op het <b>deel-icoon</b> (vierkant met pijl).</li><li>Kies <b>Zet op beginscherm</b> en tik op <b>Voeg toe</b>.</li><li>Open de app en zet in <b>Meer → Meldingen</b> de meldingen aan.</li>':'<li>Tik rechtsboven in Chrome op <b>⋮</b>.</li><li>Kies <b>App installeren</b> of <b>Toevoegen aan startscherm</b>.</li><li>Open de app en zet in <b>Meer → Meldingen</b> de meldingen aan.</li>'}</ol><button class="cta full" onclick="closeSheet()">Begrepen</button>`)}
+function menusView(){const M=JSON.parse(JSON.stringify(S.menus)),own=S.user.role==='owner';
+ $('#title').textContent="Ontbijtmenu's";
+ $('#app').innerHTML=`<button class="btn2" style="margin-bottom:12px" onclick="go('more')">← Terug</button><p class="k" style="margin:0 4px 12px">Zet een menu uit als het op is. Gasten zien het dan meteen niet meer.</p>
+ ${M.menus.map((m,i)=>`<div class="card ${m.active?'':'off'}" data-i="${i}"><div class="mi"><div class="tx"><b>${esc(m.name)}</b><small>${esc(m.tag)} · ${fmt(m.price)}</small></div><label class="sw"><input type="checkbox" data-a="${i}" ${m.active?'checked':''}><i></i></label></div>
+  <label class="field" style="margin-top:12px"><span>Gerechten (één per regel)</span><textarea data-it="${i}">${esc(m.items.join('\n'))}</textarea></label>${own?`<label class="field"><span>Prijs p.p.</span><input data-p="${i}" type="number" step="0.5" value="${m.price}"></label>`:''}</div>`).join('')}
+ <div class="sec"><h3>Suggesties</h3></div><div class="card">${M.extras.map((x,i)=>`<div class="row"><div class="tx"><b>${esc(x.name)}</b><small>${fmt(x.price)}</small></div><label class="sw"><input type="checkbox" data-x="${i}" ${x.active?'checked':''}><i></i></label></div>`).join('')}</div>
+ <button class="cta full" id="sv">Opslaan</button>`;
+ $('#app').querySelectorAll('[data-a]').forEach(c=>c.onchange=()=>{M.menus[c.dataset.a].active=c.checked;c.closest('.card').classList.toggle('off',!c.checked)});
+ $('#app').querySelectorAll('[data-x]').forEach(c=>c.onchange=()=>M.extras[c.dataset.x].active=c.checked);
+ $('#sv').onclick=async()=>{$('#app').querySelectorAll('[data-it]').forEach(t=>M.menus[t.dataset.it].items=t.value.split('\n').map(s=>s.trim()).filter(Boolean));$('#app').querySelectorAll('[data-p]').forEach(t=>M.menus[t.dataset.p].price=+t.value);
+  try{await api('menus-save',M);S.menus=M;toast('Opgeslagen ✓')}catch(e){toast(e.message,1)}}}
+function pricesSheet(){openSheet(`<h3>Kamerprijzen</h3><div class="sub">Prijs per nacht, inclusief btw.</div>${ROOMS.map(r=>`<label class="field"><span>${r[1]}</span><input type="number" data-r="${r[0]}" value="${S.prices[r[0]]}"></label>`).join('')}<button class="cta full" id="sv">Opslaan</button>`);
+ $('#sv').onclick=async()=>{const p={};document.querySelectorAll('#sheet [data-r]').forEach(i=>p[i.dataset.r]=+i.value);try{await api('prices-save',{prices:p});S.prices=p;closeSheet();toast('Opgeslagen ✓')}catch(e){toast(e.message,1)}}}
+function staffView(){$('#title').textContent='Personeel';
+ $('#app').innerHTML=`<button class="btn2" style="margin-bottom:12px" onclick="go('more')">← Terug</button><div class="card"><div class="row"><i class="dot"></i><div class="tx"><b>${esc(S.user.role==='owner'?S.user.name:'Eigenaar')}</b><small>Eigenaar · alles</small></div></div>${(S.staff||[]).map(s=>`<div class="row" data-s="${s.id}" style="--c:${s.role==='keuken'?'#e6b866':s.role==='owner'?'#f6dfa4':'#9fb8e6'}"><i class="dot"></i><div class="tx"><b>${esc(s.name)}</b><small>${ROLE_NL[s.role]}${s.active?'':' · gedeactiveerd'}</small></div><div class="rt">Bewerk →</div></div>`).join('')}</div>
+ <div class="card"><p class="k" style="margin:0 0 8px">Wat ziet wie?</p><div style="font-size:13px;color:#d6cab7;line-height:1.7"><b>Receptie</b> · vandaag, bestellingen, kalender, agenda, koppelingen<br><b>Keuken</b> · vandaag, bestellingen, menu's<br><b>Eigenaar</b> · alles, plus prijzen, personeel en logboek</div></div>
+ <button class="cta fab" onclick="staffSheet()">+ Personeel</button>`;
+ $('#app').querySelectorAll('[data-s]').forEach(r=>r.onclick=()=>staffSheet(S.staff.find(s=>s.id===r.dataset.s)))}
+function staffSheet(s){s=s||{name:'',role:'receptie',active:true};let role=s.role;
+ openSheet(`<h3>${s.id?esc(s.name):'Nieuw personeelslid'}</h3><div class="sub">Iedereen logt in met een eigen pincode.</div>
+ <label class="field"><span>Naam</span><input id="sn" value="${esc(s.name)}" placeholder="Voornaam"></label>
+ <div class="k" style="margin-bottom:6px">Rol</div><div class="opts" id="sr">${['receptie','keuken','owner'].map(r=>`<button data-v="${r}" class="${r===role?'on':''}">${ROLE_NL[r]}</button>`).join('')}</div>
+ <label class="field"><span>${s.id?'Nieuwe pincode (leeg = behouden)':'Pincode (6 cijfers)'}</span><input id="sp" inputmode="numeric" maxlength="8" pattern="[0-9]*" placeholder="••••••"></label>
+ ${s.id?`<label class="row" style="padding:6px 2px 14px"><div class="tx"><b>Actief</b><small>Uit = kan niet meer inloggen</small></div><span class="sw"><input type="checkbox" id="sa" ${s.active?'checked':''}><i></i></span></label>`:''}
+ <div class="acts">${s.id?'<button class="btn2 red" id="dl">Verwijder</button>':''}<button class="cta" id="sv">Opslaan</button></div>`);
+ $('#sr').onclick=e=>{const b=e.target.closest('button');if(!b)return;role=b.dataset.v;[...$('#sr').children].forEach(y=>y.classList.toggle('on',y===b))};
+ $('#sv').onclick=async()=>{try{await api('staff-save',{id:s.id,name:$('#sn').value,role,pin:$('#sp').value,active:$('#sa')?$('#sa').checked:true});closeSheet();toast('Opgeslagen ✓');await reload();staffView()}catch(e){toast(e.message,1)}};
+ if($('#dl'))$('#dl').onclick=async()=>{if(!confirmBox('Verwijderen?'))return;try{await api('staff-del',{id:s.id});closeSheet();await reload();staffView()}catch(e){toast(e.message,1)}}}
+function logView(){$('#title').textContent='Logboek';$('#app').innerHTML=`<button class="btn2" style="margin-bottom:12px" onclick="go('more')">← Terug</button><div class="card log">${(S.log||[]).map(l=>`<div class="row"><div class="tx"><b>${esc(l.text)}</b><small>${esc(l.who)}</small></div><div class="rt">${new Date(l.t).toLocaleString('nl-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div></div>`).join('')||'<div class="empty">Nog niets.</div>'}</div>`}
+
+/* ---------- sheet ---------- */
+let onClose=null;
+function openSheet(h,cb){$('#sheet').innerHTML='<div class="grab"></div>'+h;$('#sheet').classList.add('open');$('#sbg').classList.add('open');onClose=cb||null}
+function closeSheet(skip){$('#sheet').classList.remove('open');$('#sbg').classList.remove('open');if(onClose&&!skip)onClose();onClose=null}
+$('#sbg').onclick=()=>closeSheet();
+
+/* ---------- boot ---------- */
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&TOKEN)reload()});
+if(TOKEN){api('me').then(()=>{start();loadExt()}).catch(()=>showLogin())}else showLogin();
+</script>
+</body>
+</html>
