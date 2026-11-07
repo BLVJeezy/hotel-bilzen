@@ -63,11 +63,13 @@ async function save(name, data, etag) {
   await blob.put(`ops/${name}.json`, JSON.stringify(data), opts);
 }
 async function mutate(name, fn) {
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 4; i++) {
     const { data, etag } = await load(name);
+    let cur = etag;
+    if (hasStore() && etag) { try { const h = await blob.head(`ops/${name}.json`); cur = h && h.etag; } catch (e) { cur = null; } }
     const out = await fn(data);
-    try { await save(name, data, etag); return out; }
-    catch (e) { if (e && e.name === 'BlobPreconditionFailedError') continue; throw e; }
+    try { await save(name, data, i < 3 ? cur : null); return out; }
+    catch (e) { if (e && e.name === 'BlobPreconditionFailedError') { await new Promise(r => setTimeout(r, 120 * (i + 1))); continue; } throw e; }
   }
   throw new Error('Even druk, probeer opnieuw.');
 }
