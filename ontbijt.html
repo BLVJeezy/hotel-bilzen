@@ -45,9 +45,9 @@ section{margin-top:38px}
 /* coverflow */
 .cf{position:relative;overflow:hidden;padding:24px 0 6px;margin:0 -20px;--cf:#e6b866;isolation:isolate}
 .cf:before{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse 50% 40% at 50% 42%,color-mix(in srgb,var(--cf) 24%,transparent),transparent 72%);transition:background .9s}
-.stage{position:relative;perspective:1400px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
+.stage{position:relative;perspective:1400px;transform-style:preserve-3d;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
 .stage.drag{cursor:grabbing}
-.mc{position:absolute;left:50%;top:0;width:min(290px,74vw);margin-left:calc(min(290px,74vw) / -2);padding:10px;border-radius:26px;background:linear-gradient(160deg,color-mix(in srgb,var(--t) 26%,#ffffff12),color-mix(in srgb,var(--t) 8%,#ffffff05) 55%,color-mix(in srgb,var(--t) 16%,#ffffff0d));border:1px solid color-mix(in srgb,var(--t) 45%,#ffffff22);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 30px 60px #0009,inset 0 1px 0 #ffffff40;will-change:transform,opacity}
+.mc{position:absolute;left:50%;top:0;width:min(290px,74vw);margin-left:calc(min(290px,74vw) / -2);padding:10px;border-radius:26px;background:linear-gradient(160deg,color-mix(in srgb,var(--t) 26%,#ffffff12),color-mix(in srgb,var(--t) 8%,#ffffff05) 55%,color-mix(in srgb,var(--t) 16%,#ffffff0d)),#1a1512;border:1px solid color-mix(in srgb,var(--t) 45%,#ffffff22);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 30px 60px #0009,inset 0 1px 0 #ffffff40;will-change:transform,opacity}
 .mc.on{box-shadow:0 30px 60px #0009,0 0 60px color-mix(in srgb,var(--t) 22%,transparent),inset 0 1px 0 #ffffff40}
 .art{position:relative;aspect-ratio:4/3;border-radius:18px;overflow:hidden;background-size:cover;background-position:center;transition:filter .5s}
 .art:after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,#ffffff1c,transparent 35%)}
@@ -232,23 +232,28 @@ const qp=new URLSearchParams(location.search).get('kamer')||location.hash.replac
 
 // coverflow
 const stage=$('stage');
-stage.innerHTML=MENUS.map((m,i)=>`<article class="mc" data-i="${i}" style="--t:${m.t}"><div class="art" style="background-image:url('img/ontbijt-${m.id}.jpg')"><span class="tag">${m.tag}</span></div><div class="mtx"><h3>${m.name}</h3><ul>${m.items.map(x=>`<li>${x}</li>`).join('')}</ul></div><div class="mfoot"><div><b>${fmt(m.p)}</b><br><small>per persoon</small></div><div class="step" data-m="${m.id}"></div></div></article>`).join('');
+const VM=[...MENUS,...MENUS,...MENUS];
+stage.innerHTML=VM.map((m,i)=>`<article class="mc" data-i="${i}" data-k="${i%MENUS.length}" style="--t:${m.t}"><div class="art" style="background-image:url('img/ontbijt-${m.id}.jpg')"><span class="tag">${m.tag}</span></div><div class="mtx"><h3>${m.name}</h3><ul>${m.items.map(x=>`<li>${x}</li>`).join('')}</ul></div><div class="mfoot"><div><b>${fmt(m.p)}</b><br><small>per persoon</small></div><div class="step" data-m="${m.id}"></div></div></article>`).join('');
 $('dots').innerHTML=MENUS.map((_,i)=>`<button aria-label="Menu ${i+1}" data-d="${i}"></button>`).join('');
-const cards=[...stage.children],dots=[...$('dots').children],N=cards.length,mod=x=>((x%N)+N)%N;
-let pos=0,target=0,raf=0,last=0,drag=false,moved=false,sx=0,sp=0,vel=0,lx=0,lt=0,idx=-1,step=0;
+const cards=[...stage.children],dots=[...$('dots').children],N=cards.length,M=MENUS.length,mod=x=>((x%N)+N)%N;
+let sv=0,lp=0,v=0,pos=0,target=0,raf=0,last=0,drag=false,moved=false,sx=0,sp=0,vel=0,lx=0,lt=0,idx=-1,step=0;
 function measure(){step=cards[0].offsetWidth*.66;stage.style.height=Math.max(...cards.map(c=>c.offsetHeight))+'px'}
-function render(){cards.forEach((c,i)=>{let d=((i-pos)%N+N)%N;if(d>N/2)d-=N;const a=Math.abs(d),cl=Math.max(-1.5,Math.min(1.5,d)),e=Math.min(a,2);
-  c.style.transform=`translate3d(${(d*step).toFixed(2)}px,0,${(-a*170).toFixed(1)}px) rotateY(${(-cl*30).toFixed(2)}deg) scale(${(1-e*.07).toFixed(4)})`;
-  c.style.opacity=a>2.4?0:(1-e*.25).toFixed(3);c.style.zIndex=100-Math.round(a*10);c.classList.toggle('on',a<.5)});
-  const k=mod(Math.round(pos));if(k!==idx){idx=k;$('cf').style.setProperty('--cf',MENUS[k].t);dots.forEach((d,j)=>d.classList.toggle('on',j===k))}}
-function tick(t){const dt=Math.min(.05,(t-(last||t))/1000);last=t;if(!drag){pos+=(target-pos)*(1-Math.exp(-dt*7.5));if(Math.abs(target-pos)<.0008){pos=target;render();raf=0;last=0;return}}render();raf=requestAnimationFrame(tick)}
+const ease=x=>x*x*(3-2*x);
+function render(){const dir=Math.tanh(sv*2.2);cards.forEach((c,i)=>{let d=((i-pos)%N+N)%N;if(d>N/2)d-=N;const a=Math.abs(d),cl=Math.max(-1.5,Math.min(1.5,d)),e=Math.min(a,2);
+  const fade=a<=1.6?1:a>=2.6?0:1-ease(a-1.6),lift=dir*Math.max(-1,Math.min(1,d))*Math.max(0,1-Math.max(0,a-1))*150;
+  c.style.transform=`translate3d(${(d*step).toFixed(2)}px,0,${(-a*230+lift).toFixed(1)}px) rotateY(${(-cl*30).toFixed(2)}deg) scale(${(1-e*.06).toFixed(4)})`;
+  c.style.opacity=((1-Math.min(a,1.6)*.22)*fade).toFixed(3);c.style.visibility=fade<=0?'hidden':'visible';c.classList.toggle('on',a<.5)});
+  const k=mod(Math.round(pos))%M;if(k!==idx){idx=k;$('cf').style.setProperty('--cf',MENUS[k].t);dots.forEach((d,j)=>d.classList.toggle('on',j===k))}}
+const K=95,C=2*Math.sqrt(K)*.92;
+function tick(t){let dt=Math.min(.05,(t-(last||t))/1000);last=t;const dt0=dt||1/60;if(!drag){while(dt>0){const h=Math.min(dt,1/120);v+=(K*(target-pos)-C*v)*h;pos+=v*h;dt-=h}if(Math.abs(target-pos)<.0006&&Math.abs(v)<.01&&Math.abs(sv)<.02){pos=target;v=0;sv=0;lp=pos;render();raf=0;last=0;return}}sv+=(((pos-lp)/dt0)-sv)*Math.min(1,dt0*14);lp=pos;render();raf=requestAnimationFrame(tick)}
 const run=()=>{if(!raf){last=0;raf=requestAnimationFrame(tick)}};
-function go(i){const c=Math.round(target);let d=mod(i)-mod(c);if(d>N/2)d-=N;if(d<-N/2)d+=N;target=c+d;run()}
+function goV(i){const c=Math.round(target);let d=mod(i)-mod(c);if(d>N/2)d-=N;if(d<-N/2)d+=N;target=c+d;run()}
+function go(k){const c=Math.round(target);let best=null;for(let i=0;i<N;i++){if(i%M!==k)continue;let d=mod(i)-mod(c);if(d>N/2)d-=N;if(d<-N/2)d+=N;if(best===null||Math.abs(d)<Math.abs(best))best=d}target=c+best;run()}
 stage.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;drag=true;moved=false;sx=lx=e.clientX;lt=performance.now();sp=pos;vel=0;stage.classList.add('drag');run()});
 addEventListener('pointermove',e=>{if(!drag)return;const now=performance.now(),d=e.clientX-sx;if(Math.abs(d)>6)moved=true;vel=vel*.7+(-(e.clientX-lx)/step/Math.max(1,now-lt)*1000)*.3;lx=e.clientX;lt=now;pos=sp-d/step},{passive:true});
-const end=()=>{if(!drag)return;drag=false;stage.classList.remove('drag');if(performance.now()-lt>90)vel=0;target=Math.max(Math.round(sp)-1,Math.min(Math.round(sp)+1,Math.round(pos+vel*.22)));run()};
+const end=()=>{if(!drag)return;drag=false;stage.classList.remove('drag');if(performance.now()-lt>90)vel=0;vel=Math.max(-12,Math.min(12,vel));target=Math.max(Math.round(sp)-1,Math.min(Math.round(sp)+1,Math.round(pos+vel*.18)));v=vel;run()};
 addEventListener('pointerup',end);addEventListener('pointercancel',end);
-stage.addEventListener('click',e=>{if(moved){e.stopPropagation();moved=false;return}const c=e.target.closest('.mc');if(!c)return;const i=+c.dataset.i;if(i!==idx){e.stopPropagation();e.preventDefault();go(i);return}
+stage.addEventListener('click',e=>{if(moved){e.stopPropagation();moved=false;return}const c=e.target.closest('.mc');if(!c)return;const i=+c.dataset.i;if(i!==mod(Math.round(pos))){e.stopPropagation();e.preventDefault();goV(i);return}
   const b=e.target.closest('button[data-q]');if(b){const m=b.parentNode.dataset.m;st.qty[m]=Math.max(0,Math.min(6,st.qty[m]+ +b.dataset.q));update()}},true);
 dots.forEach((d,k)=>d.onclick=()=>go(k));
 addEventListener('resize',()=>{measure();render()});
@@ -302,9 +307,9 @@ $('send').onclick=async()=>{
 };
 update();measure();go(0);render();setTimeout(()=>{measure();render()},300);
 fetch('/api/ops?a=menus').then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.menus)return;
-  j.menus.forEach(o=>{const m=MENUS.find(x=>x.id===o.id),i=MENUS.indexOf(m);if(!m)return;m.p=o.price;m.name=o.name;m.items=o.items;const c=cards[i];if(!c)return;
+  j.menus.forEach(o=>{const m=MENUS.find(x=>x.id===o.id),i=MENUS.indexOf(m);if(!m)return;m.p=o.price;m.name=o.name;m.items=o.items;cards.filter(x=>+x.dataset.k===i).forEach(c=>{
     c.querySelector('h3').textContent=o.name;c.querySelector('ul').innerHTML=o.items.map(x=>`<li>${x.replace(/</g,'&lt;')}</li>`).join('');c.querySelector('.mfoot b').textContent=fmt(o.price);
-    if(!o.active){st.qty[m.id]=0;c.classList.add('soldout');c.querySelector('.tag').textContent='Vandaag niet beschikbaar'}});
+    if(!o.active){st.qty[m.id]=0;c.classList.add('soldout');c.querySelector('.tag').textContent='Vandaag niet beschikbaar'}})});
   (j.extras||[]).forEach(x=>{const i=SUGID.indexOf(x.id);if(i<0)return;SUG[i][3]=x.price;const b=document.querySelector(`.sx[data-s="${i}"]`);if(b&&!x.active){b.disabled=true;b.classList.add('soldout');st.sug.delete(i)}});update()}).catch(()=>{});
 </script>
 </body>
