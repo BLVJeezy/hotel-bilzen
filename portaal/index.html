@@ -127,6 +127,47 @@ button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:i
 .mqr{position:absolute;top:16px;right:16px;width:42px;height:42px;border-radius:12px;background:#fff;display:grid;place-items:center;z-index:1}.mqr svg{width:26px;height:26px;stroke:#24180e;fill:none;stroke-width:1.6}
 .toast{position:fixed;left:50%;bottom:calc(92px + var(--sb));transform:translate(-50%,10px);z-index:60;padding:11px 18px;border-radius:14px;background:#2a2018;border:1px solid #e8d8b833;font-size:13.5px;opacity:0;pointer-events:none;transition:.3s;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}.toast.err{border-color:#e8a0a066;color:#f3d6d6}
+
+.sb-top,.sb-me,.sb-web{display:none}.au-art{display:none}
+.hero0{background:linear-gradient(0deg,#16120fee,#16120f99),url('/img/villa-avond.jpg') center/cover}
+@media(min-width:960px){
+ body{background:radial-gradient(ellipse 60% 40% at 70% 0%,#2a2018,transparent 70%),var(--bg)}
+ .tabs{inset:0 auto 0 0;width:264px;flex-direction:column;justify-content:flex-start;gap:4px;padding:30px 18px;border-top:0;border-right:1px solid #ffffff10;background:#110e0c}
+ .sb-top{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:0 10px 30px;margin-bottom:10px;border-bottom:1px solid #ffffff0d}.sb-top img{height:46px;width:auto}
+ .tabs button{flex:none;flex-direction:row;gap:14px;height:48px;padding:0 14px;border-radius:14px;font-size:14.5px;justify-content:flex-start;width:100%}
+ .tabs button svg{width:21px;height:21px}.tabs button:hover{background:#ffffff08;color:var(--text)}
+ .tabs button.on{background:linear-gradient(120deg,#e6b8661f,#e6b86608);color:var(--gold2);box-shadow:inset 0 0 0 1px #e6b86633}
+ .sb-me{display:flex;gap:12px;align-items:center;margin-top:auto;padding:14px 10px;border-top:1px solid #ffffff0d}.sb-me .av{flex:none}.sb-me b{display:block;font-weight:400;font-size:14px}.sb-me small{color:var(--muted);font-size:12px}
+ .sb-web{display:block;padding:6px 10px 0;font-size:12.5px;color:var(--muted)}.sb-web:hover{color:var(--gold2)}
+ .top{left:264px;background:transparent;border:0;backdrop-filter:none;-webkit-backdrop-filter:none;padding:26px 48px 0;pointer-events:none}.top img{display:none}.top h2{font-size:15px;font-family:var(--caps);text-transform:uppercase;letter-spacing:.3em;color:var(--gold)}.top .av{display:none}
+ #app{max-width:none;margin:0 0 0 264px;padding:70px 48px 60px}
+ #app>*{max-width:1160px}
+ .hello{margin:0 0 26px}.hello h1{font-size:52px}
+ .hg{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:28px;align-items:start}
+ .hg .hcol>.sec:first-child{margin-top:0}
+ .stay .im{height:300px}.stay h2{font-size:42px}.stay .bd{padding:4px 26px 26px}
+ .hs{display:grid;grid-template-columns:1fr;overflow:visible;margin:0;padding:0;gap:8px}
+ .evc{width:auto}.evc .et b{white-space:normal}
+ .hcol .hs:not(#hEv):not(.ic2){grid-template-columns:1fr 1fr}
+ .ic2{display:flex;flex-wrap:wrap;margin:0 0 4px}
+ .duo{grid-template-columns:1fr}.mini{padding:12px}.mini .th{width:54px;height:54px}.mini b{font-size:14.5px}.mini small{font-size:12px}
+ .nbc{min-width:0}
+ .hero0{padding:60px 30px!important}.hero0 h3{font-size:36px!important}
+ #app>.bkg{max-width:1160px}
+ .bkwrap{display:grid;grid-template-columns:1fr 1fr;gap:12px}.bkwrap .bk{margin:0}
+ .mwrap{display:grid;grid-template-columns:380px minmax(0,1fr);gap:32px;align-items:start}.mwrap .mcard{position:sticky;top:90px}
+ .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pgrid .plan{margin:0}
+ .dwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}.dwrap .sec:first-child{margin-top:0}
+ .awrap{max-width:720px}
+ .sheet{left:50%;right:auto;top:50%;bottom:auto;width:520px;max-width:calc(100vw - 40px);max-height:86vh;border-radius:26px;border-bottom:1px solid #e8d8b826;transform:translate(-50%,-46%) scale(.97);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .25s;padding:22px 26px 26px}
+ .sheet.open{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}.sheet .grab{display:none}
+ .toast{bottom:30px;left:calc(50% + 132px)}
+ #auth{max-width:none;margin:0;padding:0;display:grid;grid-template-columns:1.15fr 1fr;align-items:stretch;min-height:100vh}
+ .au-art{display:flex;align-items:flex-end;padding:56px;background:linear-gradient(0deg,#0d0a08f0,#0d0a0833 55%),url('/img/villa-avond.jpg') center/cover}
+ .au-q h2{font-size:64px;margin:10px 0}.au-q p{color:#d6cab7;max-width:440px;font-size:16px;margin:0}
+ .au-in{display:flex;flex-direction:column;justify-content:center;padding:56px;max-width:520px;width:100%;margin:auto}
+}
+@media(min-width:960px) and (max-width:1180px){.hg,.dwrap{grid-template-columns:1fr}.mwrap{grid-template-columns:320px 1fr}}
 </style>
 </head>
 <body>
@@ -158,6 +199,8 @@ button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:i
 </svg>
 
 <section id="auth" class="hide">
+ <div class="au-art"><div class="au-q"><span class="caps">Villa Amano · Bilzen</span><h2>Rest. Create. Be.</h2><p>Je verblijf, ontbijt op de kamer, Pottery House en wellness — alles op één plek.</p></div></div>
+ <div class="au-in">
  <img class="lg" src="/img/logo_a.png" alt="Villa Amano">
  <span class="caps" style="text-align:center">Mijn Villa Amano</span>
  <h1 id="aT">Welkom</h1><p id="aP">Log in om je verblijf, bestellingen en abonnementen te bekijken.</p>
@@ -172,6 +215,7 @@ button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:i
  </form>
  <div class="sw" id="aS"></div>
  <p class="k" style="text-align:center;margin-top:26px"><a href="/">← Naar de website</a></p>
+ </div>
 </section>
 
 <div id="shell" class="hide">
@@ -210,8 +254,8 @@ function logout(silent){T=null;try{localStorage.removeItem('va_g_t')}catch(e){}i
 const TABS=[['home','Home','i-home'],['boekingen','Boekingen','i-cal'],['leden','Abonnementen','i-card'],['ontdek','Ontdek','i-map'],['account','Account','i-user']];
 async function start(){try{D=await api('g-me')}catch(e){return}
  $('#auth').classList.add('hide');$('#shell').classList.remove('hide');$('#av').textContent=(D.me.name||'?')[0].toUpperCase();
- $('#tabs').innerHTML=TABS.map(t=>`<button data-t="${t[0]}"><svg><use href="#${t[2]}"/></svg>${t[1]}</button>`).join('');
- $('#tabs').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.t)};
+ $('#tabs').innerHTML=`<div class="sb-top"><img src="/img/logo_full.png" alt="Villa Amano" onerror="this.src='/img/logo_a.png'"><span class="caps">Mijn Villa Amano</span></div>`+TABS.map(t=>`<button data-t="${t[0]}"><svg><use href="#${t[2]}"/></svg>${t[1]}</button>`).join('')+`<div class="sb-me"><span class="av">${esc((D.me.name||'?')[0].toUpperCase())}</span><div><b>${esc(D.me.name)}</b><small>${esc(D.me.memberNo)}</small></div></div><a class="sb-web" href="/">← Naar de website</a>`;
+ $('#tabs').onclick=e=>{const b=e.target.closest('button[data-t]');if(b)go(b.dataset.t)};
  const h=location.hash.slice(1);go(TABS.some(t=>t[0]===h)?h:'home');
  if('serviceWorker' in navigator)navigator.serviceWorker.register('/portaal/sw.js').catch(()=>{});maybeInstall()}
 function go(t){TAB=t;history.replaceState(null,'',location.pathname+location.search+'#'+t);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$('#title').textContent=TABS.find(x=>x[0]===t)[1];scrollTo(0,0);render()}
@@ -229,6 +273,7 @@ function vHome(){const t=D.today,rs=D.reservations.filter(r=>r.status!=='geannul
  const h=new Date().getHours(),hi=h<12?'Goedemorgen':h<18?'Goedemiddag':'Goedenavond';
  let x=`<div class="hello"><h1>${hi}, ${esc(D.me.name.split(' ')[0])}</h1><p>Rest · Create · Be</p></div>`;
  if(nr)x+=`<div class="ok"><svg><use href="#i-check"/></svg><div><b>Reservatie bevestigd</b><br><span style="color:var(--muted);font-size:13px">${nr.kind==='room'?esc(nr.roomName)+' · '+nice(nr.from)+' → '+nice(nr.to):(nr.kind==='lessen'?'Lessenreeks':'Vrij atelier')+' · '+nice(nr.date)} · ${fmt(nr.total)}</span></div></div>`;
+ x+=`<div class="hg"><div class="hcol">`;
  if(!D.me.phone)x+=`<div class="ok" style="border-color:#e6b86666;background:#e6b86612;cursor:pointer" onclick="profileSheet()"><svg style="stroke:var(--gold)"><use href="#i-phone"/></svg><div><b>Voeg je telefoonnummer toe</b><br><span style="color:var(--muted);font-size:13px">Zo kunnen we je bereiken rond je verblijf.</span></div></div>`;
  if(stay){const r=R[stay.room],now=stay.from<=t&&stay.to>=t,dl=days(t,stay.from);
   x+=`<div class="stay" style="--t:${r[1]}"><div class="im" style="background-image:url('/img/${r[2]}.jpg')"><span class="badge">${now?'● Je verblijf loopt':dl===1?'Morgen aankomst':'Nog '+dl+' dagen'}</span></div><div class="bd">
@@ -236,15 +281,17 @@ function vHome(){const t=D.today,rs=D.reservations.filter(r=>r.status!=='geannul
   <div class="facts"><div><span>Check-in</span><b>15–21u</b></div><div><span>Check-out</span><b>${stay.extras&&stay.extras.late?'13u':'11u'}</b></div><div><span>Nachten</span><b>${stay.nights}</b></div></div>
   <div class="acts"><a class="cta" href="/ontbijt?kamer=${stay.roomNo}">Bestel ontbijt <svg><use href="#i-arrow"/></svg></a><button class="b2 qb" onclick="qrSheet('${stay.id}')" aria-label="Toon QR"><svg><use href="#i-qr"/></svg></button><button class="b2" onclick="needSheet()">Iets nodig?</button></div></div></div>
   <div class="hs ic2"><a href="${MAPS}" target="_blank" rel="noopener"><svg><use href="#i-pin"/></svg>Route</a><span><svg><use href="#i-park"/></svg>Gratis parking</span><span><svg><use href="#i-key"/></svg>Code op aankomstdag</span><span><svg><use href="#i-clock"/></svg>Ontbijt 7:30–10:30</span></div>`}
- else x+=`<div class="card" style="text-align:center;padding:26px 18px"><h3 style="font-size:26px">Nog geen verblijf gepland</h3><p style="color:var(--muted);margin:6px 0 16px">Kies een kamer met de sfeer van een edelsteen.</p><a class="cta" href="/#kamers">Bekijk de kamers <svg><use href="#i-arrow"/></svg></a></div>`;
+ else x+=`<div class="card hero0" style="text-align:center;padding:26px 18px"><h3 style="font-size:26px">Nog geen verblijf gepland</h3><p style="color:var(--muted);margin:6px 0 16px">Kies een kamer met de sfeer van een edelsteen.</p><a class="cta" href="/#kamers">Bekijk de kamers <svg><use href="#i-arrow"/></svg></a></div>`;
  if(pot.length)x+=`<div class="sec"><h3>Je reservaties</h3><button onclick="go('boekingen')">Alles →</button></div><div class="card">${pot.map(p=>`<div class="row" style="cursor:pointer" onclick="qrSheet('${p.id}')"><span class="ic"><svg><use href="#${p.kind==='event'?'i-cal':'i-vase'}"/></svg></span><div class="tx"><b>${esc(KN(p))}</b><small>${nice(p.date)}${p.time?' · '+esc(p.time.split(' ')[0]):''} · ${p.guests} pers.</small></div><div class="rt"><span class="qrt"><svg><use href="#i-qr"/></svg>QR</span></div></div>`).join('')}</div>`;
  const pact=Object.entries(D.me.memberships||{}).find(([k,m])=>m.status==='actief'&&/^pottery/.test(k));
+ x+=`</div><div class="hcol">`;
  x+=`<div class="sec"><h3>Binnenkort</h3><a href="/#agenda">Agenda →</a></div><div class="hs" id="hEv"><div class="evc sk"></div><div class="evc sk"></div></div>
  <div class="duo"><a class="mini" href="/#pottery"><span class="th" style="background-image:url('/img/pottery.jpg')"></span><span><b>Boek je volgende pottery-sessie</b><small>${pact?'Je abonnement is actief':'Vrij atelier of lessenreeks · tot 22u'}</small></span></a>
  <a class="mini" href="/#wellness"><span class="th" style="background-image:url('/img/wellness.jpg')"></span><span><b>Plan een wellness-moment</b><small>Sauna, stoombad & massage</small></span></a></div>
  <div class="sec"><h3>Ontdek de buurt</h3><button onclick="go('ontdek')">Alles →</button></div><div class="hs">${NEAR.slice(0,6).map(([e,b,,d,q])=>`<a class="nbc" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}" target="_blank" rel="noopener"><span>${e}</span><b>${b.replace('Landcommanderij ','').replace('Nationaal Park ','')}</b><small>${d}</small></a>`).join('')}</div>`;
  const os=D.orders.filter(o=>o.date>=t||o.status!=='geleverd').slice(0,4);
  if(os.length)x+=`<div class="sec"><h3>Ontbijt op de kamer</h3>${stay?`<a href="/ontbijt?kamer=${stay.roomNo}">Bestellen →</a>`:''}</div><div class="card">${os.length?os.map(o=>`<div class="row"><span class="ic"><svg><use href="#i-tray"/></svg></span><div class="tx"><b>${nice(o.date)} · ${esc(o.time)}</b><small>${o.items.map(i=>i.qty+'× '+esc(i.name)).join(', ')}</small></div><div class="rt">${ordLabel(o.status)}</div></div>`).join(''):'<div class="empty">Nog geen ontbijt besteld.</div>'}</div>`;
+ x+=`</div></div>`;
  $('#app').innerHTML=x;homeEvents()}
 let EV=null;function homeEvents(){const put=()=>{const el=$('#hEv');if(!el)return;const ev=(EV||[]).filter(e=>e.date>=D.today).slice(0,6);
  el.innerHTML=ev.length?ev.map(e=>{const d=pd(e.date);return `<button class="evc" data-e="${e.id}" style="--c:${e.cat==='pottery'?'#c98d5a':e.cat==='wellness'?'#b06ad0':'#e6b866'}"><span class="dd"><b>${d.getDate()}</b>${d.toLocaleDateString('nl-BE',{month:'short'}).replace('.','')}</span><span class="et"><b>${esc(e.title)}</b><small>${esc(e.time.split(' ')[0])} · ${esc(e.price)}</small></span></button>`}).join(''):'<div class="empty" style="padding:6px 4px;text-align:left">Binnenkort nieuwe events.</div>';
@@ -260,16 +307,16 @@ function vBook(){const t=D.today,all=D.reservations.slice().sort((a,b)=>(b.from|
  const card=r=>{const room=r.kind==='room',c=room?R[r.room]:r.kind==='event'?['','#e6b866','terras']:['','#c98d5a','pottery'],d0=r.from||r.date,can=r.status!=='geannuleerd'&&days(t,d0)>=2;
   const ex=room&&r.extras?Object.entries(r.extras).filter(([,v])=>v).map(([k])=>({ontbijt:'Ontbijt',well:'Wellness',bike:'E-bike',late:'Late check-out'})[k]).join(' · '):'';
   return `<div class="bk ${r.status==='geannuleerd'?'off':''}" style="--t:${c[1]}"><div class="th" style="background-image:url('/img/${c[2]}.jpg')"></div><div class="tx"><b>${esc(KN(r))}</b><small>${room?nice(r.from)+' → '+nice(r.to)+' · '+r.nights+' n.':nice(r.date)} · ${r.guests} pers.</small>${ex?`<small>${ex}</small>`:''}<div class="ft"><span>${stLabel(r.status)} <span class="k" style="margin-left:6px">${fmt(r.total)}</span></span><span style="display:flex;gap:6px">${r.status!=='geannuleerd'&&(r.to||r.date)>=t?`<button class="b2" style="height:34px;font-size:12.5px;padding:0 12px" onclick="qrSheet('${r.id}')"><svg style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.5"><use href="#i-qr"/></svg>QR</button>`:''}${can?`<button class="b2 red" style="height:34px;font-size:12.5px;padding:0 12px" data-c="${r.id}">Annuleer</button>`:''}</span></div></div></div>`};
- $('#app').innerHTML=`<a class="cta full" href="/#boeken" style="margin-bottom:16px">+ Nieuwe reservatie</a><div class="sec" style="margin-top:4px"><h3>Komend</h3></div>${up.length?up.map(card).join(''):'<div class="card empty">Geen komende reservaties.</div>'}${past.length?`<div class="sec"><h3>Eerder</h3></div>${past.map(card).join('')}`:''}<p class="k" style="text-align:center;margin-top:14px">Annuleren kan tot 48 uur vooraf.</p>`;
+ $('#app').innerHTML=`<a class="cta full" href="/#boeken" style="margin-bottom:16px;max-width:420px">+ Nieuwe reservatie</a><div class="sec" style="margin-top:4px"><h3>Komend</h3></div><div class="bkwrap">${up.length?up.map(card).join(''):'<div class="card empty">Geen komende reservaties.</div>'}</div>${past.length?`<div class="sec"><h3>Eerder</h3></div><div class="bkwrap">${past.map(card).join('')}</div>`:''}<p class="k" style="text-align:center;margin-top:14px">Annuleren kan tot 48 uur vooraf.</p>`;
  $('#app').querySelectorAll('[data-c]').forEach(b=>b.onclick=async()=>{if(!confirm('Reservatie annuleren?'))return;b.disabled=true;try{await api('g-cancel',{id:b.dataset.c});toast('Geannuleerd');reload()}catch(e){toast(e.message,1);b.disabled=false}})}
 
 /* ABONNEMENTEN */
 function vMem(){const M=D.me.memberships||{},P=D.plans,act=Object.entries(M).filter(([,v])=>v.status==='actief');
  const grp=[['pottery','Pottery House','#c98d5a','Keramiek op je eigen ritme, open tot 22:00.'],['wellness','Wellness','#b06ad0','Kom tot rust in onze wellness.'],['hotel','Hotel','#e6b866','Voordelen bij elk verblijf.']];
  const btn=(k)=>{const s=M[k]&&M[k].status;return s==='actief'?'<span class="pill g">✓ Actief</span>':s==='aangevraagd'?'<span class="pill y">Aangevraagd · we nemen contact op</span>':`<button class="b2" data-p="${k}">Aanvragen</button>`};
- $('#app').innerHTML=`<div class="mcard" onclick="qrSheet('M')" style="cursor:pointer"><span class="mqr"><svg><use href="#i-qr"/></svg></span><img src="/img/logo_a.png" alt=""><div class="no">${esc(D.me.memberNo)}</div><div class="nm">${esc(D.me.name)} · Tik voor je QR-ledenkaart</div><div class="pl">${act.length?act.map(([k])=>`<span class="pill g">${esc(P[k].name)}</span>`).join(''):'<span class="pill">Nog geen actief abonnement</span>'}</div></div>`+
- grp.map(([c,n,col,sub])=>`<div class="grp" style="--c:${col}"><i></i><h3>${n}</h3></div><p class="k" style="margin:-4px 4px 10px;text-transform:none;letter-spacing:0;font-size:13px">${sub}</p>${Object.entries(P).filter(([,p])=>p.cat===c).map(([k,p])=>`<div class="plan"><div class="h"><b>${esc(p.name)}</b><em>${esc(p.price)}</em></div><p>${esc(p.text)}</p>${btn(k)}</div>`).join('')}`).join('')+
- `<p class="k" style="text-align:center;margin-top:16px;text-transform:none;letter-spacing:0">Na je aanvraag bevestigt ons team je abonnement. Betalen gebeurt bij activatie.</p>`;
+ $('#app').innerHTML=`<div class="mwrap"><div><div class="mcard" onclick="qrSheet('M')" style="cursor:pointer"><span class="mqr"><svg><use href="#i-qr"/></svg></span><img src="/img/logo_a.png" alt=""><div class="no">${esc(D.me.memberNo)}</div><div class="nm">${esc(D.me.name)} · Tik voor je QR-ledenkaart</div><div class="pl">${act.length?act.map(([k])=>`<span class="pill g">${esc(P[k].name)}</span>`).join(''):'<span class="pill">Nog geen actief abonnement</span>'}</div></div></div><div>`+
+ grp.map(([c,n,col,sub])=>`<div class="grp" style="--c:${col}"><i></i><h3>${n}</h3></div><p class="k" style="margin:-4px 4px 10px;text-transform:none;letter-spacing:0;font-size:13px">${sub}</p><div class="pgrid">${Object.entries(P).filter(([,p])=>p.cat===c).map(([k,p])=>`<div class="plan"><div class="h"><b>${esc(p.name)}</b><em>${esc(p.price)}</em></div><p>${esc(p.text)}</p>${btn(k)}</div>`).join('')}</div>`).join('')+
+ `<p class="k" style="text-align:center;margin-top:16px;text-transform:none;letter-spacing:0">Na je aanvraag bevestigt ons team je abonnement. Betalen gebeurt bij activatie.</p></div></div>`;
  $('#app').querySelectorAll('[data-p]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await api('g-member',{plan:b.dataset.p});toast('Aangevraagd ✓');reload()}catch(e){toast(e.message,1);b.disabled=false}})}
 
 /* ONTDEK */
@@ -281,18 +328,18 @@ function needSheet(pre){openSheet(`<h3>Iets nodig?</h3><div class="sub">We breng
  $('#nc').onclick=e=>{const b=e.target.closest('button');if(b){sel=b.dataset.n;mark()}};
  $('#ns').onclick=async()=>{if(!sel){toast('Kies wat je nodig hebt',1);return}try{await api('g-request',{type:sel,text:$('#nt').value});closeSheet();toast('Verstuurd ✓ We zijn onderweg');reload()}catch(e){toast(e.message,1)}}}
 function vDisc(){const rq=(D.requests||[]).slice(0,5);
- $('#app').innerHTML=`<div class="sec" style="margin-top:4px"><h3>Iets extra nodig?</h3></div><div class="card"><div class="chips">${NEED.map(([ic,t])=>`<button data-q="${t}"><svg><use href="#${ic}"/></svg>${t}</button>`).join('')}</div>
+ $('#app').innerHTML=`<div class="dwrap"><div><div class="sec" style="margin-top:4px"><h3>Iets extra nodig?</h3></div><div class="card"><div class="chips">${NEED.map(([ic,t])=>`<button data-q="${t}"><svg><use href="#${ic}"/></svg>${t}</button>`).join('')}</div>
  ${rq.length?`<div style="margin-top:12px">${rq.map(r=>`<div class="row"><div class="tx"><b>${esc(r.type)}</b><small>${new Date(r.created).toLocaleString('nl-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${r.text?' · '+esc(r.text):''}</small></div><div class="rt">${r.status==='klaar'?'<span class="pill g">Geregeld</span>':'<span class="pill y">Bezig</span>'}</div></div>`).join('')}</div>`:''}</div>
- <div class="sec"><h3>In de buurt</h3></div><div class="card">${NEAR.map(([e,b,s,d,q])=>`<div class="nb"><span class="ic">${e}</span><div class="tx"><b>${b}</b><small>${s}</small><small style="color:var(--gold2);margin-top:2px">${d}</small></div><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}" target="_blank" rel="noopener">Route →</a></div>`).join('')}</div>
- <div class="sec"><h3>Bij Villa Amano</h3><a href="/#agenda">Agenda →</a></div><div class="card" id="evs"><div class="empty">Laden…</div></div>`;
+</div><div><div class="sec" style="margin-top:4px"><h3>In de buurt</h3></div><div class="card">${NEAR.map(([e,b,s,d,q])=>`<div class="nb"><span class="ic">${e}</span><div class="tx"><b>${b}</b><small>${s}</small><small style="color:var(--gold2);margin-top:2px">${d}</small></div><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}" target="_blank" rel="noopener">Route →</a></div>`).join('')}</div>
+ <div class="sec"><h3>Bij Villa Amano</h3><a href="/#agenda">Agenda →</a></div><div class="card" id="evs"><div class="empty">Laden…</div></div></div></div>`;
  $('#app').querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>needSheet(b.dataset.q));
  fetch('/api/ops?a=events').then(r=>r.json()).then(j=>{const ev=(j.events||[]).filter(e=>e.date>=D.today).slice(0,4);$('#evs').innerHTML=ev.length?ev.map(e=>`<div class="row"><span class="ic"><svg><use href="#i-cal"/></svg></span><div class="tx"><b>${esc(e.title)}</b><small>${nice(e.date)} · ${esc(e.time)}</small></div><div class="rt">${esc(e.price)}</div></div>`).join(''):'<div class="empty">Binnenkort nieuwe events.</div>'}).catch(()=>{$('#evs').innerHTML='<div class="empty">Bekijk de agenda op de website.</div>'})}
 
 /* ACCOUNT */
 function vAcc(){const li=(ic,t,s,act)=>`<div class="row" ${act?`onclick="${act}" style="cursor:pointer"`:''}><span class="ic"><svg><use href="#${ic}"/></svg></span><div class="tx"><b>${t}</b><small>${s}</small></div><div class="rt">${act?'→':''}</div></div>`;
- $('#app').innerHTML=`<div class="card"><div class="row"><span class="ic" style="background:linear-gradient(120deg,#f6dfa4,#c98d3e);color:#24180e;font:500 16px var(--sans)">${esc(D.me.name[0])}</span><div class="tx"><b>${esc(D.me.name)}</b><small>${esc(D.me.email)}${D.me.phone?' · '+esc(D.me.phone):''}</small></div><div class="rt"><button class="b2" style="height:34px" onclick="profileSheet()">Wijzig</button></div></div></div>
+ $('#app').innerHTML=`<div class="awrap"><div class="card"><div class="row"><span class="ic" style="background:linear-gradient(120deg,#f6dfa4,#c98d3e);color:#24180e;font:500 16px var(--sans)">${esc(D.me.name[0])}</span><div class="tx"><b>${esc(D.me.name)}</b><small>${esc(D.me.email)}${D.me.phone?' · '+esc(D.me.phone):''}</small></div><div class="rt"><button class="b2" style="height:34px" onclick="profileSheet()">Wijzig</button></div></div></div>
  <div class="sec"><h3>Contact</h3></div><div class="card">${li('i-mail','E-mail',MAIL,`location.href='mailto:${MAIL}'`)}${li('i-pin','Adres',ADDR,`window.open('${MAPS}','_blank')`)}${li('i-clock','Receptie','Check-in 15:00 – 21:00 · check-out 11:00')}</div>
- <div class="sec"><h3>App</h3></div><div class="card">${STANDALONE()?'':li('i-phone','Zet op je beginscherm','Open Villa Amano als app',"installSheet()")}${li('i-home','Naar de website','villa-amano',"location.href='/'")}${li('i-out','Uitloggen','',"logout()")}</div>`}
+ <div class="sec"><h3>App</h3></div><div class="card">${STANDALONE()?'':li('i-phone','Zet op je beginscherm','Open Villa Amano als app',"installSheet()")}${li('i-home','Naar de website','villa-amano',"location.href='/'")}${li('i-out','Uitloggen','',"logout()")}</div></div>`}
 function profileSheet(){openSheet(`<h3>Je gegevens</h3><div class="sub">${esc(D.me.email)}</div><label class="f"><span>Naam</span><input id="pn" value="${esc(D.me.name)}"></label><label class="f"><span>Telefoon</span><input id="pp" type="tel" value="${esc(D.me.phone||'')}"></label><label class="f"><span>Nieuw wachtwoord (optioneel)</span><input id="pw" type="password" placeholder="Leeg = behouden"></label><button class="cta full" id="ps">Opslaan</button>`);
  $('#ps').onclick=async()=>{try{await api('g-profile',{name:$('#pn').value,phone:$('#pp').value,password:$('#pw').value});closeSheet();toast('Opgeslagen ✓');reload()}catch(e){toast(e.message,1)}}}
 let BIP=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();BIP=e});addEventListener('appinstalled',()=>{try{localStorage.setItem('va_inst','1')}catch(e){}toast('Geïnstalleerd ✓ Je vindt Villa Amano op je beginscherm')});
