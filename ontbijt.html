@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#100d0b">
 <title>Ontbijt op je kamer · Villa Amano</title>
+<link rel="preload" as="image" href="img/ontbijt-classic.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400;500&family=Wittgenstein&display=swap" rel="stylesheet">
 <style>
@@ -46,8 +47,9 @@ section{margin-top:38px}
 .stage.drag{cursor:grabbing}
 .mc{position:absolute;left:50%;top:0;width:min(290px,74vw);margin-left:calc(min(290px,74vw) / -2);padding:10px;border-radius:26px;background:linear-gradient(160deg,color-mix(in srgb,var(--t) 26%,#ffffff12),color-mix(in srgb,var(--t) 8%,#ffffff05) 55%,color-mix(in srgb,var(--t) 16%,#ffffff0d));border:1px solid color-mix(in srgb,var(--t) 45%,#ffffff22);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 30px 60px #0009,inset 0 1px 0 #ffffff40;will-change:transform,opacity}
 .mc.on{box-shadow:0 30px 60px #0009,0 0 60px color-mix(in srgb,var(--t) 22%,transparent),inset 0 1px 0 #ffffff40}
-.art{position:relative;aspect-ratio:1/1;border-radius:18px;overflow:hidden;background:radial-gradient(circle at 50% 46%,color-mix(in srgb,var(--t) 40%,#2a2018),#120f0d 78%);display:grid;place-items:center;transition:filter .5s}
-.mc:not(.on) .art{filter:brightness(.6)}
+.art{position:relative;aspect-ratio:4/3;border-radius:18px;overflow:hidden;background-size:cover;background-position:center;transition:filter .5s}
+.art:after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,#ffffff1c,transparent 35%)}
+.mc:not(.on) .art{filter:brightness(.6) saturate(.85)}
 .art svg{width:78%;height:78%;fill:none;stroke:color-mix(in srgb,var(--t) 55%,#fff);stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}
 .art .steam{animation:steam 3s ease-in-out infinite;opacity:.0}
 .art .steam:nth-of-type(2){animation-delay:1s}.art .steam:nth-of-type(3){animation-delay:2s}
@@ -227,7 +229,7 @@ const qp=new URLSearchParams(location.search).get('kamer')||location.hash.replac
 
 // coverflow
 const stage=$('stage');
-stage.innerHTML=MENUS.map((m,i)=>`<article class="mc" data-i="${i}" style="--t:${m.t}"><div class="art"><span class="tag">${m.tag}</span><svg viewBox="0 0 120 100">${m.art}</svg></div><div class="mtx"><h3>${m.name}</h3><ul>${m.items.map(x=>`<li>${x}</li>`).join('')}</ul></div><div class="mfoot"><div><b>${fmt(m.p)}</b><br><small>per persoon</small></div><div class="step" data-m="${m.id}"></div></div></article>`).join('');
+stage.innerHTML=MENUS.map((m,i)=>`<article class="mc" data-i="${i}" style="--t:${m.t}"><div class="art" style="background-image:url('img/ontbijt-${m.id}.jpg')"><span class="tag">${m.tag}</span></div><div class="mtx"><h3>${m.name}</h3><ul>${m.items.map(x=>`<li>${x}</li>`).join('')}</ul></div><div class="mfoot"><div><b>${fmt(m.p)}</b><br><small>per persoon</small></div><div class="step" data-m="${m.id}"></div></div></article>`).join('');
 $('dots').innerHTML=MENUS.map((_,i)=>`<button aria-label="Menu ${i+1}" data-d="${i}"></button>`).join('');
 const cards=[...stage.children],dots=[...$('dots').children],N=cards.length,mod=x=>((x%N)+N)%N;
 let pos=0,target=0,raf=0,last=0,drag=false,moved=false,sx=0,sp=0,vel=0,lx=0,lt=0,idx=-1,step=0;
