@@ -60,10 +60,41 @@ header.solid .logo img{height:48px}
 .lang{font:400 11px var(--sans);letter-spacing:.18em;color:var(--muted)}.lang b{color:var(--text);font-weight:400}
 .icon{width:22px;height:22px;stroke:var(--text);fill:none;stroke-width:1.2}
 .burger{background:none;border:0;padding:0;cursor:pointer}
-.mainnav{display:flex;justify-content:center;gap:34px;padding:10px 0 16px;font:400 13px var(--sans);letter-spacing:.06em}
-.mainnav a{opacity:.85;position:relative}.mainnav a:after{content:'';position:absolute;left:0;right:0;bottom:-6px;height:1px;background:var(--beige);transform:scaleX(0);transition:.3s}
-.mainnav a:hover{opacity:1}.mainnav a:hover:after{transform:scaleX(1)}
-.reserve-top{padding:10px 18px;font-size:12px}
+.mainnav{display:flex;justify-content:center;gap:38px;padding:0;font:400 13px var(--sans);letter-spacing:.06em}
+.mainnav .ni>a{display:flex;align-items:center;gap:7px;padding:10px 0 18px;opacity:.85;position:relative}.mainnav .ni>a:after{content:'';position:absolute;left:0;right:0;bottom:10px;height:1px;background:var(--beige);transform:scaleX(0);transition:.3s}
+.mainnav .ni:hover>a,.mainnav .ni:focus-within>a{opacity:1}.mainnav .ni:hover>a:after{transform:scaleX(1)}
+.reserve-top{display:inline-flex;align-items:center;gap:9px;height:42px;padding:0 20px;border:0;border-radius:999px;cursor:pointer;font:500 13px var(--sans);letter-spacing:.03em;color:#24180e;background:linear-gradient(120deg,#f6dfa4,#e6b866 55%,#c98d3e);box-shadow:0 8px 24px #e6b86633;transition:.3s}
+.reserve-top svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;transition:.3s}
+.reserve-top:hover{filter:brightness(1.06);box-shadow:0 10px 32px #e6b86666}.reserve-top:hover svg{transform:translateX(3px)}
+header{transition:background .4s,border-color .4s,transform .45s cubic-bezier(.2,.8,.2,1)}
+header.hide{transform:translateY(-102%)}
+header:not(.solid):before{content:'';position:absolute;inset:0 0 -70px;z-index:-1;pointer-events:none;background:linear-gradient(180deg,#0d0a08e0 0%,#0d0a0899 50%,transparent)}
+header.solid .hbar{padding:8px 40px 0}header.solid .ni>a{padding:6px 0 13px}header.solid .ni>a:after{bottom:6px}
+.chev{width:6px;height:6px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .3s;opacity:.7}
+.ni:hover .chev{transform:rotate(225deg) translateY(-1px)}
+.mega{position:absolute;left:50%;top:100%;width:min(1180px,calc(100vw - 60px));transform:translate(-50%,-6px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .3s,transform .35s cubic-bezier(.2,.8,.2,1),visibility 0s .3s;padding:22px;border-radius:0 0 26px 26px;background:linear-gradient(170deg,#211a15f5,#14100df7);border:1px solid #e8d8b81f;border-top:0;backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);box-shadow:0 40px 80px #000a;display:grid;grid-template-columns:240px minmax(0,1fr);gap:24px;letter-spacing:0}
+.ni:hover .mega,.ni:focus-within .mega{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,0);transition:opacity .3s,transform .35s cubic-bezier(.2,.8,.2,1)}
+.mg-side{display:flex;flex-direction:column;gap:10px;padding:6px 4px}
+.mg-side h4{font:300 32px var(--serif);margin:4px 0 2px;color:var(--text)}
+.mg-side p{margin:0;font:300 13.5px/1.55 var(--sans);color:var(--muted)}
+.mg-side .lk{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+.mg-side .lk a{display:inline-flex;align-items:center;gap:8px;font:400 13px var(--sans);color:var(--gold2)}
+.mg-side .lk a svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5}
+.mg-today{margin-top:6px;padding:12px 14px;border-radius:16px;border:1px solid #ffffff14;background:#0000002e;display:flex;flex-direction:column;gap:7px}
+.mg-today b{font:400 10.5px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.mg-today span{display:flex;align-items:center;gap:8px;font:300 12.5px var(--sans);color:#d6cab7}
+.mg-today i{width:6px;height:6px;border-radius:50%;background:var(--c);flex:none}
+.mg-cards{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:12px}
+.mg-card{position:relative;display:block;aspect-ratio:3/4;border-radius:18px;overflow:hidden;border:1px solid color-mix(in srgb,var(--t) 35%,#ffffff14);opacity:.0;transform:translateY(8px);transition:opacity .4s,transform .5s cubic-bezier(.2,.8,.2,1),border-color .3s}
+.ni:hover .mg-card,.ni:focus-within .mg-card{opacity:1;transform:none;transition-delay:calc(var(--i)*.04s)}
+.mg-card .im{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .8s}
+.mg-card:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#0d0a08f0 0%,#0d0a0866 40%,transparent 70%)}
+.mg-card:hover{border-color:var(--t)}.mg-card:hover .im{transform:scale(1.06)}
+.mg-card .tx{position:absolute;z-index:2;left:14px;right:12px;bottom:12px}
+.mg-card .tx b{display:block;font:400 21px/1.15 var(--serif);color:var(--text)}
+.mg-card .tx small{display:block;font:300 12px var(--sans);color:#ffffffb3;margin-top:2px}
+.mg-card .tx em{display:block;width:22px;height:2px;border-radius:2px;background:var(--t);margin-bottom:8px}
+@media(max-width:1180px){.mega{grid-template-columns:1fr}.mg-side{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px 18px}.mg-side p{flex:1;min-width:240px}.mg-side .lk{margin:0;flex-direction:row}.mg-today{display:none}}
 
 
 .drawer{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 22px calc(22px + env(safe-area-inset-bottom));background:radial-gradient(ellipse 90% 50% at 50% 0%,#2a2018,transparent 70%),#0e0b09;opacity:0;visibility:hidden;transition:opacity .4s,visibility 0s .4s;overflow-y:auto}
@@ -621,7 +652,7 @@ footer ul a:hover{color:var(--beige)}
 .sh-bk .bk-head{display:none}
 .sheet{max-height:min(80vh,760px)}
 
-@media(min-width:1001px){.dock,.sheet,.sheet-bg{display:none!important}footer{padding-bottom:40px!important}}
+@media(min-width:1001px){.dock{display:none!important}.sheet{left:auto;right:40px;top:96px;bottom:auto;transform:translateY(-10px) scale(.98);transform-origin:top right}.sheet.open{transform:none}footer{padding-bottom:40px!important}}
 
 /* reveal */
 .rv{opacity:0;transform:translateY(28px);transition:opacity 1s ease,transform 1s ease}
@@ -722,12 +753,12 @@ footer ul a:hover{color:var(--beige)}
     </div>
     <a class="logo" href="#top" aria-label="Villa Amano"><img src="img/logo_a.png" alt="Villa Amano"></a>
     <div class="right">
-      <a class="btn solid reserve-top" href="#boeken">Reserveer</a>
+      <button type="button" class="reserve-top" onclick="openSheet('stay')">Reserveer <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button>
       <a href="#boeken" aria-label="Account"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></a>
     </div>
   </div>
   <nav class="mainnav">
-    <a href="#kamers">Kamers</a><a href="#wellness">Wellness</a><a href="#pottery">Pottery House</a><a href="#ontbijt">Ontbijt</a><a href="#meer">Retreats & Therapy</a><a href="#meer">The Amano Shop</a><a href="#meer">Cadeaubon</a><a href="#contact">Contact</a>
+    <div class="ni has-mega"><a href="#kamers">Verblijf <i class="chev"></i></a><div class="mega" id="megaStay"></div></div><div class="ni has-mega"><a href="#belevingen">Beleven <i class="chev"></i></a><div class="mega" id="megaDo"></div></div><div class="ni"><a href="#meer">Retreats &amp; Therapy</a></div><div class="ni"><a href="#meer">Shop &amp; Cadeaubon</a></div><div class="ni"><a href="#contact">Contact</a></div>
   </nav>
 </header>
 
@@ -968,7 +999,7 @@ const card=r=>`<article class="room" style="--tint:${r.tint}"><a href="#${r.slug
 
 // header
 const hdr=document.getElementById('hdr');
-const onScroll=()=>hdr.classList.toggle('solid',scrollY>40||!document.getElementById('roomPage').hidden&&scrollY>10);addEventListener('scroll',onScroll,{passive:true});onScroll();
+let lastY=0;const onScroll=()=>{const y=scrollY;hdr.classList.toggle('solid',y>40||!document.getElementById('roomPage').hidden&&y>10);if(y>lastY+6&&y>260&&!hdr.matches(':hover')&&!(document.getElementById('sheet')||{}).classList?.contains('open'))hdr.classList.add('hide');else if(y<lastY-6||y<120)hdr.classList.remove('hide');lastY=y};addEventListener('scroll',onScroll,{passive:true});onScroll();
 function drawer(o){document.getElementById('drawer').classList.toggle('open',o);document.getElementById('dock').classList.toggle('hide',o);if(o)closeSheet()}
 
 // hero video: pick best source per screen, autoplay muted on loop
@@ -1124,8 +1155,28 @@ function jump(h,smooth){let el=document.getElementById(h);const k=ACT_CF.findInd
     const btn=x.act==='ontbijt'?`<a href="#boeken" onclick="pick('rose')">Toevoegen ${ar}</a>`:x.act==='pottery'||x.act==='lessen'?`<a href="#boeken" onclick="pick('${x.act}')">Reserveer ${ar}</a>`:x.act==='wellness'?`<a href="#boeken">Boek ${ar}</a>`:`<a href="#contact">Inschrijven ${ar}</a>`;
     const desc=x.list?x.list.join(' · '):(x.text||'');
     return `<div class="ag-it" style="--c:${c}"><svg viewBox="0 0 ${vb} ${vb}"><use href="#${ic}"/></svg><div><span class="k">${n} · ${x.time}</span><b>${x.title}${x.vibe?`<span class="vibe">${x.vibe}</span>`:''}</b><p>${desc}</p></div><div class="rt"><span>${x.price||''}</span>${btn}</div></div>`}).join(''):'<div class="ag-empty">Niets gepland voor deze filter op deze dag.</div>')+'</div>'}
+ window.agToday=()=>{const f=filter;filter=new Set(Object.keys(C));const r=itemsFor(new Date(today));filter=f;return r.map(x=>[C[x.cat][1],x.title,x.time])};
  fetch('agenda.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.events){SPECIAL=j.events;draw()}}).catch(()=>{});
  draw();
+})();
+
+
+// MEGA MENU
+(function(){
+ const ar='<svg viewBox="0 0 24 24"><use href="#arrow"/></svg>';
+ const card=(h,img,t,sub,c,i,on)=>`<a class="mg-card" href="${h}" style="--t:${c};--i:${i}" ${on?`onclick="${on}"`:''}><div class="im" style="background-image:url('${IMG(img)}')"></div><div class="tx"><em></em><b>${t}</b><small>${sub}</small></div></a>`;
+ const st=document.getElementById('megaStay');
+ st.innerHTML=`<div class="mg-side"><span class="caps">Boutique Hotel</span><h4>Verblijf</h4><p>Vijf kamers, elk met de sfeer van een eigen edelsteen. Japandi-Ibiza, warm licht en rust.</p><div class="lk"><a href="#kamers">Alle kamers ${ar}</a><a href="javascript:void 0" onclick="openSheet('stay')">Snel reserveren ${ar}</a></div></div><div class="mg-cards" style="--n:5">${ROOMS.map((r,i)=>card('#'+r.slug,r.img,r.name,`€ ${r.p} / nacht · ${r.tag}`,r.tint,i)).join('')}</div>`;
+ const doo=document.getElementById('megaDo');
+ doo.innerHTML=`<div class="mg-side"><span class="caps">Rest · Create · Be</span><h4>Beleven</h4><p>Wellness, keramiek en ontbijt, elke dag in een eigen ritme.</p><div class="mg-today" id="mgToday"></div><div class="lk"><a href="#agenda">Bekijk de agenda ${ar}</a></div></div><div class="mg-cards" style="--n:4">${[
+  ['#wellness','wellness','Wellness','10:00–19:30 · € 35 p.p.','#b06ad0'],
+  ['#pottery','pottery','Pottery House','Open tot 22:00 · vanaf € 30','#c98d5a'],
+  ['#ontbijt','terras','Ontbijt','07:30–10:30 · € 25 p.p.','#e6b866'],
+  ['#agenda','lounge2','Agenda & events','Lessen, menu\'s en events','#9fb8e6']].map((x,i)=>card(...x,i)).join('')}</div>`;
+ const fill=()=>{const el=document.getElementById('mgToday');if(!el||!window.agToday)return;const it=agToday().slice(0,4);
+  el.innerHTML='<b>Vandaag</b>'+it.map(([c,t,tm])=>`<span style="--c:${c}"><i></i>${t} · ${tm.replace(' – ','–')}</span>`).join('')};
+ doo.parentNode.addEventListener('mouseenter',fill);fill();
+ document.querySelectorAll('.mega a').forEach(a=>a.addEventListener('click',()=>{document.activeElement&&document.activeElement.blur();const m=a.closest('.mega');m.style.display='none';setTimeout(()=>m.style.display='',400)}));
 })();
 
 // reveal
