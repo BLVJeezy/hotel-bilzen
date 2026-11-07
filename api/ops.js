@@ -505,7 +505,7 @@ module.exports = async (req, res) => {
         const mk = (k, x) => ({ id: 'R' + (Date.now() + k).toString(36).toUpperCase(), ...base, ...x });
         const stay = (k, P, ex) => { const r = mk(k, { kind: 'room', room: P.room, roomName: ROOM_NAMES[P.room], roomNo: ROOMS.indexOf(P.room) + 1, from: P.from, to: P.to, guests: 2, extras: { ontbijt: true, well: false, bike: false, late: false, ...ex } }); Object.assign(r, quote(C, r)); return r; };
         const r0 = stay(0, P0, { bike: true }); r0.scans = [{ t: new Date(P0.to + 'T10:40:00').getTime(), by: 'Receptie', ok: true }, { t: new Date(P0.from + 'T16:05:00').getTime(), by: 'Receptie', ok: true }]; r0.checkedIn = r0.scans[1].t;
-        const r1 = stay(1, P1, { well: true }); r1.scans = [{ t: new Date(P1.from + 'T15:30:00').getTime(), by: 'Receptie', ok: true }]; r1.checkedIn = r1.scans[0].t;
+        const r1 = stay(1, P1, { well: true });
         const r9 = stay(9, P2, { late: true });
         const r2 = mk(2, { kind: 'pottery', date: t, guests: 2, member: false }); Object.assign(r2, quote(C, r2));
         const rs = [r0, r1, r2];
