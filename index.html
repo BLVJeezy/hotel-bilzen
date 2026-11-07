@@ -170,6 +170,37 @@ header.solid .logo img{height:48px}
 .extra h3{font-size:26px}
 .extra p{color:var(--muted);font-size:14px;margin:8px 0 0}
 
+
+/* EXTRA ANIMATIONS */
+.extra{position:relative}
+.anim{position:absolute;top:22px;right:0;width:96px;height:68px;fill:none;stroke:var(--gold);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;overflow:visible;opacity:.95}
+.anim .fill{fill:var(--gold);stroke:none}
+.a-bike{overflow:hidden}
+.a-bike .wheel{animation:spin 1.4s linear infinite}
+.a-bike .road{animation:road 1s linear infinite;opacity:.5}
+.a-bike .bob{animation:bob 1.4s ease-in-out infinite}
+.a-bike .bat{fill:var(--gold);stroke:none;animation:blink 2s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes road{from{transform:translateX(0)}to{transform:translateX(-26px)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
+@keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+.a-late .mh{animation:spin 4s linear infinite}.a-late .hh{animation:spin 48s linear infinite}
+.a-late text{font:400 13px var(--serif);fill:var(--gold);stroke:none;opacity:0;animation:zz 3s ease-in-out infinite}
+.a-late text:nth-child(2){animation-delay:.6s;font-size:15px}.a-late text:nth-child(3){animation-delay:1.2s;font-size:17px}
+@keyframes zz{0%{opacity:0;transform:translateY(6px)}30%{opacity:1}70%{opacity:.8}100%{opacity:0;transform:translateY(-8px)}}
+.a-ev .lvl{fill:#e6b86640;stroke:none;transform-box:fill-box;transform-origin:left center;animation:charge 3s ease-in-out infinite}
+.a-ev .bolt{fill:var(--gold);stroke:none;animation:blink 1.5s ease-in-out infinite}
+.a-ev .spark{animation:blink 1.5s ease-in-out infinite .4s}
+@keyframes charge{0%{transform:scaleX(.08)}85%,100%{transform:scaleX(1)}}
+.a-pro .wine{fill:#e6b86638;stroke:none}
+.a-pro .bub circle{fill:var(--gold);stroke:none;opacity:0;animation:rise 2.4s ease-in infinite}
+.a-pro .bub circle:nth-child(2){animation-delay:.6s}.a-pro .bub circle:nth-child(3){animation-delay:1.2s}.a-pro .bub circle:nth-child(4){animation-delay:1.8s}
+.a-pro .clink{animation:blink 2.4s ease-in-out infinite}
+@keyframes rise{0%{opacity:0;transform:translateY(0)}20%{opacity:1}90%{opacity:.8}100%{opacity:0;transform:translateY(-13px)}}
+.anim *{transform-box:view-box}
+.a-ev .lvl{transform-box:fill-box}
+@media(max-width:560px){.anim{width:84px;height:60px;top:20px}}
+
 /* MORE */
 .more{padding:20px 0 120px}
 .more-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:46px}
@@ -640,10 +671,10 @@ footer ul a:hover{color:var(--beige)}
     <div class="caps rv">Verrijk je verblijf</div>
     <h2 class="rv" style="font-size:clamp(40px,5vw,66px);font-weight:300;margin-top:14px">Kleine extra's, groot verschil.</h2>
     <div class="extras-grid">
-      <div class="extra rv"><span class="caps">Ontdekken</span><b>€ 45</b><h3>E-bikes</h3><p>Per fiets per dag. De omgeving op je eigen ritme.</p></div>
-      <div class="extra rv"><span class="caps">Uitslapen</span><b>€ 45</b><h3>Late check-out</h3><p>Tot 13:00, indien vooraf geboekt en beschikbaar.</p></div>
-      <div class="extra rv"><span class="caps">Onderweg</span><b>€ 10</b><h3>EV-laden</h3><p>Per dag. Parkeren is gratis voor hotelgasten.</p></div>
-      <div class="extra rv"><span class="caps">Bubbels</span><b>€ 6,50</b><h3>Prosecco</h3><p>Per glas, bij je ontbijt of op je kamer.</p></div>
+      <div class="extra rv"><svg class="anim a-bike" viewBox="0 0 100 70" aria-hidden="true"><g class="road"><path d="M0 64h14M26 64h14M52 64h14M78 64h14M104 64h14"/></g><g class="bob"><g class="wheel" style="transform-origin:24px 46px"><circle cx="24" cy="46" r="13"/><path d="M24 33v26M11 46h26M15 37l18 18M33 37 15 55"/></g><g class="wheel" style="transform-origin:76px 46px"><circle cx="76" cy="46" r="13"/><path d="M76 33v26M63 46h26M67 37l18 18M85 37 67 55"/></g><path d="M24 46 38 24h26L76 46M38 24l12 22 14-22M34 18h10M60 24l3-8h7"/><rect class="bat" x="40" y="27" width="10" height="5" rx="1"/></g></svg><span class="caps">Ontdekken</span><b>€ 45</b><h3>E-bikes</h3><p>Per fiets per dag. De omgeving op je eigen ritme.</p></div>
+      <div class="extra rv"><svg class="anim a-late" viewBox="0 0 100 70" aria-hidden="true"><circle cx="40" cy="38" r="24"/><path d="M40 18v3M40 55v3M20 38h3M57 38h3"/><g class="hh" style="transform-origin:40px 38px"><path d="M40 38V26"/></g><g class="mh" style="transform-origin:40px 38px"><path d="M40 38h12"/></g><circle cx="40" cy="38" r="1.6" class="fill"/><g class="zz"><text x="70" y="30">z</text><text x="78" y="20">z</text><text x="86" y="10">z</text></g></svg><span class="caps">Uitslapen</span><b>€ 45</b><h3>Late check-out</h3><p>Tot 13:00, indien vooraf geboekt en beschikbaar.</p></div>
+      <div class="extra rv"><svg class="anim a-ev" viewBox="0 0 100 70" aria-hidden="true"><rect x="14" y="22" width="56" height="30" rx="5"/><rect x="70" y="31" width="5" height="12" rx="1.5"/><rect class="lvl" x="18" y="26" width="48" height="22" rx="2.5"/><path class="bolt" d="M44 27 36 39h7l-3 9 9-13h-7l2-8z"/><path class="spark" d="M84 22l4-4M86 37h6M84 52l4 4"/></svg><span class="caps">Onderweg</span><b>€ 10</b><h3>EV-laden</h3><p>Per dag. Parkeren is gratis voor hotelgasten.</p></div>
+      <div class="extra rv"><svg class="anim a-pro" viewBox="0 0 100 70" aria-hidden="true"><path d="M38 6h24l-2 24a10 10 0 0 1-20 0z"/><path d="M50 40v20M40 62h20"/><path class="wine" d="M39.4 16h21.2l-1 13a9.6 9.6 0 0 1-19.2 0z"/><g class="bub"><circle cx="45" cy="28" r="1.4"/><circle cx="52" cy="30" r="1.1"/><circle cx="56" cy="27" r="1.3"/><circle cx="48" cy="31" r="1"/></g><path class="clink" d="M70 10l5-4M72 18h6M70 26l5 4"/></svg><span class="caps">Bubbels</span><b>€ 6,50</b><h3>Prosecco</h3><p>Per glas, bij je ontbijt of op je kamer.</p></div>
     </div>
   </div>
 </section>
