@@ -1064,11 +1064,12 @@ function coverflow(root,items,opts={}){
   const stage=root.querySelector('.cf-stage'),cards=[...stage.children],dots=[...root.querySelectorAll('.cf-dots button')];
   let step=0;const measure=()=>{step=cards[0].offsetWidth*.64;stage.style.height=Math.max(...cards.map(c=>c.offsetHeight))+'px'};
   const ease=x=>x*x*(3-2*x);
+  let lastRaw=0;const soft=r=>{const a=Math.abs(r),k=.18;return Math.sign(r)*(a<k?a*a/(2*k)*.9:.081+(a-k)*.95)};
   function render(){
     const dir=Math.tanh(sv*2.2);
     cards.forEach((c,i)=>{let d=modN(i-pos);if(d>N/2)d-=N;const a=Math.abs(d),cl=Math.max(-1.6,Math.min(1.6,d)),e=Math.min(a,2.2);
       const fade=a<=1.7?1:a>=2.7?0:1-ease((a-1.7)/1);
-      const lift=dir*Math.max(-1,Math.min(1,d))*Math.max(0,1-Math.max(0,a-1))*150;
+      const lift=Math.min(1,Math.abs(pos-Math.round(pos))*4)*dir*Math.max(-1,Math.min(1,d))*Math.max(0,1-Math.max(0,a-1))*150;
       c.style.transform=`translate3d(${(d*step).toFixed(2)}px,0,${(-a*230+lift).toFixed(1)}px) rotateY(${(-cl*30).toFixed(2)}deg) scale(${(1-e*.06).toFixed(4)})`;
       c.style.opacity=((1-Math.min(a,1.7)*.2)*fade).toFixed(3);c.style.zIndex='';c.style.visibility=fade<=0?'hidden':'visible';
       c.classList.toggle('on',a<.5)});
@@ -1082,12 +1083,12 @@ function coverflow(root,items,opts={}){
   const run=()=>{if(!raf){last=0;raf=requestAnimationFrame(tick)}};
   function goV(i){const cur=Math.round(target);let dd=modN(i)-modN(cur);if(dd>N/2)dd-=N;if(dd<-N/2)dd+=N;target=cur+dd;run()}
   function go(k){const cur=Math.round(target);let best=null;for(let i=0;i<N;i++){if(V[i]!==modn(k))continue;let dd=modN(i)-modN(cur);if(dd>N/2)dd-=N;if(dd<-N/2)dd+=N;if(best===null||Math.abs(dd)<Math.abs(best))best=dd}target=cur+best;run()}
-  stage.addEventListener('pointerdown',e=>{if(e.button)return;dragging=true;moved=false;sx=lx=e.clientX;lt=performance.now();sp=pos;vel=0;v=0;stage.classList.add('drag');run()});
+  stage.addEventListener('pointerdown',e=>{if(e.button)return;dragging=true;moved=false;lastRaw=0;sx=lx=e.clientX;lt=performance.now();sp=pos;vel=0;v=0;stage.classList.add('drag');run()});
   addEventListener('pointermove',e=>{if(!dragging)return;const now=performance.now(),d=e.clientX-sx;if(Math.abs(d)>6)moved=true;
-    const dtm=Math.max(1,now-lt),inst=-(e.clientX-lx)/step/dtm*1000;vel=vel*.6+inst*.4;lx=e.clientX;lt=now;pos=sp-d/step},{passive:true});
+    const dtm=Math.max(1,now-lt),inst=-(e.clientX-lx)/step/dtm*1000;vel=vel*.6+inst*.4;lx=e.clientX;lt=now;lastRaw=-d/step;pos=sp+soft(lastRaw)},{passive:true});
   const end=()=>{if(!dragging)return;dragging=false;stage.classList.remove('drag');
     if(performance.now()-lt>100)vel=0;vel=Math.max(-12,Math.min(12,vel));
-    let t=Math.round(pos+vel*.18);t=Math.max(Math.round(sp)-2,Math.min(Math.round(sp)+2,t));target=t;v=vel;run()};
+    const r=lastRaw;let t=Math.round(sp);if(Math.abs(r)>.3||(Math.abs(r)>.06&&Math.abs(vel)>1.8&&Math.sign(vel)===Math.sign(r))){const j=Math.abs(r)>1.2||Math.abs(vel)>7?(Math.round(r+vel*.12)||Math.sign(r)):Math.sign(r);t=Math.max(Math.round(sp)-2,Math.min(Math.round(sp)+2,t+j))}target=t;v=Math.abs(r)>.3?vel*.6:0;run()};
   addEventListener('pointerup',end);addEventListener('pointercancel',end);
   stage.addEventListener('click',e=>{if(moved){e.preventDefault();e.stopPropagation();moved=false;return}const c=e.target.closest('.cf-card');if(!c)return;const i=+c.dataset.i;
     if(i!==modN(Math.round(pos))){e.preventDefault();goV(i);return}
