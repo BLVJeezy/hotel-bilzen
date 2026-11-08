@@ -124,10 +124,25 @@ button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:i
 .steps{margin:0 0 16px;padding-left:20px;color:#d6cab7;font-size:14px}.steps li{margin-bottom:6px}
 .ist{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #ffffff0d}.ist:last-of-type{border-bottom:0;margin-bottom:12px}.ist .in{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;border:1px solid #e6b86680;color:var(--gold2);font:400 16px var(--serif)}.ist b{display:block;font-weight:400}.ist small{color:var(--muted);font-size:13px}
 .qrw{text-align:center}.qrbox{width:min(250px,70vw);aspect-ratio:1;margin:0 auto;background:#fff;border-radius:22px;padding:12px;box-shadow:0 0 0 1px #e6b86655,0 20px 60px #e6b86626}.qrbox svg{width:100%;height:100%;display:block}
+.inq{display:flex;gap:14px;align-items:center;margin-top:14px;padding:12px;border-radius:18px;background:#0d0a0880;border:1px solid #ffffff12;cursor:pointer}
+.inq-q{width:104px;height:104px;flex:none;background:#fff;border-radius:14px;padding:6px}.inq-q svg{width:100%;height:100%;display:block}
+.inq-t b{display:block;font:400 17px/1.2 var(--serif);margin:4px 0 4px}.inq-t small{display:block;color:var(--green);font-size:12.5px}.inq-t small.k{color:var(--muted);margin-top:4px}
 .qb{width:44px;padding:0}.qb svg,.qrt svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5}.qrt{display:inline-flex;align-items:center;gap:5px;color:var(--gold2);font-size:12.5px}
 .mqr{position:absolute;top:16px;right:16px;width:42px;height:42px;border-radius:12px;background:#fff;display:grid;place-items:center;z-index:1}.mqr svg{width:26px;height:26px;stroke:#24180e;fill:none;stroke-width:1.6}
 .toast{position:fixed;left:50%;bottom:calc(92px + var(--sb));transform:translate(-50%,10px);z-index:60;padding:11px 18px;border-radius:14px;background:#2a2018;border:1px solid #e8d8b833;font-size:13.5px;opacity:0;pointer-events:none;transition:.3s;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}.toast.err{border-color:#e8a0a066;color:#f3d6d6}
+.calw{border:1px solid var(--line);border-radius:24px;padding:14px;background:linear-gradient(160deg,#ffffff0b,#ffffff03)}
+.calh{display:flex;justify-content:space-between;align-items:center;margin:0 2px 10px}.calh h3{font-size:22px;text-transform:capitalize}.calh .nav{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:none;font-size:20px;color:var(--gold2)}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cg.hd span{text-align:center;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:4px 0 6px}
+.cd{aspect-ratio:1;border-radius:12px;border:1px solid transparent;background:#ffffff05;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0;color:inherit}
+.cd b{font:400 15px var(--serif)}.cd i{display:flex;gap:3px;height:5px}.cd em{width:5px;height:5px;border-radius:50%;display:block}
+.cd.past{opacity:.4}.cd.td{border-color:#e6b86680}.cd.td b{color:var(--gold2)}.cd.sel{background:#e6b86622;border-color:var(--gold)}
+.leg{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:11.5px;color:var(--muted)}.leg span{display:inline-flex;align-items:center;gap:6px}.leg em{width:7px;height:7px;border-radius:50%;display:inline-block}
+.cal2{margin-top:10px}.cal2 .mini{text-align:left;color:inherit;font:inherit;cursor:pointer}
+.bk-d{display:flex;gap:6px;overflow-x:auto;margin:8px -18px 0;padding:0 18px 4px;scrollbar-width:none}.bk-d::-webkit-scrollbar{display:none}
+.bk-d button{flex:none;width:52px;height:60px;border-radius:14px;border:1px solid var(--line);background:#ffffff06;color:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.bk-d small{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}.bk-d b{font:400 18px var(--serif)}
+.bk-t{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.bk-t button{height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:#ffffff06;color:inherit;font-size:14px}
+.bk-d button.on,.bk-t button.on{border-color:var(--gold);background:#e6b86622;color:var(--gold2)}
 
 .sb-top,.sb-me,.sb-web{display:none}.au-art{display:none}.au-in{display:flex;flex-direction:column}
 .hero0{background:linear-gradient(0deg,#16120fee,#16120f99),url('/img/villa-avond.jpg') center/cover}
@@ -167,6 +182,8 @@ button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:i
  .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pgrid .plan{margin:0}
  .dwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}.dwrap .sec:first-child{margin-top:0}
  .awrap{max-width:720px}
+ .calw{max-width:560px}.cal2{max-width:560px}#dayv{max-width:560px}
+ .inq{margin-top:18px}.inq-q{width:124px;height:124px}
  .sheet{left:50%;right:auto;top:50%;bottom:auto;width:520px;max-width:calc(100vw - 40px);max-height:86vh;border-radius:26px;border-bottom:1px solid #e8d8b826;transform:translate(-50%,-46%) scale(.97);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .25s;padding:22px 26px 26px}
  .sheet.open{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}.sheet .grab{display:none}
  .toast{bottom:30px;left:calc(50% + 132px)}
@@ -203,6 +220,7 @@ button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:i
  <symbol id="i-taxi" viewBox="0 0 24 24"><path d="M4 16V12l2-5h12l2 5v4M4 16h16M4 16v2M20 16v2M9 4h6v3"/><circle cx="8" cy="13.5" r="1"/><circle cx="16" cy="13.5" r="1"/></symbol>
  <symbol id="i-glass" viewBox="0 0 24 24"><path d="M8 3h8l-1 8a3 3 0 0 1-6 0zM12 14v6M9 21h6"/></symbol>
  <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></symbol>
+ <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></symbol>
  <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
 </svg>
 
@@ -259,7 +277,7 @@ function showAuth(){gInit();$('#auth').classList.remove('hide');$('#shell').clas
 function logout(silent){T=null;try{localStorage.removeItem('va_g_t')}catch(e){}if(!silent)toast('Uitgelogd');showAuth()}
 
 /* shell */
-const TABS=[['home','Home','i-home'],['boekingen','Boekingen','i-cal'],['account','Account','i-user']];
+const TABS=[['home','Home','i-home'],['kalender','Kalender','i-cal'],['boekingen','Boekingen','i-list'],['account','Account','i-user']];
 const SUB={leden:['Lidkaart & abonnementen','account'],ontdek:['In de buurt','home']};
 async function start(){try{D=await api('g-me')}catch(e){return}
  $('#auth').classList.add('hide');$('#shell').classList.remove('hide');$('#av').textContent=(D.me.name||'?')[0].toUpperCase();
@@ -269,9 +287,9 @@ async function start(){try{D=await api('g-me')}catch(e){return}
  if('serviceWorker' in navigator)navigator.serviceWorker.register('/portaal/sw.js').catch(()=>{});maybeInstall()}
 function go(t){if(!TABS.some(x=>x[0]===t)&&!SUB[t])t='home';TAB=t;history.replaceState(null,'',location.pathname+location.search+'#'+t);const par=SUB[t]?SUB[t][1]:t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===par));$('#title').textContent=SUB[t]?SUB[t][0]:TABS.find(x=>x[0]===t)[1];scrollTo(0,0);render();
  if(SUB[t]){const b=document.createElement('button');b.className='b2 back';b.textContent='← Terug';b.onclick=()=>go(SUB[t][1]);$('#app').prepend(b)}}
-function render(){({home:vHome,boekingen:vBook,leden:vMem,ontdek:vDisc,account:vAcc})[TAB]()}
+function render(){({home:vHome,kalender:vCal,boekingen:vBook,leden:vMem,ontdek:vDisc,account:vAcc})[TAB]()}
 async function reload(){try{D=await api('g-me');render()}catch(e){}}
-const KN=r=>r.kind==='room'?r.roomName:r.kind==='event'?r.title:r.kind==='lessen'?'Lessenreeks':'Vrij atelier';
+const KN=r=>r.kind==='room'?r.roomName:r.kind==='event'?r.title:r.kind==='wellness'?'Wellness-moment':r.kind==='lessen'?'Lessenreeks':'Vrij atelier';
 const stLabel=s=>s==='geannuleerd'?'<span class="pill r">Geannuleerd</span>':'<span class="pill g">Bevestigd</span>';
 const ordLabel=s=>({nieuw:'<span class="pill y">Ontvangen</span>',bereiding:'<span class="pill y">In bereiding</span>',geleverd:'<span class="pill g">Geleverd</span>',geannuleerd:'<span class="pill r">Geannuleerd</span>'})[s];
 
@@ -289,13 +307,14 @@ function vHome(){const t=D.today,rs=D.reservations.filter(r=>r.status!=='geannul
   x+=`<div class="stay" style="--t:${r[1]}"><div class="im" style="background-image:url('/img/${r[2]}.jpg')"><span class="badge">${now?'● Je verblijf loopt':dl===1?'Morgen aankomst':'Nog '+dl+' dagen'}</span></div><div class="bd">
   <span class="caps" style="color:${r[1]}">Kamer ${String(stay.roomNo).padStart(2,'0')}</span><h2>${esc(stay.roomName)}</h2><div class="dt">${nice(stay.from)} → ${nice(stay.to)} · ${stay.guests} gast${stay.guests>1?'en':''}</div>
   <div class="facts"><div><span>Check-in</span><b>15–21u</b></div><div><span>Check-out</span><b>${stay.extras&&stay.extras.late?'13u':'11u'}</b></div><div><span>Nachten</span><b>${stay.nights}</b></div></div>
-  <div class="acts"><a class="cta" href="/ontbijt?kamer=${stay.roomNo}">Bestel ontbijt <svg><use href="#i-arrow"/></svg></a><button class="b2 qb" onclick="qrSheet('${stay.id}')" aria-label="Toon QR"><svg><use href="#i-qr"/></svg></button><button class="b2" onclick="needSheet()">Iets nodig?</button></div></div></div>
+  <div class="acts"><a class="cta" href="/ontbijt?kamer=${stay.roomNo}">Bestel ontbijt <svg><use href="#i-arrow"/></svg></a><button class="b2" onclick="needSheet()">Iets nodig?</button></div>
+  <div class="inq" onclick="qrSheet('${stay.id}')"><div class="inq-q">${qrSvg(stay.qr)}</div><div class="inq-t"><span class="caps" style="color:${r[1]}">Je toegangscode</span><b>Toon bij aankomst aan de receptie</b><small>${stay.valid.ok?'● Geldig verblijf':stay.valid.why}</small><small class="k">${esc(stay.id)} · tik om te vergroten</small></div></div></div></div>
   <div class="hs ic2"><a href="${MAPS}" target="_blank" rel="noopener"><svg><use href="#i-pin"/></svg>Route</a><span><svg><use href="#i-park"/></svg>Gratis parking</span><span><svg><use href="#i-key"/></svg>Code op aankomstdag</span><span><svg><use href="#i-clock"/></svg>Ontbijt 7:30–10:30</span></div>`}
  else x+=`<div class="card hero0" style="text-align:center;padding:26px 18px"><h3 style="font-size:26px">Nog geen verblijf gepland</h3><p style="color:var(--muted);margin:6px 0 16px">Kies een kamer met de sfeer van een edelsteen.</p><a class="cta" href="/#kamers">Bekijk de kamers <svg><use href="#i-arrow"/></svg></a></div>`;
- if(pot.length)x+=`<div class="sec"><h3>Je reservaties</h3><button onclick="go('boekingen')">Alles →</button></div><div class="card">${pot.map(p=>`<div class="row" style="cursor:pointer" onclick="qrSheet('${p.id}')"><span class="ic"><svg><use href="#${p.kind==='event'?'i-cal':'i-vase'}"/></svg></span><div class="tx"><b>${esc(KN(p))}</b><small>${nice(p.date)}${p.time?' · '+esc(p.time.split(' ')[0]):''} · ${p.guests} pers.</small></div><div class="rt"><span class="qrt"><svg><use href="#i-qr"/></svg>QR</span></div></div>`).join('')}</div>`;
+ if(pot.length)x+=`<div class="sec"><h3>Je reservaties</h3><button onclick="go('boekingen')">Alles →</button></div><div class="card">${pot.map(p=>`<div class="row" style="cursor:pointer" onclick="qrSheet('${p.id}')"><span class="ic"><svg><use href="#${p.kind==='event'?'i-cal':p.kind==='wellness'?'i-lotus':'i-vase'}"/></svg></span><div class="tx"><b>${esc(KN(p))}</b><small>${nice(p.date)}${p.time?' · '+esc(p.time.split(' ')[0]):''} · ${p.guests} pers.</small></div><div class="rt"><span class="qrt"><svg><use href="#i-qr"/></svg>QR</span></div></div>`).join('')}</div>`;
  const pact=Object.entries(D.me.memberships||{}).find(([k,m])=>m.status==='actief'&&/^pottery/.test(k));
- x+=`<div class="duo"><a class="mini" href="/#pottery"><span class="th" style="background-image:url('/img/pottery.jpg')"></span><span><b>Boek je volgende pottery-sessie</b><small>${pact?'Je abonnement is actief':'Vrij atelier of lessenreeks · tot 22u'}</small></span></a>
- <a class="mini" href="/#wellness"><span class="th" style="background-image:url('/img/wellness.jpg')"></span><span><b>Plan een wellness-moment</b><small>Sauna, stoombad & massage</small></span></a></div>`;
+ x+=`<div class="duo"><a class="mini" href="#kalender" onclick="event.preventDefault();bookSheet('pottery')"><span class="th" style="background-image:url('/img/pottery.jpg')"></span><span><b>Boek je volgende pottery-sessie</b><small>${pact?'Je abonnement is actief':'Vrij atelier of lessenreeks · tot 22u'}</small></span></a>
+ <a class="mini" href="#kalender" onclick="event.preventDefault();bookSheet('wellness')"><span class="th" style="background-image:url('/img/wellness.jpg')"></span><span><b>Plan een wellness-moment</b><small>Sauna, stoombad & massage</small></span></a></div>`;
  const os=D.orders.filter(o=>o.date>=t||o.status!=='geleverd').slice(0,4);
  if(os.length)x+=`<div class="sec"><h3>Ontbijt op de kamer</h3>${stay?`<a href="/ontbijt?kamer=${stay.roomNo}">Bestellen →</a>`:''}</div><div class="card">${os.length?os.map(o=>`<div class="row"><span class="ic"><svg><use href="#i-tray"/></svg></span><div class="tx"><b>${nice(o.date)} · ${esc(o.time)}</b><small>${o.items.map(i=>i.qty+'× '+esc(i.name)).join(', ')}</small></div><div class="rt">${ordLabel(o.status)}</div></div>`).join(''):'<div class="empty">Nog geen ontbijt besteld.</div>'}</div>`;
  x+=`</div><div class="hcol">`;
@@ -314,7 +333,7 @@ function evSheet(e){openSheet(`<span class="caps">${nice(e.date)} · ${esc(e.tim
 /* BOEKINGEN */
 function vBook(){const t=D.today,all=D.reservations.slice().sort((a,b)=>(b.from||b.date)<(a.from||a.date)?-1:1);
  const up=all.filter(r=>(r.to||r.date)>=t&&r.status!=='geannuleerd').reverse(),past=all.filter(r=>!up.includes(r));
- const card=r=>{const room=r.kind==='room',c=room?R[r.room]:r.kind==='event'?['','#e6b866','terras']:['','#c98d5a','pottery'],d0=r.from||r.date,can=r.status!=='geannuleerd'&&days(t,d0)>=2;
+ const card=r=>{const room=r.kind==='room',c=room?R[r.room]:r.kind==='event'?['','#e6b866','terras']:r.kind==='wellness'?['','#b06ad0','wellness']:['','#c98d5a','pottery'],d0=r.from||r.date,can=r.status!=='geannuleerd'&&days(t,d0)>=2;
   const ex=room&&r.extras?Object.entries(r.extras).filter(([,v])=>v).map(([k])=>({ontbijt:'Ontbijt',well:'Wellness',bike:'E-bike',late:'Late check-out'})[k]).join(' · '):'';
   return `<div class="bk ${r.status==='geannuleerd'?'off':''}" style="--t:${c[1]}"><div class="th" style="background-image:url('/img/${c[2]}.jpg')"></div><div class="tx"><b>${esc(KN(r))}</b><small>${room?nice(r.from)+' → '+nice(r.to)+' · '+r.nights+' n.':nice(r.date)} · ${r.guests} pers.</small>${ex?`<small>${ex}</small>`:''}<div class="ft"><span>${stLabel(r.status)} <span class="k" style="margin-left:6px">${fmt(r.total)}${r.extraTotal?' + '+fmt(r.extraTotal)+' kamerrekening':''}</span></span><span style="display:flex;gap:6px">${r.status!=='geannuleerd'&&(r.to||r.date)>=t?`<button class="b2" style="height:34px;font-size:12.5px;padding:0 12px" onclick="qrSheet('${r.id}')"><svg style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.5"><use href="#i-qr"/></svg>QR</button>`:''}${can?`<button class="b2 red" style="height:34px;font-size:12.5px;padding:0 12px" data-c="${r.id}">Annuleer</button>`:''}</span></div></div></div>`};
  $('#app').innerHTML=`<a class="cta full" href="/#boeken" style="margin-bottom:16px;max-width:420px">+ Nieuwe reservatie</a><div class="sec" style="margin-top:4px"><h3>Komend</h3></div><div class="bkwrap">${up.length?up.map(card).join(''):'<div class="card empty">Geen komende reservaties.</div>'}</div>${past.length?`<div class="sec"><h3>Eerder</h3></div><div class="bkwrap">${past.map(card).join('')}</div>`:''}<p class="k" style="text-align:center;margin-top:14px">Annuleren kan tot 48 uur vooraf.</p>`;
@@ -328,6 +347,47 @@ function vMem(){const M=D.me.memberships||{},P=D.plans,act=Object.entries(M).fil
  grp.map(([c,n,col,sub])=>`<div class="grp" style="--c:${col}"><i></i><h3>${n}</h3></div><p class="k" style="margin:-4px 4px 10px;text-transform:none;letter-spacing:0;font-size:13px">${sub}</p><div class="pgrid">${Object.entries(P).filter(([,p])=>p.cat===c).map(([k,p])=>`<div class="plan"><div class="h"><b>${esc(p.name)}</b><em>${esc(p.price)}</em></div><p>${esc(p.text)}</p>${btn(k)}</div>`).join('')}</div>`).join('')+
  `<p class="k" style="text-align:center;margin-top:16px;text-transform:none;letter-spacing:0">Na je aanvraag bevestigt ons team je abonnement. Betalen gebeurt bij activatie.</p></div></div>`;
  $('#app').querySelectorAll('[data-p]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await api('g-member',{plan:b.dataset.p});toast('Aangevraagd ✓');reload()}catch(e){toast(e.message,1);b.disabled=false}})}
+
+
+/* KALENDER */
+let CM=new Date();CM.setDate(1);const MON=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const KC={room:'#e6b866',pottery:'#c98d5a',lessen:'#c98d5a',wellness:'#b06ad0',event:'#9fc7a8'};
+function vCal(){const t=D.today,y=CM.getFullYear(),m=CM.getMonth(),n=new Date(y,m+1,0).getDate(),off=(new Date(y,m,1).getDay()+6)%7;
+ const mine=D.reservations.filter(r=>r.status!=='geannuleerd'),ev=EV||[];
+ const onDay=k=>({res:mine.filter(r=>r.kind==='room'?(r.from<=k&&r.to>=k):r.date===k),ev:ev.filter(e=>e.date===k)});
+ let cells='';for(let i=0;i<off;i++)cells+='<span></span>';
+ for(let d=1;d<=n;d++){const k=iso(new Date(y,m,d)),o=onDay(k),dots=[...new Set([...o.res.map(r=>r.kind),...(o.ev.length?['event']:[])])].slice(0,3);
+  cells+=`<button class="cd ${k===t?'td':''} ${k<t?'past':''} ${k===CSEL?'sel':''}" data-d="${k}"><b>${d}</b><i>${dots.map(x=>`<em style="background:${KC[x]}"></em>`).join('')}</i></button>`}
+ const sel=CSEL&&CSEL.slice(0,7)===iso(new Date(y,m,1)).slice(0,7)?CSEL:null;
+ $('#app').innerHTML=`<div class="calw"><div class="calh"><button class="nav" data-n="-1">‹</button><h3>${MON[m]} ${y}</h3><button class="nav" data-n="1">›</button></div>
+ <div class="cg hd">${['ma','di','wo','do','vr','za','zo'].map(x=>`<span>${x}</span>`).join('')}</div><div class="cg" id="cg">${cells}</div>
+ <div class="leg">${[['room','Verblijf'],['pottery','Pottery'],['wellness','Wellness'],['event','Event']].map(([k,l])=>`<span><em style="background:${KC[k]}"></em>${l}</span>`).join('')}</div></div>
+ <div class="duo cal2"><button class="mini" onclick="bookSheet('pottery',CSEL)"><span class="th" style="background-image:url('/img/pottery.jpg')"></span><span><b>Boek een pottery-sessie</b><small>Vrij atelier · tot 22u</small></span></button><button class="mini" onclick="bookSheet('wellness',CSEL)"><span class="th" style="background-image:url('/img/wellness.jpg')"></span><span><b>Plan een wellness-moment</b><small>Sauna, stoombad & massage</small></span></button></div>
+ <div id="dayv"></div>`;
+ $('#app').querySelectorAll('.nav').forEach(b=>b.onclick=()=>{CM.setMonth(CM.getMonth()+ +b.dataset.n);vCal()});
+ $('#cg').onclick=e=>{const b=e.target.closest('.cd');if(!b)return;CSEL=b.dataset.d;$('#cg').querySelectorAll('.cd').forEach(x=>x.classList.toggle('sel',x.dataset.d===CSEL));dayView()};
+ if(!EV)fetch('/api/ops?a=events').then(r=>r.json()).then(j=>{EV=j.events||[];if(TAB==='kalender')vCal()}).catch(()=>{EV=[]});
+ dayView()}
+let CSEL=null;
+function dayView(){const el=$('#dayv');if(!el)return;const k=CSEL||D.today;const mine=D.reservations.filter(r=>r.status!=='geannuleerd'&&(r.kind==='room'?(r.from<=k&&r.to>=k):r.date===k)),ev=(EV||[]).filter(e=>e.date===k);
+ const rows=mine.map(r=>`<div class="row" style="cursor:pointer" onclick="qrSheet('${r.id}')"><span class="ic" style="background:${KC[r.kind]}22"><svg><use href="#${r.kind==='room'?'i-key':r.kind==='wellness'?'i-lotus':r.kind==='event'?'i-cal':'i-vase'}"/></svg></span><div class="tx"><b>${esc(KN(r))}</b><small>${r.kind==='room'?nice(r.from)+' → '+nice(r.to):(r.time?esc(r.time)+' · ':'')+r.guests+' pers.'}</small></div><div class="rt"><span class="qrt"><svg><use href="#i-qr"/></svg>QR</span></div></div>`)
+  .concat(ev.map(e=>`<div class="row" style="cursor:pointer" onclick="evSheet(EV.find(x=>x.id==='${e.id}'))"><span class="ic" style="background:${KC.event}22"><svg><use href="#i-cal"/></svg></span><div class="tx"><b>${esc(e.title)}</b><small>${esc(e.time)} · ${esc(e.price)}</small></div><div class="rt">${D.reservations.some(r=>r.eventId===e.id&&r.status!=='geannuleerd')?'<span class="pill g">Ingeschreven</span>':'<span class="pill y">Inschrijven</span>'}</div></div>`));
+ el.innerHTML=`<div class="sec"><h3>${k===D.today?'Vandaag':nice(k)}</h3></div><div class="card">${rows.join('')||`<div class="empty">Niets gepland op deze dag.${k>=D.today?' Boek hierboven een pottery-sessie of wellness-moment.':''}</div>`}</div>`}
+const SLOTS={pottery:['10:00','13:00','16:00','19:00'],wellness:['10:00','12:00','14:00','16:00','18:00']};
+function bookSheet(kind,date){const t=D.today;let d=date&&date>=t?date:t,g=2,tm=SLOTS[kind][1];const pot=kind==='pottery';
+ const mem=Object.entries(D.me.memberships||{}).some(([k,m])=>m.status==='actief'&&(pot?k==='pottery-lid':/^wellness/.test(k)));
+ const price=()=>pot?(mem?'Inbegrepen in je lidmaatschap':fmt(30*g)):(mem?'Inbegrepen in je wellness-pas':fmt(35*g));
+ const days=[...Array(14)].map((_,i)=>{const x=pd(t);x.setDate(x.getDate()+i);return iso(x)});if(!days.includes(d))days.unshift(d);
+ const draw=()=>{$('#bk-d').innerHTML=days.map(k=>`<button class="${k===d?'on':''}" data-d="${k}"><small>${pd(k).toLocaleDateString('nl-BE',{weekday:'short'})}</small><b>${pd(k).getDate()}</b></button>`).join('');$('#bk-t').innerHTML=SLOTS[kind].map(x=>`<button class="${x===tm?'on':''}" data-t="${x}">${x}</button>`).join('');$('#bk-g').textContent=g;$('#bk-p').textContent=price();
+  $('#bk-d').onclick=e=>{const b=e.target.closest('button');if(b){d=b.dataset.d;draw()}};$('#bk-t').onclick=e=>{const b=e.target.closest('button');if(b){tm=b.dataset.t;draw()}}};
+ openSheet(`<span class="caps">${pot?'Pottery House':'Wellness'}</span><h3 style="margin-top:6px">${pot?'Boek je pottery-sessie':'Plan je wellness-moment'}</h3><div class="sub">${pot?'Vrij atelier: klei, draaischijf en begeleiding. ± 2 uur.':'Privé sauna, stoombad en rustruimte. 2 uur.'}</div>
+ <span class="k">Dag</span><div class="bk-d" id="bk-d"></div><span class="k" style="display:block;margin-top:14px">Startuur</span><div class="bk-t" id="bk-t"></div>
+ <div class="row" style="margin-top:14px"><div class="tx"><b>Personen</b></div><div class="rt" style="display:flex;gap:10px;align-items:center;font-size:16px;color:var(--text)"><button class="b2" style="width:38px;height:38px;padding:0" id="bk-m">−</button><b id="bk-g">2</b><button class="b2" style="width:38px;height:38px;padding:0" id="bk-pl">+</button></div></div>
+ <div class="row"><div class="tx"><b>Prijs</b></div><div class="rt" style="color:var(--gold2);font-size:15px" id="bk-p"></div></div>
+ <button class="cta full" id="bk-ok" style="margin-top:14px">Bevestig</button><p class="k" style="text-align:center;text-transform:none;letter-spacing:0;margin:10px 0 0">Je ontvangt meteen je QR-code. Betalen gebeurt ter plaatse of via je kamerrekening.</p>`);
+ draw();$('#bk-m').onclick=()=>{g=Math.max(1,g-1);draw()};$('#bk-pl').onclick=()=>{g=Math.min(6,g+1);draw()};
+ $('#bk-ok').onclick=async()=>{const b=$('#bk-ok');b.disabled=true;try{const r=await api('g-reserve',{kind,date:d,time:tm,guests:g});D=await api('g-me');CSEL=d;CM=new Date(pd(d));CM.setDate(1);toast('Geboekt ✓');qrSheet(r.reservation.id);if(TAB==='kalender'||TAB==='home')render()}catch(e){toast(e.message,1);b.disabled=false}}}
 
 /* ONTDEK */
 const NEAR=[['🏰','Landcommanderij Alden Biesen','Kasteel, tuinen en wandelpaden, vlak bij Bilzen.','ca. 5 km','Alden Biesen Bilzen'],['🏛️','Tongeren','Oudste stad van België, Gallo-Romeins Museum en zondagse antiekmarkt.','ca. 10 km','Tongeren centrum'],['🌲','Nationaal Park Hoge Kempen','Heide, bossen en uitzichtpunten om te wandelen of fietsen.','ca. 20 km','Nationaal Park Hoge Kempen'],['🚲','Fietsen door Haspengouw','Glooiende fruitstreek, in de lente vol bloesem. Huur een e-bike bij ons.','vanaf de deur','Haspengouw fietsroute'],['🌳','Bokrijk','Openluchtmuseum en ‘Fietsen door het water’.','ca. 20 km','Bokrijk Genk'],['🛍️','Hasselt','Shoppen, Japanse Tuin en gezellige terrassen.','ca. 15 km','Hasselt centrum'],['🇳🇱','Maastricht','Historisch centrum, boekhandel Dominicanen en de Maas.','ca. 20 km','Maastricht centrum']];
@@ -365,7 +425,7 @@ function installSheet(first){const ua=navigator.userAgent,ios=/iphone|ipad|ipod/
 function maybeInstall(){if(STANDALONE())return;let seen=0;try{seen=localStorage.getItem('va_inst_seen')}catch(e){}if(seen)return;setTimeout(()=>installSheet(1),1400)}
 
 /* QR */
-function qrSvg(txt){if(!window.qrcode)return '<div class="empty">QR laden…</div>';const q=qrcode(0,'M');q.addData(txt);q.make();return q.createSvgTag({cellSize:6,margin:2,scalable:true})}
+function qrSvg(txt){if(!window.qrcode){if(!qrSvg._w){qrSvg._w=setInterval(()=>{if(window.qrcode){clearInterval(qrSvg._w);if(TAB==='home')render()}},150)}return '<div class="empty" style="padding:0;font-size:11px">QR…</div>'}const q=qrcode(0,'M');q.addData(txt);q.make();return q.createSvgTag({cellSize:6,margin:2,scalable:true})}
 function qrSheet(id){const m=id==='M',r=m?null:D.reservations.find(x=>x.id===id);if(!m&&!r)return;
  const code=m?D.me.qr:r.qr,v=m?null:r.valid;
  const sub=m?`${esc(D.me.memberNo)} · ${esc(D.me.name)}`:r.kind==='room'?`Kamer ${String(r.roomNo).padStart(2,'0')} · ${nice(r.from)} → ${nice(r.to)} · ${r.guests} pers.`:`${nice(r.date)}${r.time?' · '+esc(r.time):''} · ${r.guests} pers.`;

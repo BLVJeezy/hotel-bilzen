@@ -127,7 +127,7 @@ function validity(r) {
   const from = r.from || r.date, to = r.kind === 'room' ? r.to : r.kind === 'lessen' ? addDays(r.date, 56) : r.date;
   if (t < from) return { ok: false, why: 'Nog niet geldig · vanaf ' + from, early: true };
   if (t > to) return { ok: false, why: 'Verlopen · was geldig t/m ' + to };
-  const single = r.kind === 'pottery' || r.kind === 'event';
+  const single = r.kind === 'pottery' || r.kind === 'event' || r.kind === 'wellness';
   const used = (r.scans || []).some(s => s.ok && new Date(s.t).toISOString().slice(0, 10) === t);
   if (single && (r.scans || []).some(s => s.ok)) return { ok: false, why: 'Al gebruikt', used: true };
   return { ok: true, why: r.kind === 'room' ? 'Geldig verblijf' : r.kind === 'lessen' ? 'Geldige lessenreeks' : 'Geldig voor vandaag', again: used };
@@ -366,7 +366,7 @@ module.exports = async (req, res) => {
       if (req.method !== 'POST') return send(res, 405, { error: 'POST verwacht' });
       const b = await body(req);
       if (a === 'g-reserve') {
-        const kind = ['room', 'pottery', 'lessen', 'event'].includes(b.kind) ? b.kind : null;
+        const kind = ['room', 'pottery', 'lessen', 'event', 'wellness'].includes(b.kind) ? b.kind : null;
         if (!kind) return send(res, 400, { error: 'Ongeldige reservatie' });
         const { data: C } = await load('config');
         const { data: G0 } = await load('guests');
@@ -387,15 +387,17 @@ module.exports = async (req, res) => {
         } else {
           if (!isDate(b.date) || b.date < today()) return send(res, 400, { error: 'Kies een geldige datum' });
           r.date = b.date; r.member = !!(g.memberships['pottery-lid'] && g.memberships['pottery-lid'].status === 'actief') || !!b.member;
+          if (/^\d{2}:\d{2}$/.test(b.time || '')) r.time = b.time;
         }
-        if (kind === 'event') { const { data: A } = await load('agenda'); const ev = A.events.find(e => e.id === r.eventId); const n = parseFloat(String(ev.price).replace(/[^\d,.]/g, '').replace(',', '.')) || 0; r.total = n * r.guests; }
+        if (kind === 'wellness') { const wm = Object.entries(g.memberships || {}).some(([k, m]) => /^wellness/.test(k) && m.status === 'actief'); r.total = wm ? 0 : 35 * r.guests; r.member = wm; }
+        else if (kind === 'event') { const { data: A } = await load('agenda'); const ev = A.events.find(e => e.id === r.eventId); const n = parseFloat(String(ev.price).replace(/[^\d,.]/g, '').replace(',', '.')) || 0; r.total = n * r.guests; }
         else Object.assign(r, quote(C, r));
         if (kind === 'room') {
           const clash = await mutate('calendar', d => { const c = d.entries.find(x => x.room === r.room && x.from < r.to && x.to > r.from); if (c) return c; d.entries.push({ id: 'c' + r.id, ref: r.id, room: r.room, from: r.from, to: r.to, type: 'booking', guest: g.name, guestId: gid, note: 'Online · ' + r.guests + ' pers.' + (r.extras.ontbijt ? ' · ontbijt' : '') + (r.extras.late ? ' · late check-out' : ''), by: 'Website', created: Date.now() }); return null; });
           if (clash) return send(res, 409, { error: 'Deze kamer is net bezet voor (een deel van) deze periode. Kies andere data.' });
         }
         await mutate('guests', d => { d.reservations.push(r); });
-        await addLog({ name: g.name }, `Reservatie ${r.id} · ${kind === 'room' ? r.roomName + ' ' + r.from + ' → ' + r.to : (kind === 'event' ? r.title + ' ' : kind === 'lessen' ? 'Lessenreeks ' : 'Vrij atelier ') + r.date}`);
+        await addLog({ name: g.name }, `Reservatie ${r.id} · ${kind === 'room' ? r.roomName + ' ' + r.from + ' → ' + r.to : (kind === 'event' ? r.title + ' ' : kind === 'wellness' ? 'Wellness ' : kind === 'lessen' ? 'Lessenreeks ' : 'Vrij atelier ') + r.date}`);
         return send(res, 200, { ok: true, reservation: r });
       }
       if (a === 'g-cancel') {

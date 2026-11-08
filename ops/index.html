@@ -371,7 +371,7 @@ async function check(code){scanStop();$('#scCam').classList.add('hide');const R=
  let r;try{r=await api('scan',{code})}catch(e){r={ok:false,why:e.message,kind:'onbekend'}}
  const col=r.ok?(r.prev&&r.prev.some(p=>p.ok)?'amber':'green'):(r.used?'amber':'red');
  if(r.ok)chime();else navigator.vibrate&&navigator.vibrate([200,80,200]);
- const what=r.kind==='room'?`${esc(r.roomName)} · kamer ${String(r.roomNo).padStart(2,'0')}`:r.kind==='event'?esc(r.title):r.kind==='lessen'?'Lessenreeks Pottery':r.kind==='pottery'?'Vrij atelier Pottery':r.kind==='lid'?'Ledenkaart '+esc(r.memberNo||''):'';
+ const what=r.kind==='room'?`${esc(r.roomName)} · kamer ${String(r.roomNo).padStart(2,'0')}`:r.kind==='event'?esc(r.title):r.kind==='lessen'?'Lessenreeks Pottery':r.kind==='pottery'?'Vrij atelier Pottery':r.kind==='wellness'?'Wellness-moment':r.kind==='lid'?'Ledenkaart '+esc(r.memberNo||''):'';
  const when=r.kind==='room'?`${fdt(r.from)} → ${fdt(r.to)}`:r.date?fdt(r.date)+(r.time?' · '+esc(r.time):''):'';
  const ex=r.extras?Object.entries(r.extras).filter(([,v])=>v).map(([k])=>({ontbijt:'Ontbijt',well:'Wellness',bike:'E-bike',late:'Late check-out'})[k]).join(' · '):'';
  const prev=r.prev||[];
