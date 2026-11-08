@@ -212,6 +212,11 @@ button{cursor:pointer}
  .scan.open{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
 }
 .ghostlink{display:block;margin:18px auto 0;background:none;border:0;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline}
+.scanbar{display:flex;align-items:center;gap:14px;width:100%;margin:0 0 18px;padding:14px 16px;border:0;border-radius:22px;background:linear-gradient(120deg,#f6dfa4,#e6b866 55%,#c98d3e);color:#24180e;text-align:left;box-shadow:0 12px 36px #e6b86640;font:inherit;cursor:pointer}
+.scanbar .sb-ic{width:48px;height:48px;border-radius:14px;background:#24180e1f;display:grid;place-items:center;flex:none}.scanbar .sb-ic svg{width:26px;height:26px;stroke:#24180e;fill:none;stroke-width:1.8}
+.scanbar .sb-tx{flex:1}.scanbar b{display:block;font:500 17px var(--sans)}.scanbar small{font-size:12.5px;opacity:.75}.scanbar .sb-ar{width:20px;height:20px;stroke:#24180e;fill:none;stroke-width:1.6}
+@media(min-width:1024px){.scanbar{display:none}}
+@media(max-width:1023px){body.t-today .scanb{display:none}}
 </style>
 </head>
 <body>
@@ -326,7 +331,7 @@ async function start(){try{S=await api('bootstrap')}catch(e){return}
  const h=location.hash.slice(1);go(tabs.some(t=>t[0]===h)?h:S.user.role==='keuken'?'orders':'today');
  if('serviceWorker' in navigator)navigator.serviceWorker.register('/ops/sw.js').catch(()=>{});
  clearInterval(pollT);pollT=setInterval(poll,8000);badge()}
-function go(t){TAB=t;history.replaceState(null,'','#'+t);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+function go(t){TAB=t;document.body.classList.toggle('t-today',t==='today');history.replaceState(null,'','#'+t);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
  $('#title').textContent=(TABDEF.find(x=>x[0]===t)||[0,'Agenda'])[1];scrollTo(0,0);render();if(!document.querySelector(`#tabs button[data-t="${t}"]`)&&TAB==='agenda'){const b=document.createElement('button');b.className='btn2';b.style.cssText='margin-bottom:12px';b.textContent='← Terug';b.onclick=()=>go('more');$('#app').prepend(b);document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t==='more'))}}
 const WIDE=()=>matchMedia('(min-width:1024px)').matches;
 addEventListener('resize',()=>{const w=WIDE();if(w!==WIDE.last){WIDE.last=w;if(TAB&&S.user)render()}});
@@ -426,6 +431,7 @@ function vToday(){const t=TODAY(),cal=S.calendar||[],ev=(S.events||[]).filter(e=
  const row=(c,b,s,r)=>`<div class="row" style="--c:${c}"><i class="dot"></i><div class="tx"><b>${b}</b><small>${s}</small></div><div class="rt">${r||''}</div></div>`;
  $('#app').innerHTML=`<div class="hello"><h1>${hi}, ${esc(S.user.name)}</h1><p>${new Date().toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}</p></div>
  <div class="stats">${S.perms.includes('calendar')?st(arr.length,'Aankomsten')+st(dep.length,'Vertrekken')+st(occ.size+' / 5','Bezet vannacht'):''}${st(open.length,'Open ontbijt',open.length)}</div>
+ <button class="scanbar" onclick="scanOpen()"><span class="sb-ic"><svg><use href="#i-scan"/></svg></span><span class="sb-tx"><b>Scan QR-code</b><small>Check-in, pottery, wellness of event</small></span><svg class="sb-ar" viewBox="0 0 24 24"><use href="#i-arrow"/></svg></button>
  ${(S.requests||[]).filter(r=>r.status!=='klaar').length?`<div class="sec"><h3>Gastverzoeken</h3><button onclick="guestsView()">Alles →</button></div><div class="card">${(S.requests||[]).filter(r=>r.status!=='klaar').slice(0,6).map(r=>`<div class="row" style="--c:#e6b866"><i class="dot"></i><div class="tx"><b>${esc(r.type)}${r.room?' · '+esc(r.room):''}</b><small>${esc(r.guestName||'')}${r.text?' · '+esc(r.text):''}</small></div><div class="rt"><button class="btn2" style="height:32px;padding:0 12px" onclick="reqDone('${r.id}')">Klaar</button></div></div>`).join('')}</div>`:''}
  ${S.perms.includes('calendar')?`<div class="sec"><h3>Aankomsten & vertrekken</h3></div><div class="card">${arr.length+dep.length?arr.map(e=>row(RN[e.room][2],'↘ '+esc(e.guest||'Gast')+' · '+RN[e.room][1],'Aankomst · check-in 15:00–21:00',nice(e.to)+' weg')).join('')+dep.map(e=>row(RN[e.room][2],'↗ '+esc(e.guest||'Gast')+' · '+RN[e.room][1],'Vertrek · check-out 11:00','')).join(''):'<div class="empty">Geen aankomsten of vertrekken vandaag.</div>'}</div>`:''}
  <div class="sec"><h3>Ontbijt vandaag</h3><button onclick="go('orders')">Alle bestellingen →</button></div><div class="card">${ords.length?ords.map(o=>row(RBYN[o.room][2],o.time+' · '+esc(o.roomName),o.items.map(i=>i.qty+'× '+esc(i.name)).join(', ')+(o.diet.length?' · ⚠ '+o.diet.map(esc).join(', '):''),stLabel(o.status))).join(''):'<div class="empty">Nog geen bestellingen voor vandaag.</div>'}</div>
