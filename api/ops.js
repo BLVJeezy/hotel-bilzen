@@ -132,6 +132,33 @@ function validity(r) {
   if (single && (r.scans || []).some(s => s.ok)) return { ok: false, why: 'Al gebruikt', used: true };
   return { ok: true, why: r.kind === 'room' ? 'Geldig verblijf' : r.kind === 'lessen' ? 'Geldige lessenreeks' : 'Geldig voor vandaag', again: used };
 }
+async function seedDemo(email, name) {
+  const { data: C } = await load('config'), { data: K } = await load('calendar'), { data: A } = await load('agenda');
+  const t = today(), used = [];
+  const free = (f, n, pref) => { for (let i = 0; i < 60; i++) { const from = addDays(f, i), to = addDays(from, n); const room = [pref, ...ROOMS].find(rm => !used.some(u => u.room === rm && u.from < to && u.to > from) && !K.entries.some(e => e.demoFor !== email && e.room === rm && e.from < to && e.to > from)); if (room) { used.push({ room, from, to }); return { room, from, to }; } } return null; };
+  const P0 = free(addDays(t, -9), 3, 'sun'), P1 = free(addDays(t, -1), 2, 'rose'), P2 = free(addDays(t, 21), 2, 'moon');
+  const room = P1.room, from = P1.from, to = P1.to;
+  const ev = A.events.filter(e => e.date > t).sort((x, y) => x.date < y.date ? -1 : 1)[0];
+  let pw = null, g;
+  await mutate('guests', d => {
+    g = d.guests.find(x => x.email === email);
+    if (!g) { pw = 'amano-' + crypto.randomBytes(3).toString('hex'); const salt = crypto.randomBytes(12).toString('hex'); g = { id: id(), email, name, phone: '', salt, pw: hashPw(pw, salt), created: Date.now(), memberships: {} }; d.guests.push(g); }
+  d.reservations = d.reservations.filter(r => !(r.demo && r.guestId === g.id));
+    const base = { guestId: g.id, guestName: g.name, created: Date.now(), status: 'bevestigd', demo: true };
+    const mk = (k, x) => ({ id: 'R' + (Date.now() + k).toString(36).toUpperCase(), ...base, ...x });
+    const stay = (k, P, ex) => { const r = mk(k, { kind: 'room', room: P.room, roomName: ROOM_NAMES[P.room], roomNo: ROOMS.indexOf(P.room) + 1, from: P.from, to: P.to, guests: 2, extras: { ontbijt: true, well: false, bike: false, late: false, ...ex } }); Object.assign(r, quote(C, r)); return r; };
+    const r0 = stay(0, P0, { bike: true }); r0.scans = [{ t: new Date(P0.to + 'T10:40:00').getTime(), by: 'Receptie', ok: true }, { t: new Date(P0.from + 'T16:05:00').getTime(), by: 'Receptie', ok: true }]; r0.checkedIn = r0.scans[1].t;
+    const r1 = stay(1, P1, { well: true });
+    const r9 = stay(9, P2, { late: true });
+    const r2 = mk(2, { kind: 'pottery', date: t, guests: 2, member: false }); Object.assign(r2, quote(C, r2));
+    const rs = [r0, r1, r2];
+    if (ev) rs.push(mk(3, { kind: 'event', eventId: ev.id, title: ev.title, date: ev.date, time: ev.time, guests: 2, total: (parseFloat(String(ev.price).replace(/[^\d,.]/g, '').replace(',', '.')) || 0) * 2 }));
+    rs.push(r9); d.reservations.push(...rs); g._rs = rs;
+  });
+  const rs = g._rs; delete g._rs;
+  await mutate('calendar', d => { d.entries = d.entries.filter(e => e.demoFor !== email); rs.filter(r => r.kind === 'room').forEach(r => d.entries.push({ id: 'c' + r.id, ref: r.id, room: r.room, from: r.from, to: r.to, type: 'booking', guest: g.name, guestId: g.id, note: 'Voorbeeld · 2 pers. · ontbijt', by: 'Demo', demo: true, demoFor: email, created: Date.now() })); });
+  return { g, pw, rs, t };
+}
 const can = (u, perm) => u && (ROLES[u.role] || []).includes(perm);
 async function addLog(u, text) {
   try { await mutate('log', d => { d.log.unshift({ t: Date.now(), who: u ? u.name : 'Website', text }); d.log = d.log.slice(0, 400); }); } catch (e) {}
@@ -253,7 +280,9 @@ module.exports = async (req, res) => {
       let user = null;
       if ((process.env.OPS_OWNER_PIN && pin === process.env.OPS_OWNER_PIN) || (C.ownerPinHash && hashPin(pin) === C.ownerPinHash)) user = { id: 'owner', name: C.ownerName || 'Eigenaar', role: 'owner' };
       else { const s = C.staff.find(x => x.pinHash === hashPin(pin) && x.active !== false); if (s) user = { id: s.id, name: s.name, role: s.role }; }
-      if (!user) return send(res, 401, { error: 'Onbekende pincode' });
+      const demoOn = C.demoLogin !== false;
+      if (!user && demoOn && String(b.email || '').trim().toLowerCase() === 'admin' && String(b.password || '') === 'admin') user = { id: 'demo-owner', name: 'Admin (demo)', role: 'owner' };
+      if (!user) return send(res, 401, { error: b.email !== undefined ? 'Onbekende login' : 'Onbekende pincode' });
       const token = sign({ ...user, exp: Date.now() + 30 * 864e5 });
       await addLog(user, 'Ingelogd');
       return send(res, 200, { token, user, perms: ROLES[user.role] });
@@ -284,7 +313,16 @@ module.exports = async (req, res) => {
     }
     if ((a === 'g-register' || a === 'g-login') && req.method === 'POST') {
       const b = await body(req);
-      const email = clean(b.email, 120).toLowerCase(), pw = String(b.password || '');
+      let email = clean(b.email, 120).toLowerCase(), pw = String(b.password || '');
+      if (a === 'g-login' && email === 'customer' && pw === 'customer') {
+        const { data: C } = await load('config');
+        if (C.demoLogin === false) return send(res, 401, { error: 'Demo-login staat uit' });
+        let g;
+        await mutate('guests', d => { g = d.guests.find(x => x.email === 'customer@demo.villa-amano.be'); if (!g) { const salt = crypto.randomBytes(12).toString('hex'); g = { id: id(), email: 'customer@demo.villa-amano.be', name: 'Demo Gast', phone: '+32 470 00 00 00', salt, pw: hashPw('customer', salt), created: Date.now(), memberships: {}, demo: true }; d.guests.push(g); } });
+        const { data: G1 } = await load('guests');
+        if (!G1.reservations.some(r => r.guestId === g.id)) await seedDemo('customer@demo.villa-amano.be', 'Demo Gast');
+        return send(res, 200, { token: sign({ gid: g.id, name: g.name, role: 'guest', exp: Date.now() + 180 * 864e5 }), name: g.name });
+      }
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return send(res, 400, { error: 'Vul een geldig e-mailadres in' });
       if (pw.length < 6) return send(res, 400, { error: 'Wachtwoord: minstens 6 tekens' });
       await new Promise(r => setTimeout(r, 250));
@@ -399,6 +437,7 @@ module.exports = async (req, res) => {
       if (can(u, 'agenda')) out.events = A.events;
       if (can(u, 'connect')) out.ical = C.ical, out.icalKey = C.icalKey;
       if (can(u, 'connect')) out.googleClientId = C.googleClientId || '', out.googleEnv = !!process.env.GOOGLE_CLIENT_ID;
+      if (u.role === 'owner') out.demoLogin = C.demoLogin !== false;
       if (can(u, 'prices')) out.prices = C.prices;
       if (can(u, 'staff')) out.staff = C.staff.map(s => ({ id: s.id, name: s.name, role: s.role, active: s.active !== false }));
       if (can(u, 'log')) out.log = (await load('log')).data.log.slice(0, 120);
@@ -505,32 +544,15 @@ module.exports = async (req, res) => {
         await mutate('calendar', d => { d.entries = d.entries.filter(e => !e.demo); });
         await addLog(u, 'Voorbeeldreservaties verwijderd'); return send(res, 200, { ok: true });
       }
-      const { data: C } = await load('config'), { data: K } = await load('calendar'), { data: A } = await load('agenda');
-      const t = today(), used = [];
-      const free = (f, n, pref) => { for (let i = 0; i < 60; i++) { const from = addDays(f, i), to = addDays(from, n); const room = [pref, ...ROOMS].find(rm => !used.some(u => u.room === rm && u.from < to && u.to > from) && !K.entries.some(e => !e.demo && e.room === rm && e.from < to && e.to > from)); if (room) { used.push({ room, from, to }); return { room, from, to }; } } return null; };
-      const P0 = free(addDays(t, -9), 3, 'sun'), P1 = free(addDays(t, -1), 2, 'rose'), P2 = free(addDays(t, 21), 2, 'moon');
-      const room = P1.room, from = P1.from, to = P1.to;
-      const ev = A.events.filter(e => e.date > t).sort((x, y) => x.date < y.date ? -1 : 1)[0];
-      let pw = null, g;
-      await mutate('guests', d => {
-        d.reservations = d.reservations.filter(r => !r.demo);
-        g = d.guests.find(x => x.email === email);
-        if (!g) { pw = 'amano-' + crypto.randomBytes(3).toString('hex'); const salt = crypto.randomBytes(12).toString('hex'); g = { id: id(), email, name: 'Jason Balongo', phone: '', salt, pw: hashPw(pw, salt), created: Date.now(), memberships: {} }; d.guests.push(g); }
-        const base = { guestId: g.id, guestName: g.name, created: Date.now(), status: 'bevestigd', demo: true };
-        const mk = (k, x) => ({ id: 'R' + (Date.now() + k).toString(36).toUpperCase(), ...base, ...x });
-        const stay = (k, P, ex) => { const r = mk(k, { kind: 'room', room: P.room, roomName: ROOM_NAMES[P.room], roomNo: ROOMS.indexOf(P.room) + 1, from: P.from, to: P.to, guests: 2, extras: { ontbijt: true, well: false, bike: false, late: false, ...ex } }); Object.assign(r, quote(C, r)); return r; };
-        const r0 = stay(0, P0, { bike: true }); r0.scans = [{ t: new Date(P0.to + 'T10:40:00').getTime(), by: 'Receptie', ok: true }, { t: new Date(P0.from + 'T16:05:00').getTime(), by: 'Receptie', ok: true }]; r0.checkedIn = r0.scans[1].t;
-        const r1 = stay(1, P1, { well: true });
-        const r9 = stay(9, P2, { late: true });
-        const r2 = mk(2, { kind: 'pottery', date: t, guests: 2, member: false }); Object.assign(r2, quote(C, r2));
-        const rs = [r0, r1, r2];
-        if (ev) rs.push(mk(3, { kind: 'event', eventId: ev.id, title: ev.title, date: ev.date, time: ev.time, guests: 2, total: (parseFloat(String(ev.price).replace(/[^\d,.]/g, '').replace(',', '.')) || 0) * 2 }));
-        rs.push(r9); d.reservations.push(...rs); g._rs = rs;
-      });
-      const rs = g._rs; delete g._rs;
-      await mutate('calendar', d => { d.entries = d.entries.filter(e => !e.demo); rs.filter(r => r.kind === 'room').forEach(r => d.entries.push({ id: 'c' + r.id, ref: r.id, room: r.room, from: r.from, to: r.to, type: 'booking', guest: 'Jason Balongo', guestId: g.id, note: 'Voorbeeld · 2 pers. · ontbijt', by: 'Demo', demo: true, created: Date.now() })); });
+      const { g, pw, rs, t } = await seedDemo(email, 'Jason Balongo');
       await addLog(u, rs.length + ' voorbeeldreservaties aangemaakt voor Jason Balongo');
       return send(res, 200, { ok: true, email, password: pw, items: rs.map(r => ({ id: r.id, kind: r.kind, phase: (r.to || r.date) < t ? 'Afgelopen' : (r.from || r.date) <= t ? 'Nu bezig' : 'Gepland', label: r.kind === 'room' ? r.roomName + ' · kamer ' + String(r.roomNo).padStart(2, '0') : r.kind === 'event' ? r.title : 'Vrij atelier Pottery', when: r.kind === 'room' ? r.from + ' → ' + r.to : r.date + (r.time ? ' · ' + r.time : ''), qr: qrCode('R', r.id), valid: validity(r) })) });
+    }
+    if (a === 'demo-login-set') {
+      if (u.role !== 'owner') return send(res, 403, { error: 'Alleen de eigenaar' });
+      await mutate('config', C => { C.demoLogin = !!b.on; });
+      await addLog(u, b.on ? 'Demo-logins aan' : 'Demo-logins uit');
+      return send(res, 200, { ok: true });
     }
     if (a === 'google-set') {
       if (!can(u, 'connect')) return send(res, 403, { error: 'Geen toegang' });

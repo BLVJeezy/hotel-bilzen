@@ -211,6 +211,7 @@ button{cursor:pointer}
  .scan{left:50%;right:auto;top:50%;bottom:auto;width:560px;height:min(860px,92vh);border-radius:28px;border:1px solid #e8d8b826;transform:translate(-50%,-44%);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .25s;padding:20px;box-shadow:0 40px 120px #000c}
  .scan.open{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
 }
+.ghostlink{display:block;margin:18px auto 0;background:none;border:0;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -220,7 +221,8 @@ button{cursor:pointer}
  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
  <symbol id="i-agenda" viewBox="0 0 24 24"><path d="M12 3l2.4 5 5.6.8-4 3.9.9 5.5L12 15.6 7.1 18.2 8 12.7 4 8.8 9.6 8z"/></symbol>
  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
- <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></symbol>
+ <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M15 8l2 2"/></symbol>
+<symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></symbol>
 <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M3 12h17M14 6l6 6-6 6"/></symbol>
  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M8 3v8a3 3 0 0 1-3 3v7M5 3v6M11 3v6M8 9H5M17 3c-2 0-3 3-3 6s1 4 3 4v8"/></symbol>
  <symbol id="i-euro" viewBox="0 0 24 24"><path d="M18 6a7 7 0 1 0 0 12M4 10h10M4 14h10"/></symbol>
@@ -245,6 +247,12 @@ button{cursor:pointer}
  </div>
  <div class="dots" id="dots"><i></i><i></i><i></i><i></i><i></i><i></i></div>
  <div class="pad" id="pad"></div>
+ <button type="button" class="ghostlink" id="pwToggle">Inloggen met e-mail en wachtwoord</button>
+ <form id="pwForm" class="hide" style="margin-top:14px">
+  <label class="field"><span>E-mail of gebruikersnaam</span><input id="pwU" autocomplete="username" autocapitalize="off" placeholder="admin"></label>
+  <label class="field"><span>Wachtwoord</span><input id="pwP" type="password" autocomplete="current-password" placeholder="••••••"></label>
+  <button class="cta full" type="submit">Inloggen</button>
+ </form>
 </section>
 
 <!-- APP -->
@@ -284,6 +292,8 @@ async function api(a,body){const r=await fetch('/api/ops?a='+a,{method:body?'POS
 
 /* ---------- LOGIN ---------- */
 let pin='',setupMode=false,setupFirst=null;
+$('#pwToggle').onclick=()=>{const f=$('#pwForm');f.classList.toggle('hide');$('#pad').classList.toggle('hide');$('#dots').classList.toggle('hide');$('#pwToggle').textContent=f.classList.contains('hide')?'Inloggen met e-mail en wachtwoord':'Inloggen met pincode';if(!f.classList.contains('hide'))$('#pwU').focus()};
+$('#pwForm').onsubmit=async e=>{e.preventDefault();try{const r=await api('login',{email:$('#pwU').value,password:$('#pwP').value});TOKEN=r.token;try{localStorage.setItem('va_ops_t',TOKEN)}catch(x){}start()}catch(x){$('#lgP').textContent=x.message}};
 $('#pad').innerHTML=[1,2,3,4,5,6,7,8,9,'wis',0,'ok'].map(k=>`<button type="button" class="${typeof k==='string'?'ghost':''}" data-k="${k}">${k==='wis'?'Wissen':k==='ok'?'OK':k}</button>`).join('');
 function drawDots(){[...$('#dots').children].forEach((d,i)=>d.classList.toggle('on',i<pin.length))}
 $('#pad').onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.k;
@@ -372,6 +382,12 @@ async function check(code){scanStop();$('#scCam').classList.add('hide');const R=
  if(TAB==='today')reload()}
 
 /* ---------- DEMO ---------- */
+function demoLoginSheet(){openSheet(`<h3>Demo-logins</h3><div class="sub">Om de eigenaars te laten meekijken zonder eigen account.</div>
+ <div class="card"><div class="row"><div class="tx"><small>Ops (eigenaar)</small><b>login: <span style="user-select:all">admin</span> · wachtwoord: <span style="user-select:all">admin</span></b></div></div><div class="row"><div class="tx"><small>Klantportaal</small><b>login: <span style="user-select:all">customer</span> · wachtwoord: <span style="user-select:all">customer</span></b></div></div></div>
+ <p class="k" style="text-transform:none;letter-spacing:0;margin:10px 0 14px">Zet dit uit zodra de echte site live gaat. Dan werken deze logins niet meer.</p>
+ <button class="cta full" id="dls">${S.demoLogin?'Demo-logins uitzetten':'Demo-logins aanzetten'}</button>`);
+ $('#dls').onclick=async()=>{try{await api('demo-login-set',{on:!S.demoLogin});toast('Opgeslagen');closeSheet();await reload();vMore()}catch(e){toast(e.message,1)}}}
+
 function loadQR(){return window.qrcode?Promise.resolve():new Promise(r=>{const s=document.createElement('script');s.src='/lib/qrcode.js';s.onload=r;document.head.appendChild(s)})}
 function demoSheet(){openSheet(`<h3>QR-voorbeelden</h3><div class="sub">Maakt testreservaties op het account van Jason Balongo: een afgelopen, een lopend en een gepland verblijf, plus vrij atelier vandaag en het volgende event. Scan ze daarna met de scanknop.</div><button class="cta full" id="dmk">Maak voorbeelden</button><button class="btn2" style="width:100%;margin-top:8px" id="dcl">Voorbeelden verwijderen</button>`);
  $('#dmk').onclick=async()=>{try{const r=await api('demo-seed',{});await loadQR();const q=t=>{const x=qrcode(0,'M');x.addData(t);x.make();return x.createSvgTag({cellSize:5,margin:2,scalable:true})};
@@ -518,6 +534,7 @@ function vMore(){const P=S.perms,li=(ic,t,sub,fn)=>`<button class="list-btn" onc
  $('#app').innerHTML=`<div class="card">${P.includes('guests')?li('i-team','Gasten',(pend?pend+' open · ':'')+(S.guests||[]).length+' accounts',"guestsView()"):''}${P.includes('agenda')?li('i-agenda','Agenda & events',(S.events||[]).filter(e=>e.date>=TODAY()).length+' komend',"go('agenda')"):''}${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'',"menusView()"):''}</div>
  <div class="sec"><h3>Instellingen</h3></div><div class="card">${P.includes('staff')?li('i-team','Personeel',(S.staff||[]).length+' personen',"staffView()"):''}${P.includes('connect')?li('i-web','Google-login gasten',S.googleEnv||S.googleClientId?'Aan':'Uit',"googleSheet()"):''}${li('i-bell','Meldingen',np==='granted'?'Aan':np==='denied'?'Geblokkeerd':'Uit',"notif()")}${li('i-phone','Zet op beginscherm','',"installSheet()")}${P.includes('log')?li('i-log','Logboek','',"logView()"):''}</div>
  <div class="card">${li('i-web','Open de website','',"window.open('/','_blank')")}${li('i-out','Uitloggen','',"logout()")}</div>
+ ${S.user.role==='owner'?`<div class="sec"><h3>Demo</h3></div><div class="card">${li('i-key','Demo-logins',S.demoLogin?'Aan · admin/admin & customer/customer':'Uit',"demoLoginSheet()")}</div>`:''}
  ${S.user.role==='owner'?`<p class="k" style="text-align:center;margin-top:16px"><button onclick="demoSheet()" style="background:none;border:0;color:var(--muted);font:inherit;text-decoration:underline">Testreservaties met QR aanmaken</button></p>`:''}
  ${S.store===false?'<div class="warn" style="max-width:none">Opslag is nog niet gekoppeld in Vercel. Wijzigingen worden nog niet bewaard.</div>':''}
  <p class="k" style="text-align:center;margin-top:18px">Villa Amano · Operations center v1</p>`}
