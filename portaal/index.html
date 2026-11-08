@@ -57,6 +57,7 @@ button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:i
 .hello{margin:6px 2px 18px}.hello h1{font-size:34px}.hello p{margin:2px 0 0;color:var(--muted)}
 .card{border:1px solid var(--line);border-radius:24px;background:linear-gradient(160deg,#ffffff0b,#ffffff03);padding:16px;margin-bottom:12px}
 .sec{display:flex;justify-content:space-between;align-items:baseline;margin:24px 4px 10px}.sec h3{font-size:22px}.sec a,.sec button{font-size:12.5px;color:var(--gold2);background:none;border:0}
+.back{height:36px;font-size:13px;margin-bottom:12px}
 .ok{border:1px solid #9fc7a866;background:#9fc7a814;border-radius:18px;padding:12px 14px;margin-bottom:14px;display:flex;gap:10px;align-items:center;font-size:14px}
 .ok svg{width:22px;height:22px;stroke:var(--green);fill:none;stroke-width:1.6;flex:none}
 .stay{position:relative;border-radius:26px;overflow:hidden;border:1px solid color-mix(in srgb,var(--t) 45%,#ffffff1a);margin-bottom:12px;background:#1a1512}
@@ -258,14 +259,16 @@ function showAuth(){gInit();$('#auth').classList.remove('hide');$('#shell').clas
 function logout(silent){T=null;try{localStorage.removeItem('va_g_t')}catch(e){}if(!silent)toast('Uitgelogd');showAuth()}
 
 /* shell */
-const TABS=[['home','Home','i-home'],['boekingen','Boekingen','i-cal'],['leden','Abonnementen','i-card'],['ontdek','Ontdek','i-map'],['account','Account','i-user']];
+const TABS=[['home','Home','i-home'],['boekingen','Boekingen','i-cal'],['account','Account','i-user']];
+const SUB={leden:['Lidkaart & abonnementen','account'],ontdek:['In de buurt','home']};
 async function start(){try{D=await api('g-me')}catch(e){return}
  $('#auth').classList.add('hide');$('#shell').classList.remove('hide');$('#av').textContent=(D.me.name||'?')[0].toUpperCase();
  $('#tabs').innerHTML=`<div class="sb-top"><img src="/img/logo_full.png" alt="Villa Amano" onerror="this.src='/img/logo_a.png'"><span class="caps">Mijn Villa Amano</span></div>`+TABS.map(t=>`<button data-t="${t[0]}"><svg><use href="#${t[2]}"/></svg>${t[1]}</button>`).join('')+`<div class="sb-me"><span class="av">${esc((D.me.name||'?')[0].toUpperCase())}</span><div><b>${esc(D.me.name)}</b><small>${esc(D.me.memberNo)}</small></div></div><a class="sb-web" href="/">← Naar de website</a>`;
  $('#tabs').onclick=e=>{const b=e.target.closest('button[data-t]');if(b)go(b.dataset.t)};
- const h=location.hash.slice(1);go(TABS.some(t=>t[0]===h)?h:'home');
+ const h=location.hash.slice(1);go(h||'home');
  if('serviceWorker' in navigator)navigator.serviceWorker.register('/portaal/sw.js').catch(()=>{});maybeInstall()}
-function go(t){TAB=t;history.replaceState(null,'',location.pathname+location.search+'#'+t);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$('#title').textContent=TABS.find(x=>x[0]===t)[1];scrollTo(0,0);render()}
+function go(t){if(!TABS.some(x=>x[0]===t)&&!SUB[t])t='home';TAB=t;history.replaceState(null,'',location.pathname+location.search+'#'+t);const par=SUB[t]?SUB[t][1]:t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===par));$('#title').textContent=SUB[t]?SUB[t][0]:TABS.find(x=>x[0]===t)[1];scrollTo(0,0);render();
+ if(SUB[t]){const b=document.createElement('button');b.className='b2 back';b.textContent='← Terug';b.onclick=()=>go(SUB[t][1]);$('#app').prepend(b)}}
 function render(){({home:vHome,boekingen:vBook,leden:vMem,ontdek:vDisc,account:vAcc})[TAB]()}
 async function reload(){try{D=await api('g-me');render()}catch(e){}}
 const KN=r=>r.kind==='room'?r.roomName:r.kind==='event'?r.title:r.kind==='lessen'?'Lessenreeks':'Vrij atelier';
@@ -278,7 +281,7 @@ function vHome(){const t=D.today,rs=D.reservations.filter(r=>r.status!=='geannul
  const pot=rs.filter(r=>r.kind!=='room'&&r.date>=t).slice(0,3);
  const nw=new URLSearchParams(location.search).get('nieuw');const nr=nw&&D.reservations.find(r=>r.id===nw);
  const h=new Date().getHours(),hi=h<12?'Goedemorgen':h<18?'Goedemiddag':'Goedenavond';
- let x=`<div class="hello"><h1>${hi}, ${esc(D.me.name.split(' ')[0])}</h1><p>Rest · Create · Be</p></div>`;
+ let x=`<div class="hello"><h1>${hi}, ${esc(D.me.name.split(' ')[0])}</h1></div>`;
  if(nr)x+=`<div class="ok"><svg><use href="#i-check"/></svg><div><b>Reservatie bevestigd</b><br><span style="color:var(--muted);font-size:13px">${nr.kind==='room'?esc(nr.roomName)+' · '+nice(nr.from)+' → '+nice(nr.to):(nr.kind==='lessen'?'Lessenreeks':'Vrij atelier')+' · '+nice(nr.date)} · ${fmt(nr.total)}</span></div></div>`;
  x+=`<div class="hg"><div class="hcol">`;
  if(!D.me.phone)x+=`<div class="ok" style="border-color:#e6b86666;background:#e6b86612;cursor:pointer" onclick="profileSheet()"><svg style="stroke:var(--gold)"><use href="#i-phone"/></svg><div><b>Voeg je telefoonnummer toe</b><br><span style="color:var(--muted);font-size:13px">Zo kunnen we je bereiken rond je verblijf.</span></div></div>`;
@@ -334,17 +337,13 @@ function needSheet(pre){openSheet(`<h3>Iets nodig?</h3><div class="sub">We breng
  let sel=pre||'';const mark=()=>document.querySelectorAll('#nc button').forEach(b=>{const on=b.dataset.n===sel;b.style.borderColor=on?'var(--gold)':'';b.style.background=on?'#e6b86622':''});mark();
  $('#nc').onclick=e=>{const b=e.target.closest('button');if(b){sel=b.dataset.n;mark()}};
  $('#ns').onclick=async()=>{if(!sel){toast('Kies wat je nodig hebt',1);return}try{await api('g-request',{type:sel,text:$('#nt').value});closeSheet();toast('Verstuurd ✓ We zijn onderweg');reload()}catch(e){toast(e.message,1)}}}
-function vDisc(){const rq=(D.requests||[]).slice(0,5);
- $('#app').innerHTML=`<div class="dwrap"><div><div class="sec" style="margin-top:4px"><h3>Iets extra nodig?</h3></div><div class="card"><div class="chips">${NEED.map(([ic,t])=>`<button data-q="${t}"><svg><use href="#${ic}"/></svg>${t}</button>`).join('')}</div>
- ${rq.length?`<div style="margin-top:12px">${rq.map(r=>`<div class="row"><div class="tx"><b>${esc(r.type)}</b><small>${new Date(r.created).toLocaleString('nl-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${r.text?' · '+esc(r.text):''}</small></div><div class="rt">${r.status==='klaar'?'<span class="pill g">Geregeld</span>':'<span class="pill y">Bezig</span>'}</div></div>`).join('')}</div>`:''}</div>
-</div><div><div class="sec" style="margin-top:4px"><h3>In de buurt</h3></div><div class="card">${NEAR.map(([e,b,s,d,q])=>`<div class="nb"><span class="ic">${e}</span><div class="tx"><b>${b}</b><small>${s}</small><small style="color:var(--gold2);margin-top:2px">${d}</small></div><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}" target="_blank" rel="noopener">Route →</a></div>`).join('')}</div>
- <div class="sec"><h3>Bij Villa Amano</h3><a href="/#agenda">Agenda →</a></div><div class="card" id="evs"><div class="empty">Laden…</div></div></div></div>`;
- $('#app').querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>needSheet(b.dataset.q));
- fetch('/api/ops?a=events').then(r=>r.json()).then(j=>{const ev=(j.events||[]).filter(e=>e.date>=D.today).slice(0,4);$('#evs').innerHTML=ev.length?ev.map(e=>`<div class="row"><span class="ic"><svg><use href="#i-cal"/></svg></span><div class="tx"><b>${esc(e.title)}</b><small>${nice(e.date)} · ${esc(e.time)}</small></div><div class="rt">${esc(e.price)}</div></div>`).join(''):'<div class="empty">Binnenkort nieuwe events.</div>'}).catch(()=>{$('#evs').innerHTML='<div class="empty">Bekijk de agenda op de website.</div>'})}
+function vDisc(){
+ $('#app').innerHTML=`<div class="awrap"><div class="card">${NEAR.map(([e,b,s,d,q])=>`<div class="nb"><span class="ic">${e}</span><div class="tx"><b>${b}</b><small>${s}</small><small style="color:var(--gold2);margin-top:2px">${d}</small></div><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}" target="_blank" rel="noopener">Route →</a></div>`).join('')}</div></div>`}
 
 /* ACCOUNT */
 function vAcc(){const li=(ic,t,s,act)=>`<div class="row" ${act?`onclick="${act}" style="cursor:pointer"`:''}><span class="ic"><svg><use href="#${ic}"/></svg></span><div class="tx"><b>${t}</b><small>${s}</small></div><div class="rt">${act?'→':''}</div></div>`;
  $('#app').innerHTML=`<div class="awrap"><div class="card"><div class="row"><span class="ic" style="background:linear-gradient(120deg,#f6dfa4,#c98d3e);color:#24180e;font:500 16px var(--sans)">${esc(D.me.name[0])}</span><div class="tx"><b>${esc(D.me.name)}</b><small>${esc(D.me.email)}${D.me.phone?' · '+esc(D.me.phone):''}</small></div><div class="rt"><button class="b2" style="height:34px" onclick="profileSheet()">Wijzig</button></div></div></div>
+ <div class="card" style="margin-top:12px">${li('i-card','Lidkaart & abonnementen',(()=>{const a=Object.entries(D.me.memberships||{}).filter(([,m])=>m.status==='actief').map(([k])=>(D.plans[k]||{}).name||k);return a.length?a.join(', '):'Pottery House · Wellness · Amano Club'})(),"go('leden')")}</div>
  <div class="sec"><h3>Contact</h3></div><div class="card">${li('i-mail','E-mail',MAIL,`location.href='mailto:${MAIL}'`)}${li('i-pin','Adres',ADDR,`window.open('${MAPS}','_blank')`)}${li('i-clock','Receptie','Check-in 15:00 – 21:00 · check-out 11:00')}</div>
  <div class="sec"><h3>App</h3></div><div class="card">${STANDALONE()?'':li('i-phone','Zet op je beginscherm','Open Villa Amano als app',"installSheet()")}${li('i-home','Naar de website','villa-amano',"location.href='/'")}${li('i-out','Uitloggen','',"logout()")}</div></div>`}
 function profileSheet(){openSheet(`<h3>Je gegevens</h3><div class="sub">${esc(D.me.email)}</div><label class="f"><span>Naam</span><input id="pn" value="${esc(D.me.name)}"></label><label class="f"><span>Telefoon</span><input id="pp" type="tel" value="${esc(D.me.phone||'')}"></label><label class="f"><span>Nieuw wachtwoord (optioneel)</span><input id="pw" type="password" placeholder="Leeg = behouden"></label><button class="cta full" id="ps">Opslaan</button>`);

@@ -305,7 +305,7 @@ async function showLogin(){$('#login').classList.remove('hide');$('#shell').clas
 function logout(silent){TOKEN=null;try{localStorage.removeItem('va_ops_t')}catch(e){}clearInterval(pollT);if(!silent)toast('Uitgelogd');showLogin()}
 
 /* ---------- SHELL ---------- */
-const TABDEF=[['today','Vandaag','i-today'],['orders','Bestellingen','i-orders'],['calendar','Kalender','i-cal'],['agenda','Agenda','i-agenda'],['more','Meer','i-more']];
+const TABDEF=[['today','Vandaag','i-today'],['orders','Bestellingen','i-orders'],['calendar','Kalender','i-cal'],['more','Meer','i-more']];
 async function start(){try{S=await api('bootstrap')}catch(e){return}
  $('#login').classList.add('hide');$('#shell').classList.remove('hide');
  S.orders.forEach(o=>seenOrders.add(o.id));
@@ -317,7 +317,7 @@ async function start(){try{S=await api('bootstrap')}catch(e){return}
  if('serviceWorker' in navigator)navigator.serviceWorker.register('/ops/sw.js').catch(()=>{});
  clearInterval(pollT);pollT=setInterval(poll,8000);badge()}
 function go(t){TAB=t;history.replaceState(null,'','#'+t);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
- $('#title').textContent=TABDEF.find(x=>x[0]===t)[1];scrollTo(0,0);render()}
+ $('#title').textContent=(TABDEF.find(x=>x[0]===t)||[0,'Agenda'])[1];scrollTo(0,0);render();if(!document.querySelector(`#tabs button[data-t="${t}"]`)&&TAB==='agenda'){const b=document.createElement('button');b.className='btn2';b.style.cssText='margin-bottom:12px';b.textContent='← Terug';b.onclick=()=>go('more');$('#app').prepend(b);document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t==='more'))}}
 const WIDE=()=>matchMedia('(min-width:1024px)').matches;
 addEventListener('resize',()=>{const w=WIDE();if(w!==WIDE.last){WIDE.last=w;if(TAB&&S.user)render()}});
 function render(){({today:vToday,orders:vOrders,calendar:vCal,agenda:vAgenda,more:vMore})[TAB]();if(TAB==='today')pairUp()}
@@ -515,8 +515,10 @@ function eventSheet(e){e=e||{date:TODAY(),cat:'event',time:'',title:'',text:'',p
 function vMore(){const P=S.perms,li=(ic,t,sub,fn)=>`<button class="list-btn" onclick="${fn}"><svg><use href="#${ic}"/></svg><span>${t}</span><em>${sub||''}</em><svg style="width:16px;stroke:var(--muted)"><use href="#i-arrow"/></svg></button>`;
  const np='Notification' in window?Notification.permission:'unsupported';
  const pend=P.includes('guests')?(S.guests||[]).reduce((n,g)=>n+Object.values(g.memberships||{}).filter(m=>m.status==='aangevraagd').length,0)+(S.requests||[]).filter(r=>r.status!=='klaar').length:0;
- $('#app').innerHTML=`<div class="card">${P.includes('guests')?li('i-team','Gasten & abonnementen',(pend?pend+' open · ':'')+(S.guests||[]).length+' accounts',"guestsView()"):''}${S.user.role==='owner'?li('i-scan','QR-voorbeelden','Testreservaties',"demoSheet()"):''}${P.includes('connect')?li('i-web','Google-login gasten',S.googleEnv||S.googleClientId?'Aan':'Niet ingesteld',"googleSheet()"):''}${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'Aan/uit & inhoud',"menusView()"):''}${P.includes('staff')?li('i-team','Personeel',(S.staff||[]).length+' personen',"staffView()"):''}${P.includes('log')?li('i-log','Logboek','Wie deed wat',"logView()"):''}</div>
- <div class="card">${li('i-bell','Meldingen',np==='granted'?'Aan':np==='denied'?'Geblokkeerd':'Uit',"notif()")}${li('i-phone','Zet op beginscherm','',"installSheet()")}${li('i-web','Open de website','',"window.open('/','_blank')")}${li('i-out','Uitloggen','',"logout()")}</div>
+ $('#app').innerHTML=`<div class="card">${P.includes('guests')?li('i-team','Gasten',(pend?pend+' open · ':'')+(S.guests||[]).length+' accounts',"guestsView()"):''}${P.includes('agenda')?li('i-agenda','Agenda & events',(S.events||[]).filter(e=>e.date>=TODAY()).length+' komend',"go('agenda')"):''}${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'',"menusView()"):''}</div>
+ <div class="sec"><h3>Instellingen</h3></div><div class="card">${P.includes('staff')?li('i-team','Personeel',(S.staff||[]).length+' personen',"staffView()"):''}${P.includes('connect')?li('i-web','Google-login gasten',S.googleEnv||S.googleClientId?'Aan':'Uit',"googleSheet()"):''}${li('i-bell','Meldingen',np==='granted'?'Aan':np==='denied'?'Geblokkeerd':'Uit',"notif()")}${li('i-phone','Zet op beginscherm','',"installSheet()")}${P.includes('log')?li('i-log','Logboek','',"logView()"):''}</div>
+ <div class="card">${li('i-web','Open de website','',"window.open('/','_blank')")}${li('i-out','Uitloggen','',"logout()")}</div>
+ ${S.user.role==='owner'?`<p class="k" style="text-align:center;margin-top:16px"><button onclick="demoSheet()" style="background:none;border:0;color:var(--muted);font:inherit;text-decoration:underline">Testreservaties met QR aanmaken</button></p>`:''}
  ${S.store===false?'<div class="warn" style="max-width:none">Opslag is nog niet gekoppeld in Vercel. Wijzigingen worden nog niet bewaard.</div>':''}
  <p class="k" style="text-align:center;margin-top:18px">Villa Amano · Operations center v1</p>`}
 async function notif(){if(!('Notification' in window)){toast('Meldingen werken op iPhone pas als de app op je beginscherm staat',1);return}const p=await Notification.requestPermission();toast(p==='granted'?'Meldingen aan ✓':'Meldingen niet toegestaan',p!=='granted');if(p==='granted')chime();vMore()}
