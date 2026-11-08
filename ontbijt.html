@@ -151,16 +151,14 @@ footer{text-align:center;color:#6d6153;font-size:11.5px;margin-top:40px}
  </div>
 
  <section>
-  <span class="k">1 · Je kamernummer</span>
-  <div class="card">
+  <span class="k">1 · Je kamer</span>
+  <div class="card" id="roomCard">
    <div class="room-in">
-    <input id="room" type="number" inputmode="numeric" min="1" max="5" placeholder="–" aria-label="Kamernummer">
-    <div class="room-name" id="roomName"><b>Kamer</b><small>Vul je kamernummer in (1 – 5)</small></div>
+    <div id="roomBadge" style="width:76px;height:76px;border-radius:20px;border:1px solid var(--line);display:grid;place-items:center;font:400 30px var(--serif);flex:none">–</div>
+    <div class="room-name" id="roomName"><b>Even kijken…</b><small>We halen je verblijf op</small></div>
    </div>
-   <div class="room-chips" id="chips"></div>
   </div>
  </section>
-
  <section>
   <span class="k">2 · Kies je menu</span>
   <div class="cf" id="cf"><div class="stage" id="stage"></div><div class="dots" id="dots"></div></div>
@@ -188,7 +186,7 @@ footer{text-align:center;color:#6d6153;font-size:11.5px;margin-top:40px}
  <section>
   <span class="k">Overzicht</span>
   <div class="card sum" id="sum"></div>
-  <p class="note">Wordt aangerekend op je kamer. Bestel uiterlijk 30 min. vooraf.</p>
+  <p class="note" id="payNote">Wordt automatisch op je kamerrekening gezet en bij check-out afgerekend. Bestel uiterlijk 30 min. vooraf.</p>
  </section>
  <footer>Villa Amano · Wijsstraat 1, Bilzen-Hoeselt · Ontwerpdemo – bestellingen worden nog niet verzonden.</footer>
 </main>
@@ -220,16 +218,17 @@ const st={room:null,qty:{classic:0,green:0,med:0},time:'08:30',where:'kamer',sug
 const $=id=>document.getElementById(id),fmt=n=>'€ '+n.toLocaleString('nl-BE',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2});
 
 // room
-const ri=$('room');
-$('chips').innerHTML=Object.entries(ROOMS).map(([n,[nm,c]])=>`<button type="button" data-n="${n}" style="--t:${c}"><i></i>${n} · ${nm}</button>`).join('');
-function setRoom(v){const n=parseInt(v,10),r=ROOMS[n],el=$('roomName');
-  st.room=r?n:null;el.classList.toggle('err',!!v&&!r);
-  el.innerHTML=r?`<b>${r[0]}</b><small>Kamer ${String(n).padStart(2,'0')}</small>`:`<b>Kamer</b><small>${v?'Onbekend kamernummer — kies 1 tot 5':'Vul je kamernummer in (1 – 5)'}</small>`;
-  ri.style.borderColor=r?r[1]:'';document.querySelectorAll('#chips button').forEach(b=>b.classList.toggle('on',+b.dataset.n===st.room));update()}
-ri.addEventListener('input',()=>setRoom(ri.value));
-$('chips').onclick=e=>{const b=e.target.closest('button');if(b){ri.value=b.dataset.n;setRoom(b.dataset.n)}};
-const qp=new URLSearchParams(location.search).get('kamer')||location.hash.replace('#kamer-','');if(ROOMS[qp]){ri.value=qp;setRoom(qp)}
-else{try{const gt=localStorage.getItem('va_g_t');if(gt)fetch('/api/ops?a=g-me',{headers:{authorization:'Bearer '+gt}}).then(r=>r.ok?r.json():null).then(j=>{if(!j||ri.value)return;const s=(j.reservations||[]).find(r=>r.kind==='room'&&r.status!=='geannuleerd'&&r.from<=j.today&&r.to>=j.today);if(s&&ROOMS[s.roomNo]){ri.value=s.roomNo;setRoom(String(s.roomNo))}})}catch(e){}}
+let STAY=null,GT=null;try{GT=localStorage.getItem('va_g_t')}catch(e){}
+function lock(title,sub,btn,href){$('roomName').innerHTML=`<b>${title}</b><small>${sub}</small>`;$('roomBadge').textContent='!';$('roomBadge').style.borderColor='#e8a0a0';
+  if(btn){const a=document.createElement('a');a.className='cta';a.style.cssText='margin:14px 0 0;display:inline-flex;text-decoration:none';a.href=href;a.textContent=btn;$('roomCard').appendChild(a)}
+  document.querySelectorAll('section').forEach((x,i)=>{if(i>0)x.style.opacity='.35';});$('send').disabled=true;st.room=null;update()}
+function setStay(s2){STAY=s2;const r=ROOMS[s2.roomNo];st.room=s2.roomNo;$('roomBadge').textContent=s2.roomNo;$('roomBadge').style.borderColor=r[1];$('roomBadge').style.color=r[1];
+  $('roomName').innerHTML=`<b>${r[0]}</b><small>Kamer ${String(s2.roomNo).padStart(2,'0')} · ${s2.guests} gast${s2.guests>1?'en':''}${s2.extras&&s2.extras.ontbijt?' · ontbijt inbegrepen':''}</small>`;update()}
+const nextDay=()=>{const n=new Date(),d=n.getHours()>=11?new Date(n.getTime()+864e5):n;return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+if(!GT)lock('Log eerst in','Ontbijt bestel je via je Villa Amano-account.','Naar mijn account','/portaal/#home');
+else fetch('/api/ops?a=g-me',{headers:{authorization:'Bearer '+GT}}).then(r=>r.ok?r.json():null).then(j=>{if(!j){lock('Log opnieuw in','Je sessie is verlopen.','Naar mijn account','/portaal/#home');return}
+  const d=nextDay();const s2=(j.reservations||[]).filter(r=>r.kind==='room'&&r.status!=='geannuleerd'&&r.from<d&&r.to>=d).sort((a,b)=>a.from<b.from?1:-1)[0];
+  if(!s2){lock('Geen verblijf gevonden','Ontbijt bestel je vanaf de ochtend na aankomst tot en met je vertrekdag.','Mijn boekingen','/portaal/#boekingen');return}setStay(s2)}).catch(()=>lock('Geen verbinding','Probeer het zo opnieuw.'));
 
 // coverflow
 const stage=$('stage');
@@ -288,22 +287,24 @@ function update(){
   document.querySelectorAll('#diet button').forEach(b=>b.classList.toggle('on',st.diet.has(b.dataset.d)));
   const [h,tot]=sumHTML();$('sum').innerHTML=h;
   const pers=Object.values(st.qty).reduce((a,b)=>a+b,0);
-  $('barTot').textContent=fmt(tot);
-  $('barSub').textContent=pers?`${pers} ontbijt${pers>1?'en':''} · ${st.time}${st.room?' · '+ROOMS[st.room][0]:''}`:'Nog niets gekozen';
-  $('send').disabled=!pers;
+  const incl=STAY&&STAY.extras&&STAY.extras.ontbijt?Math.min(pers,STAY.guests||1):0;
+  let due=tot;if(incl){let left=incl;MENUS.forEach(m=>{const q=st.qty[m.id]||0,f=Math.min(left,q);left-=f;due-=f*m.p})}
+  $('barTot').textContent=due>0?fmt(due):(pers?'Inbegrepen':'€ 0');
+  $('barSub').textContent=pers?`${pers} ontbijt${pers>1?'en':''} · ${st.time}${incl?' · '+incl+' inbegrepen':''}${due>0?' · op je kamerrekening':''}`:'Nog niets gekozen';
+  $('send').disabled=!pers||!STAY;
 }
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600)}
 const SUGID=['prosecco','jus','benedict','bday'];
 $('send').onclick=async()=>{
-  if(!st.room){toast('Vul eerst je kamernummer in.');ri.focus();ri.scrollIntoView({behavior:'smooth',block:'center'});return}
+  if(!st.room||!STAY){toast('Geen actief verblijf gevonden.');return}
   const btn=$('send');btn.disabled=true;let nr;
   try{const n=new Date(),d=n.getHours()>=11?new Date(n.getTime()+864e5):n;
-    let gt=null;try{gt=localStorage.getItem('va_g_t')}catch(e){}
-    const r=await fetch('/api/ops?a=order',{method:'POST',headers:{'content-type':'application/json',...(gt?{authorization:'Bearer '+gt}:{})},body:JSON.stringify({room:st.room,date:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,time:st.time,where:st.where,
+    const gt=GT;
+    const r=await fetch('/api/ops?a=order',{method:'POST',headers:{'content-type':'application/json',...(gt?{authorization:'Bearer '+gt}:{})},body:JSON.stringify({date:nextDay(),time:st.time,where:st.where,
       items:MENUS.filter(m=>st.qty[m.id]).map(m=>({id:m.id,qty:st.qty[m.id]})),extras:[...st.sug].map(i=>SUGID[i]),diet:[...st.diet],note:$('note').value.trim()})});
-    const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Bestellen lukte niet');nr=j.id;
+    const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Bestellen lukte niet');nr=j.id;window.LAST=j;
   }catch(e){btn.disabled=false;toast(e.message+' · probeer opnieuw of bel de receptie.');return}
-  $('doneTxt').innerHTML=`Je ontbijt wordt om <b>${st.time}</b> ${st.where==='kamer'?'naar <b>'+ROOMS[st.room][0]+'</b> gebracht':'op het terras geserveerd'}. Bestelnummer <b>${nr}</b>.`;
+  $('doneTxt').innerHTML=`Je ontbijt wordt om <b>${st.time}</b> ${st.where==='kamer'?'naar <b>'+ROOMS[st.room][0]+'</b> gebracht':'op het terras geserveerd'}. Bestelnummer <b>${nr}</b>.<br>${LAST.total>0?'<b>'+fmt(LAST.total)+'</b> staat op je kamerrekening':'Inbegrepen in je verblijf'}${LAST.included&&LAST.total>0?' ('+LAST.included+' ontbijt inbegrepen)':''}.`;
   const note=$('note').value.trim();
   $('recap').innerHTML=sumHTML()[0]+(note?`<div class="row" style="margin-top:8px"><span>Opmerking</span><span style="max-width:60%;text-align:right">${note.replace(/</g,'&lt;')}</span></div>`:'');
   $('done').classList.add('show');scrollTo(0,0);

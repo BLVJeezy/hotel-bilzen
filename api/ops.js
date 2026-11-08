@@ -178,26 +178,39 @@ module.exports = async (req, res) => {
     if (a === 'order' && req.method === 'POST') {
       const b = await body(req);
       const gu = verify((req.headers.authorization || '').replace(/^Bearer /, ''));
-      const room = parseInt(b.room, 10);
-      if (!(room >= 1 && room <= 5)) return send(res, 400, { error: 'Ongeldig kamernummer' });
-      const { data: M } = await load('menus');
-      const items = (b.items || []).map(x => {
+      if (!gu || gu.role !== 'guest') return send(res, 401, { error: 'Log in via je portaal om ontbijt te bestellen' });
+      const date = isDate(b.date) ? b.date : new Date(Date.now() + 3600e3).toISOString().slice(0, 10);
+      const { data: G } = await load('guests');
+      const stay = G.reservations.filter(r => r.guestId === gu.gid && r.kind === 'room' && r.status !== 'geannuleerd' && r.from < date && r.to >= date).sort((x, y) => x.from < y.from ? 1 : -1)[0];
+      if (!stay) return send(res, 409, { error: 'Geen verblijf gevonden voor die dag. Ontbijt kan je bestellen vanaf de ochtend na aankomst tot en met je vertrekdag.' });
+      const room = stay.roomNo;
+      const { data: M } = await load('menus'), { data: O0 } = await load('orders');
+      let items = (b.items || []).map(x => {
         const m = M.menus.find(y => y.id === x.id && y.active);
         const q = Math.max(0, Math.min(6, parseInt(x.qty, 10) || 0));
         return m && q ? { id: m.id, name: m.name, qty: q, price: m.price } : null;
       }).filter(Boolean);
       if (!items.length) return send(res, 400, { error: 'Kies minstens één menu' });
+      // ontbijt inbegrepen in het verblijf: zoveel menu's gratis als er gasten zijn, per dag
+      let incl = 0;
+      if (stay.extras && stay.extras.ontbijt) {
+        const used = O0.orders.filter(o => o.reservationId === stay.id && o.date === date && o.status !== 'geannuleerd').reduce((n, o) => n + (o.included || 0), 0);
+        incl = Math.max(0, (stay.guests || 1) - used);
+      }
+      let left = incl, included = 0;
+      items = items.map(it => { const f = Math.min(left, it.qty); left -= f; included += f; return { ...it, free: f, line: (it.qty - f) * it.price }; });
       const extras = (b.extras || []).map(eid => M.extras.find(y => y.id === eid && y.active)).filter(Boolean).map(e => ({ id: e.id, name: e.name, price: e.price }));
-      const total = items.reduce((s, x) => s + x.qty * x.price, 0) + extras.reduce((s, x) => s + x.price, 0);
+      const total = items.reduce((s, x) => s + x.line, 0) + extras.reduce((s, x) => s + x.price, 0);
       const order = {
         id: 'VA-' + Date.now().toString().slice(-6), created: Date.now(), status: 'nieuw',
-        room, roomName: ROOM_NAMES[ROOMS[room - 1]], date: isDate(b.date) ? b.date : new Date(Date.now() + 3600e3).toISOString().slice(0, 10),
+        room, roomName: ROOM_NAMES[ROOMS[room - 1]], date,
         time: /^\d{2}:\d{2}$/.test(b.time) ? b.time : '08:30', where: b.where === 'terras' ? 'terras' : 'kamer',
-        guestId: gu && gu.role === 'guest' ? gu.gid : null, items, extras, diet: (b.diet || []).map(d => clean(d, 40)).slice(0, 6), note: clean(b.note, 300), total,
+        guestId: gu.gid, guestName: stay.guestName, reservationId: stay.id, items, extras, diet: (b.diet || []).map(d => clean(d, 40)).slice(0, 6), note: clean(b.note, 300), total, included, payment: 'kamerrekening',
       };
       await mutate('orders', d => { d.orders.unshift(order); d.orders = d.orders.slice(0, 600); });
-      await addLog(null, `Nieuwe ontbijtbestelling ${order.id} · kamer ${room}`);
-      return send(res, 200, { ok: true, id: order.id });
+      if (total > 0) await mutate('guests', d => { const r = d.reservations.find(x => x.id === stay.id); if (r) { r.charges = r.charges || []; r.charges.push({ id: order.id, label: 'Ontbijt ' + date, amount: total, t: Date.now() }); } });
+      await addLog(null, `Nieuwe ontbijtbestelling ${order.id} · kamer ${room} · ${stay.guestName} · € ${total}`);
+      return send(res, 200, { ok: true, id: order.id, total, included, room, roomName: order.roomName });
     }
     if (a === 'ical') {
       const room = url.searchParams.get('room');
@@ -307,7 +320,7 @@ module.exports = async (req, res) => {
         if (!g) return send(res, 401, { error: 'Log opnieuw in' });
         return send(res, 200, {
           me: { name: g.name, email: g.email, phone: g.phone, memberships: g.memberships || {}, memberNo: 'VA-' + g.id.slice(0, 6).toUpperCase(), qr: qrCode('M', g.id) },
-          reservations: G.reservations.filter(r => r.guestId === gid).map(r => ({ ...r, qr: qrCode('R', r.id), valid: validity(r), lastScan: (r.scans || [])[0] || null })).sort((x, y) => ((x.from || x.date) < (y.from || y.date) ? -1 : 1)),
+          reservations: G.reservations.filter(r => r.guestId === gid).map(r => ({ ...r, qr: qrCode('R', r.id), valid: validity(r), lastScan: (r.scans || [])[0] || null, extraTotal: (r.charges || []).reduce((n, c) => n + c.amount, 0) })).sort((x, y) => ((x.from || x.date) < (y.from || y.date) ? -1 : 1)),
           requests: G.requests.filter(r => r.guestId === gid).slice(0, 30),
           orders: O.orders.filter(o => o.guestId === gid).slice(0, 30), plans: PLANS, today: today(),
         });
@@ -405,7 +418,9 @@ module.exports = async (req, res) => {
       if (!can(u, 'orders')) return send(res, 403, { error: 'Geen toegang' });
       const st = ['nieuw', 'bereiding', 'geleverd', 'geannuleerd'].includes(b.status) ? b.status : null;
       if (!st) return send(res, 400, { error: 'Ongeldige status' });
-      await mutate('orders', d => { const o = d.orders.find(x => x.id === b.id); if (o) { o.status = st; o.by = u.name; o.updated = Date.now(); } });
+      let oc = null;
+      await mutate('orders', d => { const o = d.orders.find(x => x.id === b.id); if (o) { o.status = st; o.by = u.name; o.updated = Date.now(); oc = o; } });
+      if (oc && oc.reservationId) await mutate('guests', d => { const r = d.reservations.find(x => x.id === oc.reservationId); if (!r) return; r.charges = (r.charges || []).filter(c => c.id !== oc.id); if (st !== 'geannuleerd' && oc.total > 0) r.charges.push({ id: oc.id, label: 'Ontbijt ' + oc.date, amount: oc.total, t: oc.created }); });
       await addLog(u, `Bestelling ${b.id} → ${st}`);
       return send(res, 200, { ok: true });
     }
