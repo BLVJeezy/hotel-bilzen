@@ -1,9 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-  <url><loc>https://hotel-bilzen.vercel.app/</loc><changefreq>weekly</changefreq><priority>1.0</priority>
-    <image:image><image:loc>https://hotel-bilzen.vercel.app/img/og.jpg</image:loc></image:image>
-    <image:image><image:loc>https://hotel-bilzen.vercel.app/img/rose-1.jpg</image:loc></image:image>
-    <image:image><image:loc>https://hotel-bilzen.vercel.app/img/moon-1.jpg</image:loc></image:image>
-    <image:image><image:loc>https://hotel-bilzen.vercel.app/img/ame-1.jpg</image:loc></image:image>
-  </url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url><loc>https://hotel-bilzen.vercel.app/agenda/</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/agenda/kerstavond-brunch</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/agenda/kerstbrunch</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/agenda/kerstkommen-workshop</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/agenda/kerstmarkt</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/agenda/oudejaar</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/agenda/raku-avond</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/agenda/retreatdag</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/agenda/sound-bath</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/algemene-voorwaarden</loc><lastmod>2026-11-10</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/cadeaubon</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/contact</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/cookies</loc><lastmod>2026-11-10</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/en/</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/faq</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/fr/</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>1.0</priority><xhtml:link rel="alternate" hreflang="nl" href="https://hotel-bilzen.vercel.app/"/><xhtml:link rel="alternate" hreflang="en" href="https://hotel-bilzen.vercel.app/en"/><xhtml:link rel="alternate" hreflang="fr" href="https://hotel-bilzen.vercel.app/fr"/></url>
+  <url><loc>https://hotel-bilzen.vercel.app/kamers/amethyst</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/kamers/clear-quartz</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/kamers/</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/kamers/moonstone</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/kamers/rose-quartz</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/kamers/sunstone</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/omgeving/alden-biesen</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/omgeving/haspengouw-fietsen</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/omgeving/hasselt</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/omgeving/</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/omgeving/maastricht</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/omgeving/tongeren</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/ontbijt-info</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/over-ons</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/pottery-house</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/praktisch</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/privacy</loc><lastmod>2026-11-10</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/retreats</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/reviews</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/shop</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/therapy</loc><lastmod>2026-11-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hotel-bilzen.vercel.app/wellness</loc><lastmod>2026-11-10</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
 </urlset>
