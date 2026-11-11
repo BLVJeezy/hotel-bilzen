@@ -329,6 +329,12 @@ input:focus,select:focus{outline:none;border-color:var(--beige)}
 .cf-img{position:relative;aspect-ratio:4/5;border-radius:18px;background-size:cover;background-position:center;overflow:hidden;transition:filter .5s ease}
 .cf-img:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#0d0a08b3,transparent 42%),linear-gradient(115deg,#ffffff1c,transparent 35%)}
 .cf-card:not(.on) .cf-img{filter:brightness(.62) saturate(.85)}
+.cf-play{position:absolute;z-index:3;left:50%;top:46%;width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:50%;border:1px solid #ffffff66;background:#16120f73;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;display:grid;place-items:center;cursor:pointer;opacity:0;transform:scale(.85);pointer-events:none;transition:.4s}
+.cf-play svg{width:26px;height:26px;fill:currentColor;margin-left:3px}
+.cf-card.on .cf-play{opacity:1;transform:none;pointer-events:auto}.cf-card.on .cf-play:hover{background:color-mix(in srgb,var(--tint) 45%,#16120f99)}
+.cf-img.vp .cf-play,.cf-img.vp .cf-cta{opacity:0!important;pointer-events:none!important}.cf-img.vp:after{display:none}
+.cf-vd{position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:cover;background:#000;border-radius:inherit}
+.cf-vx{position:absolute;z-index:4;left:12px;top:12px;width:38px;height:38px;border-radius:50%;border:1px solid #ffffff50;background:#0d0a08a6;color:#fff;font-size:22px;line-height:1;cursor:pointer}
 .cf-cta{position:absolute;z-index:2;left:50%;bottom:16px;transform:translate(-50%,8px);opacity:0;display:inline-flex;align-items:center;gap:9px;padding:10px 18px;border-radius:999px;background:#16120f59;border:1px solid #ffffff40;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font:400 13px var(--sans);color:#fff;white-space:nowrap;transition:.5s;pointer-events:none}
 .cf-cta svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.5}
 .cf-card.on .cf-cta{opacity:1;transform:translate(-50%,0);pointer-events:auto}
@@ -1092,11 +1098,21 @@ const AMB=(()=>{let ctx,master,cur=null,curId=null,on=false;const subs=new Set()
 })();
 
 
+
+function cfVid(c,off){const im=c.querySelector('.cf-img'),ex=im.querySelector('video');
+ if(ex){if(off){ex.remove();im.querySelector('.cf-vx')?.remove();im.classList.remove('vp');return}
+  ex.paused?ex.play():ex.pause();return}
+ if(off)return;const id=c.querySelector('.cf-play').dataset.vid;
+ const v=document.createElement('video');v.src='/vid/room-'+id+'.mp4';v.poster='/vid/room-'+id+'-poster.jpg';v.muted=true;v.playsInline=true;v.setAttribute('playsinline','');v.autoplay=true;v.className='cf-vd';
+ v.addEventListener('ended',()=>cfVid(c,true));v.addEventListener('play',()=>c.classList.add('vplay'));v.addEventListener('pause',()=>c.classList.remove('vplay'));
+ const x=document.createElement('button');x.type='button';x.className='cf-vx';x.setAttribute('aria-label','Sluit video');x.textContent='×';
+ im.classList.add('vp');im.appendChild(v);im.appendChild(x);v.play().catch(()=>{})}
+setInterval(()=>document.querySelectorAll('.cf-card:not(.on) .cf-vd').forEach(v=>cfVid(v.closest('.cf-card'),true)),500);
 function coverflow(root,items,opts={}){
   const n=items.length,rep=Math.max(1,Math.ceil(8/n)),N=n*rep,V=Array.from({length:N},(_,i)=>i%n);
   const modN=x=>((x%N)+N)%N,modn=x=>((x%n)+n)%n;
   let pos=0,target=0,v=0,sv=0,lp=0,raf=0,last=0,dragging=false,moved=false,sx=0,sp=0,vel=0,lx=0,lt=0,idx=-1;
-  root.innerHTML=`<div class="cf-stage">${V.map((ri,i)=>{const it=items[ri];return `<article class="cf-card" data-i="${i}" data-r="${ri}" style="--tint:${it.tint||'#e8d8b8'}"><div class="cf-img" style="background-image:url('${IMG(it.img)}')">${it.snd?`<button type="button" class="cf-snd" aria-label="Speel de sfeer van ${it.title}"><span class="eqs"><i></i><i></i><i></i><i></i></span><span class="sl"><b>Sfeer</b><em>${AMB.P[it.snd].vibe}</em></span></button>`:''}<a class="cf-cta" href="${it.href}" ${it.on?`data-on="${it.on}"`:''}>${it.cta} <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div><div class="cf-txt"><h3>${it.title}</h3><p>${it.meta}</p></div>${it.book?`<button type="button" class="cf-book" data-book="${it.book}" aria-label="Boek ${it.title}">Boek <svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>`:''}</article>`}).join('')}</div>
+  root.innerHTML=`<div class="cf-stage">${V.map((ri,i)=>{const it=items[ri];return `<article class="cf-card" data-i="${i}" data-r="${ri}" style="--tint:${it.tint||'#e8d8b8'}"><div class="cf-img" style="background-image:url('${IMG(it.img)}')">${it.snd&&it.vid?`<button type="button" class="cf-play" data-vid="${it.snd}" aria-label="Speel video van ${it.title}"><svg viewBox="0 0 24 24"><path d="M8 5l12 7-12 7z"/></svg></button>`:''}${it.snd?`<button type="button" class="cf-snd" aria-label="Speel de sfeer van ${it.title}"><span class="eqs"><i></i><i></i><i></i><i></i></span><span class="sl"><b>Sfeer</b><em>${AMB.P[it.snd].vibe}</em></span></button>`:''}<a class="cf-cta" href="${it.href}" ${it.on?`data-on="${it.on}"`:''}>${it.cta} <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div><div class="cf-txt"><h3>${it.title}</h3><p>${it.meta}</p></div>${it.book?`<button type="button" class="cf-book" data-book="${it.book}" aria-label="Boek ${it.title}">Boek <svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>`:''}</article>`}).join('')}</div>
    <button type="button" class="cf-side l" data-a="sprev" aria-label="Vorige"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button><button type="button" class="cf-side r" data-a="snext" aria-label="Volgende"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button><div class="cf-nav"><button class="cf-btn" data-a="prev" aria-label="Vorige"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button><div class="cf-dots">${items.map((_,i)=>`<button data-d="${i}" aria-label="${i+1}"></button>`).join('')}</div><button class="cf-btn" data-a="next" aria-label="Volgende"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button></div>`;
   const stage=root.querySelector('.cf-stage'),cards=[...stage.children],dots=[...root.querySelectorAll('.cf-dots button')];
   let step=0;const measure=()=>{step=cards[0].offsetWidth*.64;stage.style.height=Math.max(...cards.map(c=>c.offsetHeight))+'px'};
@@ -1130,6 +1146,7 @@ function coverflow(root,items,opts={}){
   stage.addEventListener('click',e=>{if(moved){e.preventDefault();e.stopPropagation();moved=false;return}const c=e.target.closest('.cf-card');if(!c)return;const i=+c.dataset.i;
     if(i!==modN(Math.round(pos))){e.preventDefault();goV(i);return}
     if(e.target.closest('.cf-book')){e.preventDefault();e.stopPropagation();window.VABook&&VABook.open(e.target.closest('.cf-book').dataset.book);return}
+    const pl=e.target.closest('.cf-play,.cf-vx,.cf-vd');if(pl){e.preventDefault();e.stopPropagation();cfVid(c,!!e.target.closest('.cf-vx'));return}
     if(e.target.closest('.cf-snd')){e.preventDefault();e.stopPropagation();opts.onSound&&opts.onSound(idx,items[idx]);return}
     const a=e.target.closest('a');if(a&&a.dataset.on)pick(a.dataset.on);if(!a){c.querySelector('.cf-cta').click()}},true);
   const prev=()=>{target=Math.round(target)-1;run()},next=()=>{target=Math.round(target)+1;run()};
@@ -1139,7 +1156,7 @@ function coverflow(root,items,opts={}){
   measure();render();setTimeout(()=>{measure();render()},300);
   return {go,layout:()=>{measure();render()}};
 }
-const cfRooms=coverflow(document.getElementById('cfRooms'),ROOMS.map(r=>({snd:r.id,img:r.img,title:r.name,short:'€ '+r.p+' / nacht',meta:`<b>€ ${r.p}</b> / nacht · ${r.tag}`,href:'#'+r.slug,cta:'Bekijk kamer',book:r.id,tint:r.tint,play:'bed'})),{onSound:(k,it)=>AMB.toggle(it.snd),onChange:(k,it)=>AMB.switchTo(it.snd)});
+const cfRooms=coverflow(document.getElementById('cfRooms'),ROOMS.map(r=>({snd:r.id,vid:1,img:r.img,title:r.name,short:'€ '+r.p+' / nacht',meta:`<b>€ ${r.p}</b> / nacht · ${r.tag}`,href:'#'+r.slug,cta:'Bekijk kamer',book:r.id,tint:r.tint,play:'bed'})),{onSound:(k,it)=>AMB.toggle(it.snd),onChange:(k,it)=>AMB.switchTo(it.snd)});
 const ACT_CF=[
  {k:'pottery',img:'pottery',title:'Pottery House',short:'Open tot 22:00',meta:'<b>€ 30</b> vrij atelier · € 385 lessenreeks · open tot 22:00',href:'#boeken',on:'pottery',cta:'Reserveer nu',tint:'#c98d5a',play:'clock'},
  {k:'wellness',img:'wellness',title:'Wellness & ontspanning',short:'10:00–19:30',meta:'<b>€ 35</b> p.p. · max. 3 uur · alleen hotelgasten',href:'#boeken',cta:'Ontdek wellness',tint:'#b06ad0',play:'lotus'},
