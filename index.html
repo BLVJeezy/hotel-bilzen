@@ -1475,5 +1475,6 @@ addEventListener('hashchange',route);reveal(home);route();
 <style>#mp{position:fixed;z-index:60;left:16px;bottom:calc(92px + env(safe-area-inset-bottom));display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 16px 0 14px;border-radius:999px;border:1px solid #e6b86666;background:#14100dd9;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#f6dfa4;font:400 13px var(--sans);cursor:pointer;box-shadow:0 10px 30px #0008}#mp[hidden]{display:none}#mp b{font-weight:400;letter-spacing:.03em}#mp svg{width:16px;height:16px;fill:currentColor}#mp .pl{display:none}#mp.off .pa{display:none}#mp.off .pl{display:block}#mp:not(.off) .eqs i{animation:eqb 1s ease-in-out infinite;background:#e6b866}@media(min-width:900px){#mp{bottom:24px;left:24px}}</style>
 <script>(function(){const m=document.getElementById('mp');let seen=false;AMB.sub(on=>{if(on&&!seen){seen=true;m.hidden=false}m.classList.toggle('off',!on);m.setAttribute('aria-label',on?'Pauzeer muziek':'Speel muziek')});m.onclick=()=>AMB.toggle()})();</script>
 <script src="/css/bookpop.js" defer></script>
+<script src="/css/textsize.js" defer></script>
 </body>
 </html>

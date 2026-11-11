@@ -316,5 +316,6 @@ fetch('/api/ops?a=menus').then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.menus)r
     if(!o.active){st.qty[m.id]=0;c.classList.add('soldout');c.querySelector('.tag').textContent='Vandaag niet beschikbaar'}})});
   (j.extras||[]).forEach(x=>{const i=SUGID.indexOf(x.id);if(i<0)return;SUG[i][3]=x.price;const b=document.querySelector(`.sx[data-s="${i}"]`);if(b&&!x.active){b.disabled=true;b.classList.add('soldout');st.sug.delete(i)}});update()}).catch(()=>{});
 </script>
+<script src="/css/textsize.js" defer></script>
 </body>
 </html>

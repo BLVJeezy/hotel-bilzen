@@ -586,5 +586,6 @@ $('#sbg').onclick=()=>{closeSheet();if($('#scan').classList.contains('open'))sca
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&TOKEN)reload()});
 if(TOKEN){api('me').then(()=>{start();loadExt()}).catch(()=>showLogin())}else showLogin();
 </script>
+<script src="/css/textsize.js" defer></script>
 </body>
 </html>
