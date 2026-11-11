@@ -903,10 +903,10 @@ footer ul a:hover{color:var(--beige)}
     <div class="caps rv">Meer van Villa Amano</div>
     <h2 class="rv" style="font-size:clamp(40px,5vw,66px);font-weight:300;margin-top:14px">Voor lichaam, hoofd en handen.</h2>
     <div class="more-grid">
-      <div class="card rv"><div class="cimg" style="background-image:url('img/lounge2.jpg')"></div><h3>Amano Retreats</h3><p>Meerdaagse programma's waarin verblijf, wellness, keramiek en rust samenkomen.</p><a class="link" href="#contact">Meer info <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div>
-      <div class="card rv"><div class="cimg" style="background-image:url('img/lounge.jpg')"></div><h3>Amano Therapy</h3><p>Begeleiding en coaching in een veilige, warme omgeving.</p><a class="link" href="#contact">Meer info <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div>
-      <div class="card rv"><div class="cimg" style="background-image:url('img/shop.jpg')"></div><h3>The Amano Shop</h3><p>Keramiek, verzorging en sfeer om mee naar huis te nemen.</p><a class="link" href="#contact">Naar de shop <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div>
-      <div class="card rv"><div class="cimg" style="background-image:url('img/rose-handdoek.jpg')"></div><h3>Cadeaubon</h3><p>Schenk een verblijf, wellnessmoment of keramiekreeks.</p><a class="link" href="#contact">Bon kiezen <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div>
+      <div class="card rv"><div class="cimg" style="background-image:url('img/lounge2.jpg')"></div><h3>Amano Retreats</h3><p>Meerdaagse programma's waarin verblijf, wellness, keramiek en rust samenkomen.</p><a class="link" href="/retreats">Meer info <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div>
+      <div class="card rv"><div class="cimg" style="background-image:url('img/lounge.jpg')"></div><h3>Amano Therapy</h3><p>Begeleiding en coaching in een veilige, warme omgeving.</p><a class="link" href="/therapy">Meer info <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div>
+      <div class="card rv"><div class="cimg" style="background-image:url('img/shop.jpg')"></div><h3>The Amano Shop</h3><p>Keramiek, verzorging en sfeer om mee naar huis te nemen.</p><a class="link" href="/shop">Naar de shop <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div>
+      <div class="card rv"><div class="cimg" style="background-image:url('img/rose-handdoek.jpg')"></div><h3>Cadeaubon</h3><p>Schenk een verblijf, wellnessmoment of keramiekreeks.</p><a class="link" href="/cadeaubon">Bon kiezen <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div>
     </div>
     <div class="cf cf-more" id="cfMore"></div>
   </div>
@@ -1421,10 +1421,10 @@ const ACTS=[
  ['pottery','Pottery House · lessenreeks','€ 385 p.p. · 10 weken','#pottery','#c98d5a'],
  ['wellness','Wellness','€ 35 p.p. · max. 3 uur · hotelgasten','#wellness','#c07ad0'],
  ['terras','Ontbijt','€ 25 p.p. · 07:30–10:30','#ontbijt','#e6b866'],
- ['lounge2','Amano Retreats','Meerdaagse programma\'s','#meer','#9fc7a8'],
- ['lounge','Amano Therapy','Begeleiding & coaching','#meer','#a8b8e6'],
- ['shop','The Amano Shop','Keramiek, verzorging & sfeer','#meer','#e8d8b8'],
- ['rose-handdoek','Cadeaubon','Verblijf, wellness of keramiek','#meer','#e8a0b0']];
+ ['lounge2','Amano Retreats','Meerdaagse programma\'s','/retreats','#9fc7a8'],
+ ['lounge','Amano Therapy','Begeleiding & coaching','/therapy','#a8b8e6'],
+ ['shop','The Amano Shop','Keramiek, verzorging & sfeer','/shop','#e8d8b8'],
+ ['rose-handdoek','Cadeaubon','Verblijf, wellness of keramiek','/cadeaubon','#e8a0b0']];
 const sheet=document.getElementById('sheet'),sbg=document.getElementById('sheetBg'),dock=document.getElementById('dock');let openP=null;
 function openSheet(p){
   if(openP===p)return closeSheet();openP=p;
