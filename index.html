@@ -1085,11 +1085,12 @@ const AMB=(()=>{let ctx,master,cur=null,curId=null,on=false;const subs=new Set()
   const tm=setInterval(()=>{if(Math.random()<.8)ring()},d.be);setTimeout(ring,600);
   return{stop(){const t=ctx.currentTime;g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(0,t+1.6);clearInterval(tm);setTimeout(()=>{ns.forEach(x=>{try{x.stop()}catch(e){}});g.disconnect()},1800)}}}
  function emit(){subs.forEach(f=>f(on,curId))}
- function play(id){init();ctx.resume&&ctx.resume();if(curId===id&&cur){on=true;emit();return}cur&&cur.stop();cur=P[id]?voice(P[id]):null;curId=id;on=!!cur;emit()}
- function stop(){cur&&cur.stop();cur=null;on=false;emit()}
- return{P,play,stop,switchTo(id){if(on&&id!==curId)play(id)},toggle(id){on&&curId===id?stop():play(id)},get on(){return on},get id(){return curId},sub(f){subs.add(f)}};
+ let au=null;const song=()=>{if(!au){au=new Audio('/vid/villa-amano-sfeer.mp3');au.loop=true;au.preload='auto';au.volume=.7;au.addEventListener('play',()=>{on=true;emit()});au.addEventListener('pause',()=>{on=false;emit()})}return au};
+ function play(id){curId=id||curId||'rose';song().play().catch(()=>{});on=true;emit()}
+ function stop(){au&&au.pause();on=false;emit()}
+ return{P,play,stop,switchTo(){},toggle(id){on?stop():play(id)},get on(){return on},get id(){return curId},sub(f){subs.add(f)}};
 })();
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&AMB.on)AMB.stop()});
+
 
 function coverflow(root,items,opts={}){
   const n=items.length,rep=Math.max(1,Math.ceil(8/n)),N=n*rep,V=Array.from({length:N},(_,i)=>i%n);
@@ -1150,8 +1151,8 @@ coverflow(document.getElementById('cfMore'),[
  {img:'shop',title:'The Amano Shop',meta:'Keramiek, verzorging en sfeer voor thuis',href:'/shop',cta:'Naar de shop',tint:'#e6b866'},
  {img:'rose-handdoek',title:'Cadeaubon',meta:'Schenk een verblijf, wellness of keramiek',href:'/cadeaubon',cta:'Bon kiezen',tint:'#e8a0b0'}]);
 (function(){const el=document.getElementById('cfRooms');
- AMB.sub((on,id)=>{document.querySelectorAll('.cf-snd,.r-snd').forEach(b=>{const c=b.closest('[data-i]');const mine=b.dataset.room||(c&&ROOMS[+(c.dataset.r??c.dataset.i)]&&ROOMS[+(c.dataset.r??c.dataset.i)].id);b.classList.toggle('on',on&&mine===id)})});
- new IntersectionObserver(es=>{if(!es[0].isIntersecting&&AMB.on&&location.hash.indexOf('kamer-')<0)AMB.stop()},{threshold:0}).observe(el)})();
+ AMB.sub((on,id)=>{document.querySelectorAll('.cf-snd,.r-snd').forEach(b=>{const c=b.closest('[data-i]');const mine=b.dataset.room||(c&&ROOMS[+(c.dataset.r??c.dataset.i)]&&ROOMS[+(c.dataset.r??c.dataset.i)].id);b.classList.toggle('on',on)})});
+ })();
 const MQM=matchMedia('(max-width:1000px)');
 function jump(h,smooth){let el=document.getElementById(h);const k=ACT_CF.findIndex(a=>a.k===h);
   if(MQM.matches&&k>-1){cfActs.go(k);el=document.getElementById('activiteiten')}
@@ -1470,6 +1471,9 @@ addEventListener('hashchange',route);reveal(home);route();
 </script>
 <style>.ck{position:fixed;z-index:60;left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));max-width:520px;margin:auto;padding:16px 18px;border-radius:20px;background:#1a1512f5;border:1px solid #e8d8b833;box-shadow:0 20px 60px #000a;display:flex;gap:14px;align-items:center;font-size:13.5px;color:#d6cab7}.ck p{margin:0;flex:1}.ck .b{display:flex;gap:8px}.ck button{height:36px;padding:0 14px;border-radius:999px;border:1px solid #e8d8b84d;background:none;color:var(--text);font:400 13px var(--sans);cursor:pointer}.ck button.ok{background:var(--beige);color:#2a1f16;border-color:var(--beige)}@media(min-width:1000px){.ck{bottom:24px}}</style>
 <script>(function(){let c=null;try{c=localStorage.getItem('va_ck')}catch(e){}if(c)return;const b=document.createElement('div');b.className='ck';b.innerHTML='<p>We gebruiken alleen noodzakelijke cookies en, als je dat goedvindt, anonieme statistieken. <a href="/cookies" style="color:var(--gold2)">Meer info</a></p><div class="b"><button id="ckNo">Alleen nodig</button><button class="ok" id="ckOk">Akkoord</button></div>';document.body.appendChild(b);const set=v=>{try{localStorage.setItem('va_ck',v)}catch(e){}b.remove()};b.querySelector('#ckOk').onclick=()=>set('all');b.querySelector('#ckNo').onclick=()=>set('min')})();</script>
+<button type="button" id="mp" aria-label="Pauzeer muziek" hidden><span class="eqs"><i></i><i></i><i></i><i></i></span><b>Villa Amano · sfeer</b><svg class="pa" viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg><svg class="pl" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg></button>
+<style>#mp{position:fixed;z-index:60;left:16px;bottom:calc(92px + env(safe-area-inset-bottom));display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 16px 0 14px;border-radius:999px;border:1px solid #e6b86666;background:#14100dd9;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#f6dfa4;font:400 13px var(--sans);cursor:pointer;box-shadow:0 10px 30px #0008}#mp[hidden]{display:none}#mp b{font-weight:400;letter-spacing:.03em}#mp svg{width:16px;height:16px;fill:currentColor}#mp .pl{display:none}#mp.off .pa{display:none}#mp.off .pl{display:block}#mp:not(.off) .eqs i{animation:eqb 1s ease-in-out infinite;background:#e6b866}@media(min-width:900px){#mp{bottom:24px;left:24px}}</style>
+<script>(function(){const m=document.getElementById('mp');let seen=false;AMB.sub(on=>{if(on&&!seen){seen=true;m.hidden=false}m.classList.toggle('off',!on);m.setAttribute('aria-label',on?'Pauzeer muziek':'Speel muziek')});m.onclick=()=>AMB.toggle()})();</script>
 <script src="/css/bookpop.js" defer></script>
 </body>
 </html>
