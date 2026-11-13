@@ -255,6 +255,56 @@ module.exports = async (req, res) => {
       return res.end(lines.join('\r\n'));
     }
 
+    // ===== alleen-lezen export voor Solyn Hub OS =====
+    // Bearer-token vergeleken met een sha256-hash; verandert niets aan de data.
+    if (a === 'hub-export') {
+      const tok = (req.headers.authorization || '').replace(/^Bearer /, '');
+      const h = crypto.createHash('sha256').update(tok).digest();
+      const want = Buffer.from('e90eee71d18b9ce42970c81552537774f31b34d4d1b366cc9557af808113a902', 'hex');
+      if (!tok || !crypto.timingSafeEqual(h, want)) return send(res, 401, { error: 'unauthorized' });
+      const [{ data: G }, { data: K }, { data: O }] = await Promise.all([load('guests'), load('calendar'), load('orders')]);
+      const guestById = Object.fromEntries((G.guests || []).map(g => [g.id, g]));
+      const KIND = { room: 'Kamer', pottery: 'Pottery', lessen: 'Pottery-lessenreeks', event: 'Event', wellness: 'Wellness' };
+      const records = [];
+      for (const r of G.reservations || []) {
+        if (r.demo) continue;
+        const g = guestById[r.guestId] || {};
+        records.push({
+          kind: 'reservatie', external_id: r.id,
+          starts_at: r.from || r.date || null, ends_at: r.to || null,
+          status: r.status || null,
+          title: r.kind === 'room' ? `${r.roomName || 'Kamer'}` : r.kind === 'event' ? (r.title || 'Event') : (KIND[r.kind] || r.kind) + (r.time ? ' ' + r.time : ''),
+          customer_name: r.guestName || g.name || null, customer_email: g.email || null, customer_phone: g.phone || null,
+          message: null, amount: typeof r.total === 'number' ? r.total + (r.charges || []).reduce((s, c) => s + (c.amount || 0), 0) : null,
+          source: 'website', extra: { soort: r.kind, gasten: r.guests, extras: r.extras, ingecheckt: !!r.checkedIn },
+          source_created_at: r.created ? new Date(r.created).toISOString() : null,
+        });
+      }
+      for (const e of K.entries || []) {
+        if (e.ref || e.demoFor) continue; // eigen website-reservaties staan hierboven al
+        records.push({
+          kind: e.type === 'booking' ? 'reservatie' : 'blokkade', external_id: 'cal-' + e.id,
+          starts_at: e.from, ends_at: e.to, status: e.type === 'booking' ? 'bevestigd' : 'geblokkeerd',
+          title: ROOM_NAMES[e.room] || e.room, customer_name: e.guest || null, customer_email: null, customer_phone: null,
+          message: e.note || null, amount: null, source: e.source || (e.by ? 'manueel' : 'kalender'), extra: {},
+          source_created_at: e.created ? new Date(e.created).toISOString() : null,
+        });
+      }
+      for (const o of O.orders || []) {
+        const g = guestById[o.guestId] || {};
+        records.push({
+          kind: 'bestelling', external_id: o.id,
+          starts_at: o.date ? `${o.date}T${o.time || '08:30'}:00+01:00` : null, ends_at: null, status: o.status || null,
+          title: `Ontbijt · ${o.roomName || 'kamer ' + o.room}`, customer_name: o.guestName || g.name || null,
+          customer_email: g.email || null, customer_phone: g.phone || null,
+          message: (o.items || []).map(i => `${i.qty}× ${i.name}`).join(', ') + (o.note ? ' · ' + o.note : ''),
+          amount: o.total, source: 'website', extra: { waar: o.where, dieet: o.diet },
+          source_created_at: o.created ? new Date(o.created).toISOString() : null,
+        });
+      }
+      return send(res, 200, { ok: true, records }, { 'cache-control': 'no-store' });
+    }
+
     // ===== inloggen =====
     if (a === 'setup-needed') {
       const { data: C } = await load('config');
