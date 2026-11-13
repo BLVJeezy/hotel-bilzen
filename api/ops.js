@@ -305,6 +305,27 @@ module.exports = async (req, res) => {
       return send(res, 200, { ok: true, records }, { 'cache-control': 'no-store' });
     }
 
+    // ===== nachtelijke off-site back-up (Solyn) =====
+    // Zelfde Bearer-token als hub-export. Geeft alle ops-documenten terug, zonder
+    // pincodes, sleutels of geheime iCal-links. Verandert niets aan de data.
+    if (a === 'backup-export') {
+      const tok = (req.headers.authorization || '').replace(/^Bearer /, '');
+      const h = crypto.createHash('sha256').update(tok).digest();
+      const want = Buffer.from('e90eee71d18b9ce42970c81552537774f31b34d4d1b366cc9557af808113a902', 'hex');
+      if (!tok || !crypto.timingSafeEqual(h, want)) return send(res, 401, { error: 'unauthorized' });
+      const SECRET = /(pin|hash|secret|token|password|apikey|icalkey)$/i;
+      const scrub = v => Array.isArray(v) ? v.map(scrub)
+        : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v)
+            .filter(([k]) => !SECRET.test(k) && k !== 'ical').map(([k, x]) => [k, scrub(x)]))
+        : v;
+      const names = Object.keys(DEFAULTS);
+      const docs = await Promise.all(names.map(n => load(n).then(r => r.data)));
+      const data = Object.fromEntries(names.map((n, i) => [n, scrub(docs[i])]));
+      const counts = {};
+      for (const n of names) for (const [k, v] of Object.entries(data[n] || {})) if (Array.isArray(v)) counts[`${n}.${k}`] = v.length;
+      return send(res, 200, { target: 'villa-amano', exported_at: new Date().toISOString(), format: 2, tables: counts, data });
+    }
+
     // ===== inloggen =====
     if (a === 'setup-needed') {
       const { data: C } = await load('config');
