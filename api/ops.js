@@ -318,7 +318,7 @@ module.exports = async (req, res) => {
                   '07cc86d4b801acd9882c238a7bc712c243469ec8f557382b52893a702810a7b4']
         .some(x => crypto.timingSafeEqual(h, Buffer.from(x, 'hex')));
       if (!tok || !ok) return send(res, 401, { error: 'unauthorized' });
-      const SECRET = /(pin|hash|secret|token|password|apikey|icalkey)$/i;
+      const SECRET = /(pin|hash|secret|token|password|key|pw|salt)$/i;
       const scrub = v => Array.isArray(v) ? v.map(scrub)
         : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v)
             .filter(([k]) => !SECRET.test(k) && k !== 'ical').map(([k, x]) => [k, scrub(x)]))
