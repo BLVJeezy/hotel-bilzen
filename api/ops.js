@@ -2,6 +2,7 @@
 // Opslag: Vercel Blob (privé). Vereist BLOB_READ_WRITE_TOKEN (automatisch na "Connect store" in Vercel).
 // Optioneel: OPS_SECRET (sessies), OPS_OWNER_PIN (vaste eigenaars-pincode).
 const crypto = require('crypto');
+const mail = require('./_mail');
 let blob = null;
 try { blob = require('@vercel/blob'); } catch (e) { /* lokaal zonder dependency */ }
 
@@ -159,6 +160,7 @@ async function seedDemo(email, name) {
   await mutate('calendar', d => { d.entries = d.entries.filter(e => e.demoFor !== email); rs.filter(r => r.kind === 'room').forEach(r => d.entries.push({ id: 'c' + r.id, ref: r.id, room: r.room, from: r.from, to: r.to, type: 'booking', guest: g.name, guestId: g.id, note: 'Voorbeeld · 2 pers. · ontbijt', by: 'Demo', demo: true, demoFor: email, created: Date.now() })); });
   return { g, pw, rs, t };
 }
+async function sendMail(fn, ...args) { try { const { data: C } = await load('config'); mail.use(C.mail); await mail[fn](...args); } catch (e) { console.error('mail', e && e.message); } }
 const can = (u, perm) => u && (ROLES[u.role] || []).includes(perm);
 async function addLog(u, text) {
   try { await mutate('log', d => { d.log.unshift({ t: Date.now(), who: u ? u.name : 'Website', text }); d.log = d.log.slice(0, 400); }); } catch (e) {}
@@ -237,6 +239,7 @@ module.exports = async (req, res) => {
       await mutate('orders', d => { d.orders.unshift(order); d.orders = d.orders.slice(0, 600); });
       if (total > 0) await mutate('guests', d => { const r = d.reservations.find(x => x.id === stay.id); if (r) { r.charges = r.charges || []; r.charges.push({ id: order.id, label: 'Ontbijt ' + date, amount: total, t: Date.now() }); } });
       await addLog(null, `Nieuwe ontbijtbestelling ${order.id} · kamer ${room} · ${stay.guestName} · € ${total}`);
+      { const gg = G.guests.find(x => x.id === gu.gid); if (gg) await sendMail('order', gg, order); }
       return send(res, 200, { ok: true, id: order.id, total, included, room, roomName: order.roomName });
     }
     if (a === 'ical') {
@@ -381,7 +384,7 @@ module.exports = async (req, res) => {
         g = { id: id(), email, name: clean(info.name || email.split('@')[0], 80), phone: '', googleSub: info.sub, created: Date.now(), memberships: {} };
         d.guests.push(g); isNew = true;
       });
-      if (isNew) await addLog({ name: g.name }, 'Nieuw gastaccount (Google)');
+      if (isNew) { await addLog({ name: g.name }, 'Nieuw gastaccount (Google)'); await sendMail('welcome', g); }
       return send(res, 200, { token: sign({ gid: g.id, name: g.name, role: 'guest', exp: Date.now() + 180 * 864e5 }), name: g.name, isNew, needPhone: !g.phone });
     }
     if ((a === 'g-register' || a === 'g-login') && req.method === 'POST') {
@@ -411,6 +414,7 @@ module.exports = async (req, res) => {
         });
         if (r === 'dup') return send(res, 409, { error: 'Er bestaat al een account met dit e-mailadres. Log in.' });
         await addLog({ name: g.name }, 'Nieuw gastaccount');
+        await sendMail('welcome', g);
       } else {
         const { data } = await load('guests');
         g = data.guests.find(x => x.email === email);
@@ -471,6 +475,7 @@ module.exports = async (req, res) => {
         }
         await mutate('guests', d => { d.reservations.push(r); });
         await addLog({ name: g.name }, `Reservatie ${r.id} · ${kind === 'room' ? r.roomName + ' ' + r.from + ' → ' + r.to : (kind === 'event' ? r.title + ' ' : kind === 'wellness' ? 'Wellness ' : kind === 'lessen' ? 'Lessenreeks ' : 'Vrij atelier ') + r.date}`);
+        await sendMail('reservation', g, r);
         return send(res, 200, { ok: true, reservation: r });
       }
       if (a === 'g-cancel') {
@@ -480,6 +485,7 @@ module.exports = async (req, res) => {
         if (out === 'late') return send(res, 400, { error: 'Annuleren kan tot 48 uur vooraf. Neem contact met ons op.' });
         if (out.kind === 'room') await mutate('calendar', d => { d.entries = d.entries.filter(x => x.ref !== out.id); });
         await addLog({ name: out.guestName }, `Reservatie ${out.id} geannuleerd door gast`);
+        { const { data: Gx } = await load('guests'); const gg = Gx.guests.find(x => x.id === gid); if (gg) await sendMail('cancelled', gg, out); }
         return send(res, 200, { ok: true });
       }
       if (a === 'g-member') {
@@ -525,8 +531,36 @@ module.exports = async (req, res) => {
       const { data } = await load('orders');
       return send(res, 200, { orders: data.orders.slice(0, 200) });
     }
+    if (a === 'mail-status') {
+      if (u.role !== 'owner') return send(res, 403, { error: 'Geen toegang' });
+      const { data: C } = await load('config'); mail.use(C.mail);
+      return send(res, 200, mail.status());
+    }
     if (req.method !== 'POST') return send(res, 405, { error: 'POST verwacht' });
     const b = await body(req);
+
+    if (a === 'mail-set') {
+      if (u.role !== 'owner') return send(res, 403, { error: 'Geen toegang' });
+      await mutate('config', C => {
+        C.mail = C.mail || {};
+        if (typeof b.key === 'string' && /^re_[\w-]{10,}$/.test(b.key.trim())) C.mail.key = b.key.trim();
+        if (b.key === null) delete C.mail.key;
+        if (typeof b.from === 'string' && b.from.includes('@')) C.mail.from = String(b.from).replace(/[\r\n"]/g, '').slice(0, 120).trim();
+        if (typeof b.replyTo === 'string' && b.replyTo.includes('@')) C.mail.replyTo = clean(b.replyTo, 120);
+        if (typeof b.notify === 'string') C.mail.notify = clean(b.notify, 300);
+      });
+      const { data: C } = await load('config'); mail.use(C.mail);
+      await addLog(u, 'E-mailinstellingen aangepast');
+      return send(res, 200, mail.status());
+    }
+    if (a === 'mail-test') {
+      if (u.role !== 'owner') return send(res, 403, { error: 'Geen toegang' });
+      const to = clean(b.to, 120);
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return send(res, 400, { error: 'Geef een geldig e-mailadres' });
+      const { data: C } = await load('config'); mail.use(C.mail);
+      const r = await mail.test(to);
+      return send(res, r && r.id ? 200 : 502, r && r.id ? { ok: true, id: r.id } : { error: (r && r.message) || 'Versturen mislukt' });
+    }
 
     if (a === 'order-status') {
       if (!can(u, 'orders')) return send(res, 403, { error: 'Geen toegang' });
@@ -613,7 +647,7 @@ module.exports = async (req, res) => {
     }
     if (a === 'demo-seed' || a === 'demo-clear') {
       if (u.role !== 'owner') return send(res, 403, { error: 'Alleen de eigenaar' });
-      const email = 'jasonbalongo@gmail.com';
+      const email = process.env.DEMO_SEED_EMAIL || 'jason-demo@villa-amano.be';
       if (a === 'demo-clear') {
         await mutate('guests', d => { d.reservations = d.reservations.filter(r => !r.demo); });
         await mutate('calendar', d => { d.entries = d.entries.filter(e => !e.demo); });

@@ -400,6 +400,16 @@ function demoSheet(){openSheet(`<h3>QR-voorbeelden</h3><div class="sub">Maakt te
  $('#dcl').onclick=async()=>{try{await api('demo-clear',{});toast('Verwijderd');closeSheet();reload()}catch(e){toast(e.message,1)}}}
 
 /* ---------- GOOGLE ---------- */
+async function mailSheet(){let st={};try{st=await api('mail-status')}catch(e){}
+ openSheet(`<h3>E-mails naar gasten</h3><div class="sub">${st.on?'<span style="color:var(--green)">● Aan</span> via Resend':'Nog niet gekoppeld'} · gasten krijgen automatisch een mail bij nieuw account, reservatie, annulatie en ontbijtbestelling.</div>
+ <label class="field"><span>Resend API-sleutel ${st.on?'(ingesteld, laat leeg om te behouden)':''}</span><input id="mk" placeholder="re_…" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+ <label class="field"><span>Afzender</span><input id="mf" value="${esc(st.from||'')}" autocapitalize="off" spellcheck="false"></label>
+ <label class="field"><span>Antwoorden naar</span><input id="mr" value="${esc(st.replyTo||'')}" autocapitalize="off" spellcheck="false"></label>
+ <label class="field"><span>Melding naar personeel (komma's)</span><input id="mn" value="${esc((st.notify||[]).join(', '))}" placeholder="info@villa-amano.be" autocapitalize="off" spellcheck="false"></label>
+ <button class="cta full" id="ms">Opslaan</button>
+ <label class="field" style="margin-top:16px"><span>Testmail sturen naar</span><input id="mt" type="email" placeholder="jij@voorbeeld.be"></label><button class="btn2" style="width:100%" id="mtb">Verstuur test</button>`);
+ $('#ms').onclick=async()=>{const b={from:$('#mf').value.trim(),replyTo:$('#mr').value.trim(),notify:$('#mn').value.trim()};const k=$('#mk').value.trim();if(k)b.key=k;try{await api('mail-set',b);toast('Opgeslagen ✓');closeSheet();vMore()}catch(e){toast(e.message,1)}};
+ $('#mtb').onclick=async()=>{try{await api('mail-test',{to:$('#mt').value.trim()});toast('Testmail verstuurd ✓')}catch(e){toast(e.message,1)}}}
 function googleSheet(){const cur=S.googleClientId||'',o=location.origin;openSheet(`<h3>Google-login</h3><div class="sub">Gasten loggen dan in met één tik op “Doorgaan met Google”.</div>
  <ol class="steps"><li>Open <a href="https://console.cloud.google.com/auth/clients/create" target="_blank" rel="noopener" style="color:var(--gold2)">Google Cloud → Clients</a> (maak eerst een project als dat gevraagd wordt).</li><li>Type: <b>Webapplicatie</b>, naam: Villa Amano.</li><li>Bij <b>Toegestane JavaScript-oorsprongen</b>: <b style="user-select:all">${o}</b> (en later je eigen domein).</li><li>Tik op Maken en kopieer de <b>Client ID</b>.</li></ol>
  ${S.googleEnv?'<p class="k" style="margin:0 0 12px">Ingesteld via Vercel (GOOGLE_CLIENT_ID).</p>':''}
@@ -538,7 +548,7 @@ function vMore(){const P=S.perms,li=(ic,t,sub,fn)=>`<button class="list-btn" onc
  const np='Notification' in window?Notification.permission:'unsupported';
  const pend=P.includes('guests')?(S.guests||[]).reduce((n,g)=>n+Object.values(g.memberships||{}).filter(m=>m.status==='aangevraagd').length,0)+(S.requests||[]).filter(r=>r.status!=='klaar').length:0;
  $('#app').innerHTML=`<div class="card">${P.includes('guests')?li('i-team','Gasten',(pend?pend+' open · ':'')+(S.guests||[]).length+' accounts',"guestsView()"):''}${P.includes('agenda')?li('i-agenda','Agenda & events',(S.events||[]).filter(e=>e.date>=TODAY()).length+' komend',"go('agenda')"):''}${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'',"menusView()"):''}</div>
- <div class="sec"><h3>Instellingen</h3></div><div class="card">${P.includes('staff')?li('i-team','Personeel',(S.staff||[]).length+' personen',"staffView()"):''}${P.includes('connect')?li('i-web','Google-login gasten',S.googleEnv||S.googleClientId?'Aan':'Uit',"googleSheet()"):''}${li('i-bell','Meldingen',np==='granted'?'Aan':np==='denied'?'Geblokkeerd':'Uit',"notif()")}${li('i-phone','Zet op beginscherm','',"installSheet()")}${P.includes('log')?li('i-log','Logboek','',"logView()"):''}</div>
+ <div class="sec"><h3>Instellingen</h3></div><div class="card">${P.includes('staff')?li('i-team','Personeel',(S.staff||[]).length+' personen',"staffView()"):''}${P.includes('connect')?li('i-web','Google-login gasten',S.googleEnv||S.googleClientId?'Aan':'Uit',"googleSheet()"):''}${S.user&&S.user.role==='owner'?li('i-web','E-mails naar gasten','',"mailSheet()"):''}${li('i-bell','Meldingen',np==='granted'?'Aan':np==='denied'?'Geblokkeerd':'Uit',"notif()")}${li('i-phone','Zet op beginscherm','',"installSheet()")}${P.includes('log')?li('i-log','Logboek','',"logView()"):''}</div>
  <div class="card">${li('i-web','Open de website','',"window.open('/','_blank')")}${li('i-out','Uitloggen','',"logout()")}</div>
  ${S.user.role==='owner'?`<div class="sec"><h3>Demo</h3></div><div class="card">${li('i-key','Demo-logins',S.demoLogin?'Aan · admin/admin & customer/customer':'Uit',"demoLoginSheet()")}</div>`:''}
  ${S.user.role==='owner'?`<p class="k" style="text-align:center;margin-top:16px"><button onclick="demoSheet()" style="background:none;border:0;color:var(--muted);font:inherit;text-decoration:underline">Testreservaties met QR aanmaken</button></p>`:''}
