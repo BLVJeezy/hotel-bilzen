@@ -235,6 +235,16 @@ button{cursor:pointer}
 .reg{border-bottom:1px solid #ffffff0d}.reg summary{display:flex;align-items:center;gap:12px;padding:12px 4px;cursor:pointer;list-style:none}.reg summary::-webkit-details-marker{display:none}.reg .tx{flex:1}.reg .tx b,.reg .tx small{display:block}.reg .ok{color:var(--green);font-size:12.5px}.reg .no{color:var(--muted);font-size:12.5px}
 .regd{padding:0 4px 14px;display:grid;gap:6px;font-size:13.5px}.regd span{display:inline-block;min-width:110px;color:var(--muted);font-size:12px}
 .mprev{width:100%;height:560px;border:1px solid var(--line);border-radius:14px;background:#0f0c0a;margin-top:8px}
+
+.todo{display:flex;align-items:center;gap:14px;padding:16px;margin-bottom:10px;border-radius:22px;border:1px solid color-mix(in srgb,var(--c) 45%,#ffffff14);background:linear-gradient(120deg,color-mix(in srgb,var(--c) 12%,transparent),#ffffff05)}
+.todo .ti{flex:none;width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 22%,#00000040)}.todo .ti svg{width:24px;height:24px;stroke:var(--c);fill:none;stroke-width:1.5}
+.todo .tx{flex:1;min-width:0}.todo .tx b{display:block;font:500 16px var(--sans)}.todo .tx small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.todo button{flex:none;height:48px;min-width:92px;padding:0 16px;font-size:15px}.todo.soft{border-color:var(--line);background:#ffffff05}
+.cnt{display:inline-grid;place-items:center;min-width:26px;height:26px;padding:0 8px;margin-left:8px;border-radius:13px;background:#e05a4f;color:#fff;font:500 13px var(--sans);font-style:normal;vertical-align:middle}
+.alldone{text-align:center;padding:34px 16px;border:1px dashed #ffffff22;border-radius:22px;margin-top:6px}.alldone b{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 12px;border-radius:50%;background:#9fd8a822;color:var(--green);font-size:26px;font-weight:400}.alldone span{display:block;font:400 24px var(--serif)}.alldone small{color:var(--muted);font-size:13.5px}
+.hello p{text-transform:none}.hello p::first-letter{text-transform:uppercase}
+@media(max-width:1023px){#me{font-size:0;padding:4px}#me b{font-size:13px;margin:0}#title{white-space:nowrap}}
+@media(min-width:1024px){body.t-today #app{max-width:860px}}
 </style>
 </head>
 <body>
@@ -338,7 +348,7 @@ async function showLogin(){$('#login').classList.remove('hide');$('#shell').clas
 function logout(silent){TOKEN=null;try{localStorage.removeItem('va_ops_t')}catch(e){}clearInterval(pollT);if(!silent)toast('Uitgelogd');showLogin()}
 
 /* ---------- SHELL ---------- */
-const TABDEF=[['today','Vandaag','i-today'],['orders','Bestellingen','i-orders'],['calendar','Kalender','i-cal'],['more','Meer','i-more']];
+const TABDEF=[['today','Vandaag','i-today'],['orders','Ontbijt','i-orders'],['calendar','Kalender','i-cal'],['more','Meer','i-more']];
 async function start(){try{S=await api('bootstrap')}catch(e){return}
  $('#login').classList.add('hide');$('#shell').classList.remove('hide');
  S.orders.forEach(o=>seenOrders.add(o.id));
@@ -365,7 +375,7 @@ function go(t){TAB=t;document.body.classList.toggle('t-today',t==='today');histo
  $('#title').textContent=(TABDEF.find(x=>x[0]===t)||[0,'Agenda'])[1];scrollTo(0,0);render();if(!document.querySelector(`#tabs button[data-t="${t}"]`)&&TAB==='agenda'){const b=document.createElement('button');b.className='btn2';b.style.cssText='margin-bottom:12px';b.textContent='← Terug';b.onclick=()=>go('more');$('#app').prepend(b);document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t==='more'))}}
 const WIDE=()=>matchMedia('(min-width:1024px)').matches;
 addEventListener('resize',()=>{const w=WIDE();if(w!==WIDE.last){WIDE.last=w;if(TAB&&S.user)render()}});
-function render(){({today:vToday,orders:vOrders,calendar:vCal,agenda:vAgenda,more:vMore})[TAB]();if(TAB==='today')pairUp()}
+function render(){({today:vToday,orders:vOrders,calendar:vCal,agenda:vAgenda,more:vMore})[TAB]();}
 function pairUp(){if(!WIDE())return;const A=$('#app'),kids=[...A.children],g=document.createElement('div');g.className='tgrid';let started=false;
  kids.forEach((el,i)=>{if(el.classList.contains('sec')){started=true;const w=document.createElement('div');w.className='pair';el.before(w);w.appendChild(el);const nx=kids[i+1];if(nx&&!nx.classList.contains('sec'))w.appendChild(nx);g.appendChild(w)}});if(started)A.appendChild(g)}
 async function reload(){try{S={...S,...await api('bootstrap')};render();badge()}catch(e){}}
@@ -465,19 +475,29 @@ function guestsView(){TAB='more';$('#title').textContent='Gasten';const P=S.plan
  const gq=$('#gq');gq.oninput=()=>{guestsView.q=gq.value;const pos=gq.selectionStart;guestsView();const n=$('#gq');n.focus();n.setSelectionRange(pos,pos)}}
 
 /* ---------- VANDAAG ---------- */
-function vToday(){const t=TODAY(),cal=S.calendar||[],ev=(S.events||[]).filter(e=>e.date===t);
+let HKT=null;
+function vToday(){const t=TODAY(),cal=S.calendar||[],P=S.perms;
  const arr=cal.filter(e=>e.type==='booking'&&e.from===t),dep=cal.filter(e=>e.type==='booking'&&e.to===t),occ=new Set(cal.filter(e=>e.from<=t&&e.to>t).map(e=>e.room));
- const ords=(S.orders||[]).filter(o=>o.date===t&&o.status!=='geannuleerd').sort((a,b)=>a.time<b.time?-1:1),open=ords.filter(o=>o.status!=='geleverd');
+ const ords=(S.orders||[]).filter(o=>o.date===t&&(o.status==='nieuw'||o.status==='bereiding')).sort((a,b)=>a.time<b.time?-1:1);
+ const reqs=P.includes('guests')?(S.requests||[]).filter(r=>r.status!=='klaar'):[];
+ const hk=(HKT&&HKT.date===t?HKT.rooms:[]),clean=hk.filter(r=>['vertrek','wissel','bezet'].includes(r.status)&&!r.done),arrH=hk.filter(r=>['aankomst','wissel'].includes(r.status));
+ const ev=(S.events||[]).filter(e=>e.date===t);
  const h=new Date().getHours(),hi=h<12?'Goedemorgen':h<18?'Goedemiddag':'Goedenavond';
- const st=(n,l,hot)=>`<div class="stat ${hot?'hot':''}"><small>${l}</small><b>${n}</b></div>`;
- const row=(c,b,s,r)=>`<div class="row" style="--c:${c}"><i class="dot"></i><div class="tx"><b>${b}</b><small>${s}</small></div><div class="rt">${r||''}</div></div>`;
- $('#app').innerHTML=`<div class="hello"><h1>${hi}, ${esc(S.user.name)}</h1><p>${new Date().toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}</p></div>
- <div class="stats">${S.perms.includes('calendar')?st(arr.length,'Aankomsten')+st(dep.length,'Vertrekken')+st(occ.size+' / 5','Bezet vannacht'):''}${st(open.length,'Open ontbijt',open.length)}</div>
- <button class="scanbar" onclick="scanOpen()"><span class="sb-ic"><svg><use href="#i-scan"/></svg></span><span class="sb-tx"><b>Scan QR-code</b><small>Check-in, pottery, wellness of event</small></span><svg class="sb-ar" viewBox="0 0 24 24"><use href="#i-arrow"/></svg></button>
- ${(S.requests||[]).filter(r=>r.status!=='klaar').length?`<div class="sec"><h3>Gastverzoeken</h3><button onclick="guestsView()">Alles →</button></div><div class="card">${(S.requests||[]).filter(r=>r.status!=='klaar').slice(0,6).map(r=>`<div class="row" style="--c:#e6b866"><i class="dot"></i><div class="tx"><b>${esc(r.type)}${r.room?' · '+esc(r.room):''}</b><small>${esc(r.guestName||'')}${r.text?' · '+esc(r.text):''}</small></div><div class="rt"><button class="btn2" style="height:32px;padding:0 12px" onclick="reqDone('${r.id}')">Klaar</button></div></div>`).join('')}</div>`:''}
- ${S.perms.includes('calendar')?`<div class="sec"><h3>Aankomsten & vertrekken</h3></div><div class="card">${arr.length+dep.length?arr.map(e=>row(RN[e.room][2],'↘ '+esc(e.guest||'Gast')+' · '+RN[e.room][1],'Aankomst · check-in 15:00–21:00',nice(e.to)+' weg')).join('')+dep.map(e=>row(RN[e.room][2],'↗ '+esc(e.guest||'Gast')+' · '+RN[e.room][1],'Vertrek · check-out 11:00','')).join(''):'<div class="empty">Geen aankomsten of vertrekken vandaag.</div>'}</div>`:''}
- <div class="sec"><h3>Ontbijt vandaag</h3><button onclick="go('orders')">Alle bestellingen →</button></div><div class="card">${ords.length?ords.map(o=>row(RBYN[o.room][2],o.time+' · '+esc(o.roomName),o.items.map(i=>i.qty+'× '+esc(i.name)).join(', ')+(o.diet.length?' · ⚠ '+o.diet.map(esc).join(', '):''),stLabel(o.status))).join(''):'<div class="empty">Nog geen bestellingen voor vandaag.</div>'}</div>
- ${S.perms.includes('agenda')?`<div class="sec"><h3>Programma vandaag</h3></div><div class="card">${row('#b06ad0','Wellness open','10:00 – 19:30','')}${ev.map(e=>row(CATS[e.cat][1],esc(e.title),esc(e.time)+' · '+esc(e.price),'')).join('')}</div>`:''}`}
+ const T=[];// [kleur, icoon, titel, uitleg, knoptekst, actie]
+ ords.forEach(o=>T.push([RBYN[o.room][2],'i-orders',`Ontbijt ${esc(o.time)} · ${esc(o.roomName)}`,o.items.map(i=>i.qty+'× '+esc(i.name)).join(', ')+(o.where==='terras'?' · terras':' · op de kamer')+(o.diet.length?' · ⚠ '+o.diet.map(esc).join(', '):''),o.status==='nieuw'?'Start':'Geleverd',`ordSt('${o.id}','${o.status==='nieuw'?'bereiding':'geleverd'}')`]));
+ reqs.forEach(r=>T.push(['#e6b866','i-bell',esc(r.type)+(r.room?' · '+esc(r.room):''),esc(r.guestName||'')+(r.text?' · '+esc(r.text):''),'Klaar',`reqDone('${r.id}')`]));
+ clean.forEach(r=>T.push([RN[r.room][2],'i-today',`Kamer poetsen · ${esc(r.name)}`,({vertrek:'Gast vertrekt vandaag',wissel:'Vertrek én nieuwe gasten vandaag',bezet:'Opfrissen: handdoeken & bed'})[r.status]+(r.lateCheckout?' · late check-out 13:00':'')+(r.checkedOut?' · gast is al weg':''),'Klaar',`hkSet2('${r.room}')`]));
+ (arrH.length?arrH:arr.map(e=>({room:e.room,name:RN[e.room][1],guest:e.guest}))).forEach(r=>T.push([RN[r.room][2],'i-key',`Aankomst · ${esc(r.guest||'Gast')}`,esc(r.name)+(r.arrival?' · rond '+esc(r.arrival):' · tussen 15:00 en 21:00')+(r.onlineCheckin?' · ✓ online ingecheckt':''),'Scan code','scanOpen()',1]));
+ ev.forEach(e=>T.push([CATS[e.cat][1],'i-agenda',esc(e.title),esc(e.time)+' · '+esc(e.price),'Scan code','scanOpen()',1]));
+ const must=T.filter(x=>!x[6]).length;
+ $('#app').innerHTML=`<div class="hello"><h1>${hi}, ${esc(S.user.name.split(' ')[0])}</h1><p>${new Date().toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}${P.includes('calendar')?` · ${occ.size} van 5 kamers bezet`:''}</p></div>
+ <button class="scanbar" onclick="scanOpen()"><span class="sb-ic"><svg><use href="#i-scan"/></svg></span><span class="sb-tx"><b>Scan een code</b><small>Voor elke gast die binnenkomt</small></span><svg class="sb-ar" viewBox="0 0 24 24"><use href="#i-arrow"/></svg></button>
+ <div class="sec"><h3>${must?`Nu te doen <i class="cnt">${must}</i>`:'Vandaag'}</h3></div>
+ ${T.length?T.map(x=>`<div class="todo ${x[6]?'soft':''}" style="--c:${x[0]}"><span class="ti"><svg><use href="#${x[1]}"/></svg></span><div class="tx"><b>${x[2]}</b><small>${x[3]}</small></div><button class="${x[6]?'btn2':'cta'}" onclick="${x[5]}">${x[4]}</button></div>`).join(''):''}
+ ${!must?`<div class="alldone"><b>✓</b><span>Alles is klaar</span><small>Je hoort een signaal als er iets nieuws binnenkomt.</small></div>`:''}`;
+ if(P.includes('today')&&(!HKT||HKT.date!==t||Date.now()-HKT.at>20000)){api('hk&date='+t).then(d=>{HKT={...d,at:Date.now()};if(TAB==='today')vToday()}).catch(()=>{HKT={date:t,rooms:[],at:Date.now()}})}}
+async function ordSt(id,st){try{await api('order-status',{id,status:st});const o=S.orders.find(x=>x.id===id);if(o){o.status=st;o.by=S.user.name;delete o._new}toast(st==='geleverd'?'Geleverd ✓':'Gestart');badge();vToday()}catch(e){toast(e.message,1)}}
+async function hkSet2(room){try{await api('hk-set',{date:TODAY(),room,done:true});const r=HKT&&HKT.rooms.find(x=>x.room===room);if(r)r.done={by:S.user.name,t:Date.now()};toast('Kamer klaar ✓');vToday()}catch(e){toast(e.message,1)}}
 const stLabel=s=>({nieuw:'<span style="color:var(--gold2)">Nieuw</span>',bereiding:'In bereiding',geleverd:'<span style="color:var(--green)">Geleverd</span>',geannuleerd:'Geannuleerd'})[s];
 
 /* ---------- BESTELLINGEN ---------- */
@@ -485,13 +505,13 @@ let OSEG='nieuw';
 function vOrders(){const all=S.orders||[],t=TODAY();
  const grp={nieuw:all.filter(o=>o.status==='nieuw'),bereiding:all.filter(o=>o.status==='bereiding'),geleverd:all.filter(o=>(o.status==='geleverd'||o.status==='geannuleerd')&&o.date>=addD(t,-1))};
  const list=grp[OSEG].sort((a,b)=>(a.date+a.time<b.date+b.time?-1:1));
- const card=o=>{const r=RBYN[o.room];const nxt=o.status==='nieuw'?['bereiding','Start bereiding']:o.status==='bereiding'?['geleverd','✓ Geleverd']:null;
+ const card=o=>{const r=RBYN[o.room];const nxt=o.status==='nieuw'?['bereiding','Start']:o.status==='bereiding'?['geleverd','✓ Geleverd']:null;
   return `<div class="ord ${o._new?'new':''}" style="--t:${r[2]}"><div class="ord-h"><div><div class="tm">${esc(o.time)}</div><small class="k">${o.date===t?'Vandaag':nice(o.date)} · ${o.where==='terras'?'Terras':'Op de kamer'}</small></div><div class="rm"><b>${esc(o.roomName)}</b><small>Kamer ${String(o.room).padStart(2,'0')} · ${esc(o.id)}</small></div></div>
   <ul>${o.items.map(i=>`<li><span><b>${i.qty}×</b>${esc(i.name)}</span></li>`).join('')}${o.extras.map(x=>`<li><span><b>+</b>${esc(x.name)}</span></li>`).join('')}</ul>
   ${o.diet.length?`<div class="tags">${o.diet.map(d=>`<span class="tag diet">⚠ ${esc(d)}</span>`).join('')}</div>`:''}
   ${o.note?`<div class="note">${esc(o.note)}</div>`:''}
   <div class="ord-f">${nxt?`<button class="cta" data-st="${nxt[0]}" data-id="${esc(o.id)}">${nxt[1]}</button>`:`<span class="meta">${stLabel(o.status)} ${o.by?'door '+esc(o.by):''}</span>`}<span class="meta">${fmt(o.total)}</span>${o.status==='nieuw'?`<button class="btn2 red" data-st="geannuleerd" data-id="${esc(o.id)}">Annuleer</button>`:''}</div></div>`};
- const head=`<div style="display:flex;justify-content:space-between;align-items:center;margin:0 4px 10px"><span class="live"><i></i>Live · ververst elke 8 sec.</span><button class="btn2" style="height:34px;font-size:12.5px" onclick="poll()">Vernieuwen</button></div>`;
+ const head=`<div style="display:flex;justify-content:space-between;align-items:center;margin:0 4px 10px"><span class="live"><i></i>Nieuwe bestellingen komen vanzelf binnen</span><button class="btn2" style="height:34px;font-size:12.5px" onclick="poll()">Vernieuwen</button></div>`;
  if(WIDE()){$('#app').innerHTML=head+`<div class="kb">${[['nieuw','Nieuw','Nog niet gestart'],['bereiding','In bereiding','Wordt klaargemaakt'],['geleverd','Klaar','Geleverd of geannuleerd']].map(([k,l,sub])=>`<div class="kcol k-${k}"><div class="kh"><b>${l}</b><i>${grp[k].length}</i><small>${sub}</small></div>${grp[k].sort((a,b)=>(a.date+a.time<b.date+b.time?-1:1)).map(card).join('')||'<div class="empty">Leeg</div>'}</div>`).join('')}</div>`}
  else $('#app').innerHTML=head+`<div class="seg">${[['nieuw','Nieuw'],['bereiding','Bezig'],['geleverd','Klaar']].map(([k,l])=>`<button class="${OSEG===k?'on':''}" data-s="${k}">${l}<i>${grp[k].length}</i></button>`).join('')}</div>
  ${list.length?list.map(card).join(''):`<div class="card empty">${OSEG==='nieuw'?'Geen nieuwe bestellingen. Je hoort een signaal zodra er één binnenkomt.':'Niets in deze lijst.'}</div>`}`;
