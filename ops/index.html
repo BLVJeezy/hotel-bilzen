@@ -218,6 +218,20 @@ button{cursor:pointer}
 @media(min-width:1024px){.scanbar{display:none}}
 @media(max-width:1023px){body.t-today .scanb{display:none}}
 .payv small{display:block}.hk{border-left:3px solid var(--c)}.hk.done{opacity:.6}.hkst{color:var(--c);font-weight:500;margin-right:4px}.btn2.on{border-color:var(--gold);color:var(--gold2)}
+
+.sb-sec,.tabs .sb-tool{display:none}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.tile{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-height:96px;padding:16px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(160deg,#ffffff0d,#ffffff03);color:var(--text);font:400 14.5px var(--sans);text-align:left;cursor:pointer}
+.tile svg{width:24px;height:24px;stroke:var(--gold);fill:none;stroke-width:1.5}.tile:active{transform:scale(.98)}
+.tile i{position:absolute;top:12px;right:12px;min-width:22px;height:22px;border-radius:11px;background:#e05a4f;color:#fff;font:500 12px/22px var(--sans);text-align:center;font-style:normal;padding:0 6px}
+.mlist{display:none}
+@media(min-width:1024px){
+ .tiles{display:none}
+ .sb-sec{display:block;margin:18px 8px 6px;font:500 10.5px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+ .tabs .sb-tool{display:flex;flex:none;flex-direction:row;align-items:center;gap:14px;height:40px;padding:0 14px;border-radius:12px;font-size:13.5px;letter-spacing:0;justify-content:flex-start;width:100%}.tabs .sb-tool svg{width:18px;height:18px}.tabs .sb-tool:hover{background:#ffffff08;color:var(--text)}.tabs .sb-tool.on{background:linear-gradient(120deg,#e6b8661f,#e6b86608);color:var(--gold2);box-shadow:inset 0 0 0 1px #e6b86633}
+ .tabs{overflow-y:auto}
+ [onclick="go('more')"].btn2{display:none}
+}
 </style>
 </head>
 <body>
@@ -327,11 +341,22 @@ async function start(){try{S=await api('bootstrap')}catch(e){return}
  S.orders.forEach(o=>seenOrders.add(o.id));
  $('#me').innerHTML=`<b>${esc(S.user.name[0]||'?')}</b>${esc(S.user.name)} · ${ROLE_NL[S.user.role]}`;
  const tabs=TABDEF.filter(t=>t[0]==='more'||S.perms.includes(t[0]));
- $('#tabs').innerHTML=`<div class="sb-top"><img src="/img/logo_full.png" alt="Villa Amano" onerror="this.src='/img/logo_a.png'"><span class="caps">Operations center</span><button class="sb-scan" onclick="scanOpen()"><svg><use href="#i-scan"/></svg>Scan QR-code</button></div>`+tabs.map(t=>`<button data-t="${t[0]}"><svg><use href="#${t[2]}"/></svg>${t[1]}${t[0]==='orders'?'<span class="bd hide" id="bd"></span>':''}</button>`).join('')+`<div class="sb-me"><b>${esc(S.user.name[0]||'?')}</b><div><span>${esc(S.user.name)}</span><small>${ROLE_NL[S.user.role]}</small></div></div><a class="sb-web" href="/" target="_blank">Website openen ↗</a>`;
+ $('#tabs').innerHTML=`<div class="sb-top"><img src="/img/logo_full.png" alt="Villa Amano" onerror="this.src='/img/logo_a.png'"><span class="caps">Operations center</span><button class="sb-scan" onclick="scanOpen()"><svg><use href="#i-scan"/></svg>Scan QR-code</button></div>`+tabs.map(t=>`<button data-t="${t[0]}"><svg><use href="#${t[2]}"/></svg>${t[1]}${t[0]==='orders'?'<span class="bd hide" id="bd"></span>':''}</button>`).join('')+sbTools()+`<div class="sb-me"><b>${esc(S.user.name[0]||'?')}</b><div><span>${esc(S.user.name)}</span><small>${ROLE_NL[S.user.role]}</small></div></div><a class="sb-web" href="/" target="_blank">Website openen ↗</a>`;
  $('#tabs').onclick=e=>{const b=e.target.closest('button[data-t]');if(b)go(b.dataset.t)};
  const h=location.hash.slice(1);go(tabs.some(t=>t[0]===h)?h:S.user.role==='keuken'?'orders':'today');
  if('serviceWorker' in navigator)navigator.serviceWorker.register('/ops/sw.js').catch(()=>{});
  clearInterval(pollT);pollT=setInterval(poll,8000);badge()}
+function TOOLS(){const P=S.perms,o=S.user.role==='owner';return [
+ P.includes('agenda')&&['agenda','Agenda & events','i-agenda',"go('agenda')"],
+ P.includes('menus')&&['menus',"Ontbijtmenu's",'i-menu',"menusView()"],
+ P.includes('today')&&['hk','Schoonmaak','i-today',"hkView()"],
+ P.includes('guests')&&['guests','Gasten','i-team',"guestsView()"],
+ P.includes('guests')&&['pay','Betalingen & facturen','i-euro',"payView()"],
+ o&&['rep','Rapporten & export','i-log',"reportView()"],
+ P.includes('staff')&&['staff','Personeel','i-team',"staffView()"],
+ o&&['biz','Facturatie & betalen','i-euro',"bizSheet()"]].filter(Boolean)}
+function sbTools(){return `<div class="sb-sec">Beheer</div>`+TOOLS().map(t=>`<button class="sb-tool" data-v="${t[0]}" onclick="sbGo('${t[0]}')"><svg><use href="#${t[2]}"/></svg>${t[1]}</button>`).join('')}
+function sbGo(k){const t=TOOLS().find(x=>x[0]===k);if(!t)return;if(k!=='biz'){document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===k))}new Function(t[3])();if(k!=='biz')document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===k));scrollTo(0,0)}
 function go(t){TAB=t;document.body.classList.toggle('t-today',t==='today');history.replaceState(null,'','#'+t);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
  $('#title').textContent=(TABDEF.find(x=>x[0]===t)||[0,'Agenda'])[1];scrollTo(0,0);render();if(!document.querySelector(`#tabs button[data-t="${t}"]`)&&TAB==='agenda'){const b=document.createElement('button');b.className='btn2';b.style.cssText='margin-bottom:12px';b.textContent='← Terug';b.onclick=()=>go('more');$('#app').prepend(b);document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t==='more'))}}
 const WIDE=()=>matchMedia('(min-width:1024px)').matches;
@@ -548,7 +573,7 @@ function eventSheet(e){e=e||{date:TODAY(),cat:'event',time:'',title:'',text:'',p
 function vMore(){const P=S.perms,li=(ic,t,sub,fn)=>`<button class="list-btn" onclick="${fn}"><svg><use href="#${ic}"/></svg><span>${t}</span><em>${sub||''}</em><svg style="width:16px;stroke:var(--muted)"><use href="#i-arrow"/></svg></button>`;
  const np='Notification' in window?Notification.permission:'unsupported';
  const pend=P.includes('guests')?(S.guests||[]).reduce((n,g)=>n+Object.values(g.memberships||{}).filter(m=>m.status==='aangevraagd').length,0)+(S.requests||[]).filter(r=>r.status!=='klaar').length:0;
- $('#app').innerHTML=`<div class="card">${P.includes('guests')?li('i-team','Gasten',(pend?pend+' open · ':'')+(S.guests||[]).length+' accounts',"guestsView()"):''}${P.includes('agenda')?li('i-agenda','Agenda & events',(S.events||[]).filter(e=>e.date>=TODAY()).length+' komend',"go('agenda')"):''}${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'',"menusView()"):''}${P.includes('today')?li('i-today','Schoonmaak','Kamers van vandaag',"hkView()"):''}${P.includes('guests')?li('i-euro','Betalingen & facturen','',"payView()"):''}${S.user.role==='owner'?li('i-log','Rapporten & export','Bezetting, omzet, verblijfsbelasting',"reportView()"):''}</div>
+ $('#app').innerHTML=`<div class="tiles">${TOOLS().map(t=>`<button class="tile" onclick="${t[3]}"><svg><use href="#${t[2]}"/></svg><span>${t[1]}</span>${t[0]==='guests'&&pend?`<i>${pend}</i>`:''}</button>`).join('')}</div><div class="card mlist">${P.includes('guests')?li('i-team','Gasten',(pend?pend+' open · ':'')+(S.guests||[]).length+' accounts',"guestsView()"):''}${P.includes('agenda')?li('i-agenda','Agenda & events',(S.events||[]).filter(e=>e.date>=TODAY()).length+' komend',"go('agenda')"):''}${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'',"menusView()"):''}${P.includes('today')?li('i-today','Schoonmaak','Kamers van vandaag',"hkView()"):''}${P.includes('guests')?li('i-euro','Betalingen & facturen','',"payView()"):''}${S.user.role==='owner'?li('i-log','Rapporten & export','Bezetting, omzet, verblijfsbelasting',"reportView()"):''}</div>
  <div class="sec"><h3>Instellingen</h3></div><div class="card">${P.includes('staff')?li('i-team','Personeel',(S.staff||[]).length+' personen',"staffView()"):''}${P.includes('connect')?li('i-web','Google-login gasten',S.googleEnv||S.googleClientId?'Aan':'Uit',"googleSheet()"):''}${S.user&&S.user.role==='owner'?li('i-web','E-mails naar gasten','',"mailSheet()")+li('i-euro','Facturatie & betalen','Btw, IBAN, Mollie',"bizSheet()"):''}${li('i-bell','Meldingen',np==='granted'?'Aan':np==='denied'?'Geblokkeerd':'Uit',"notif()")}${li('i-phone','Zet op beginscherm','',"installSheet()")}${P.includes('log')?li('i-log','Logboek','',"logView()"):''}</div>
  <div class="card">${li('i-web','Open de website','',"window.open('/','_blank')")}${li('i-out','Uitloggen','',"logout()")}</div>
  ${S.user.role==='owner'?`<div class="sec"><h3>Demo</h3></div><div class="card">${li('i-key','Demo-logins',S.demoLogin?'Aan · admin/admin & customer/customer':'Uit',"demoLoginSheet()")}</div>`:''}
