@@ -127,7 +127,7 @@
  function go(){if(!calc())return;if(T)reserve(T);else auth()}
  function auth(){const a=$('#vAuth');a.innerHTML=`<div class="vau" style="margin-top:14px"><b>${mode==='register'?'Maak je account':'Log in'}</b><small>${mode==='register'?'Nodig om te reserveren. Duurt 10 seconden.':'Welkom terug.'}</small>
    ${mode==='register'?'<input type="text" name="name" placeholder="Voor- en achternaam" autocomplete="name">':''}<input type="email" name="email" placeholder="E-mail" autocomplete="email" inputmode="email">${mode==='register'?'<input type="tel" name="phone" placeholder="Telefoon" autocomplete="tel">':''}<input type="password" name="password" placeholder="Wachtwoord (min. 6 tekens)" autocomplete="${mode==='register'?'new-password':'current-password'}">
-   <div class="ver" id="vAe"></div><button class="vgo" id="vAg" style="width:100%">${mode==='register'?'Account aanmaken & reserveren':'Inloggen & reserveren'}</button><button class="vsw" id="vSw">${mode==='register'?'Al een account? Log in':'Nog geen account? Maak er een'}</button></div>`;
+   <div class="ver" id="vAe"></div><button class="vgo" id="vAg" style="width:100%">${mode==='register'?'Account aanmaken & reserveren':'Inloggen & reserveren'}</button><button class="vsw" id="vSw">${mode==='register'?'Al een account? Log in':'Nog geen account? Maak er een'}</button>${mode==='login'?'<a href="/portaal/" style="color:#a99b88;font-size:13px;text-align:center">Wachtwoord vergeten?</a>':''}</div>`;
   a.scrollIntoView({behavior:'smooth',block:'center'});
   $('#vSw').onclick=()=>{mode=mode==='register'?'login':'register';auth()};
   $('#vAg').onclick=async()=>{const g=n=>{const i=a.querySelector(`[name=${n}]`);return i?i.value.trim():''};const b=$('#vAg');b.disabled=true;

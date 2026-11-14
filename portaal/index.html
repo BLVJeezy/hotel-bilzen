@@ -289,13 +289,18 @@ const days=(a,b)=>Math.round((pd(b)-pd(a))/864e5);
 let T=null,D={},TAB='home';try{T=localStorage.getItem('va_g_t')}catch(e){}
 function toast(m,e){const t=$('#toast');t.textContent=m;t.className='toast show'+(e?' err':'');clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',2600)}
 async function api(a,b){const r=await fetch('/api/ops?a='+a,{method:b?'POST':'GET',headers:{'content-type':'application/json',...(T?{authorization:'Bearer '+T}:{})},body:b?JSON.stringify(b):undefined});const j=await r.json().catch(()=>({}));
- if(r.status===401&&!/^g-(login|register)$/.test(a)){logout(1);throw new Error('Log opnieuw in')}if(!r.ok)throw Object.assign(new Error(j.error||'Er ging iets mis'),{status:r.status});return j}
+ if(r.status===401&&!/^g-(login|register|forgot|reset)$/.test(a)){logout(1);throw new Error('Log opnieuw in')}if(!r.ok)throw Object.assign(new Error(j.error||'Er ging iets mis'),{status:r.status});return j}
 
 /* auth */
 let MODE='login';
 function authMode(m){MODE=m;document.querySelectorAll('#aF .reg').forEach(x=>x.classList.toggle('hide',m!=='register'));$('#aT').textContent=m==='register'?'Maak je account':'Welkom';
  $('#aP').textContent=m==='register'?'Eén account voor je verblijf, ontbijt op de kamer, Pottery House en wellness.':'Log in om je verblijf, bestellingen en abonnementen te bekijken.';
- $('#aB').textContent=m==='register'?'Account aanmaken':'Inloggen';$('#aS').innerHTML=m==='register'?'Al een account? <button type="button" data-m="login">Log in</button>':'Nog geen account? <button type="button" data-m="register">Maak er een</button>';$('#aE').textContent=''}
+ $('#aB').textContent=m==='register'?'Account aanmaken':'Inloggen';$('#aS').innerHTML=m==='register'?'Al een account? <button type="button" data-m="login">Log in</button>':'Nog geen account? <button type="button" data-m="register">Maak er een</button><br><button type="button" id="fgt" style="margin-top:10px">Wachtwoord vergeten?</button>';const fg=$('#fgt');if(fg)fg.onclick=forgot;$('#aE').textContent=''}
+async function forgot(){const em=$('#aF').email.value.trim();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){$('#aE').textContent='Vul eerst je e-mailadres in en tik dan opnieuw.';$('#aF').email.focus();return}
+ try{await api('g-forgot',{email:em});$('#aE').innerHTML='<span style="color:#9fd8a8">✓ Kijk in je mailbox. Als dit adres bij ons bekend is, staat daar een link.</span>'}catch(x){$('#aE').textContent=x.message}}
+function resetView(tok){$('#auth').classList.remove('hide');$('#shell').classList.add('hide');$('#aT').textContent='Nieuw wachtwoord';$('#aP').textContent='Kies een nieuw wachtwoord van minstens 6 tekens.';const g=$('#gWrap');if(g)g.classList.add('hide');
+ $('#aF').innerHTML='<label class="f"><span>Nieuw wachtwoord</span><input name="password" type="password" autocomplete="new-password" minlength="6" required></label><div class="err" id="aE"></div><button class="cta full" id="aB">Opslaan en inloggen</button>';$('#aS').innerHTML='';
+ $('#aF').onsubmit=async e=>{e.preventDefault();$('#aB').disabled=true;try{const r=await api('g-reset',{token:tok,password:e.target.password.value});try{localStorage.setItem('va_g_t',r.token)}catch(x){}location.href='/portaal/'}catch(x){$('#aE').textContent=x.message;$('#aB').disabled=false}}}
 $('#aS').onclick=e=>{const b=e.target.closest('[data-m]');if(b)authMode(b.dataset.m)};
 $('#aF').onsubmit=async e=>{e.preventDefault();const f=e.target;$('#aB').disabled=true;try{const r=await api(MODE==='register'?'g-register':'g-login',{name:f.name.value,email:f.email.value,phone:f.phone.value,password:f.password.value});T=r.token;try{localStorage.setItem('va_g_t',T)}catch(x){}start()}catch(x){$('#aE').textContent=x.message;if(x.status===409)authMode('login')}$('#aB').disabled=false};
 function gInit(){fetch('/api/ops?a=g-config').then(r=>r.json()).then(c=>{if(!c.google)return;const go=()=>{google.accounts.id.initialize({client_id:c.google,callback:async res=>{try{const r=await api('g-google',{credential:res.credential});T=r.token;try{localStorage.setItem('va_g_t',T)}catch(x){}start()}catch(x){$('#aE').textContent=x.message}},ux_mode:'popup',auto_select:false});
@@ -520,7 +525,7 @@ function openSheet(h){$('#sheet').innerHTML='<div class="grab"></div>'+h;$('#she
 function closeSheet(){$('#sheet').classList.remove('open');$('#sbg').classList.remove('open')}
 $('#sbg').onclick=closeSheet;
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&T)reload()});
-if(T)start();else{showAuth();if(location.hash==='#nieuw')authMode('register')}
+const RST=new URLSearchParams(location.search).get('reset');if(RST)resetView(RST);else if(T)start();else{showAuth();if(location.hash==='#nieuw')authMode('register')}
 </script>
 <script src="/css/bookpop.js" defer></script>
 </body>

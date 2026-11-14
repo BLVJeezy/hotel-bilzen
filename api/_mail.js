@@ -82,6 +82,10 @@ module.exports = {
     return Promise.all(p);
   },
 
+  reset(g, link) {
+    const t = 'Nieuw wachtwoord kiezen', cta = ['Kies een nieuw wachtwoord', link];
+    return send(g.email, 'Nieuw wachtwoord · Villa Amano', layout(t, `Dag ${esc(g.name.split(' ')[0])}, tik op de knop om een nieuw wachtwoord te kiezen. De link werkt één uur en maar één keer.`, null, cta, 'Heb je dit niet gevraagd? Dan hoef je niets te doen.'), text(t, null, cta), [{ name: 'type', value: 'reset' }]);
+  },
   preArrival(g, r) {
     const first = esc(g.name.split(' ')[0]), ex = r.extras || {};
     const up = [!ex.ontbijt && ['Ontbijt', '€ 25 p.p. · op je kamer of op het terras'], !ex.well && ['Wellness-moment', '€ 35 p.p. · privé sauna & stoombad'], ['Pottery House', 'Vrij atelier tot 22:00 · € 30 p.p.'], !ex.late && ['Late check-out', 'Blijf tot 13:00 · € 45']].filter(Boolean);

@@ -446,6 +446,26 @@ module.exports = async (req, res) => {
       if (isNew) { await addLog({ name: g.name }, 'Nieuw gastaccount (Google)'); await sendMail('welcome', g); }
       return send(res, 200, { token: sign({ gid: g.id, name: g.name, role: 'guest', exp: Date.now() + 180 * 864e5 }), name: g.name, isNew, needPhone: !g.phone });
     }
+    if (a === 'g-forgot' && req.method === 'POST') {
+      const b = await body(req); const email = clean(b.email, 120).toLowerCase();
+      await new Promise(r => setTimeout(r, 400));
+      const { data: G } = await load('guests'); const g = G.guests.find(x => x.email === email && !x.demo);
+      if (g) { const pl = Buffer.from(JSON.stringify({ gid: g.id, exp: Date.now() + 3600e3, v: String(g.pw || g.googleSub || '').slice(0, 10) })).toString('base64url');
+        const tok = pl + '.' + crypto.createHmac('sha256', secret()).update('reset:' + pl).digest('base64url');
+        await sendMail('reset', g, SITE() + '/portaal/?reset=' + tok); await addLog({ name: g.name }, 'Wachtwoord-herstel aangevraagd'); }
+      return send(res, 200, { ok: true });
+    }
+    if (a === 'g-reset' && req.method === 'POST') {
+      const b = await body(req); const [pl, sg] = String(b.token || '').split('.'); const pw = String(b.password || '');
+      let d = null; try { const ex = crypto.createHmac('sha256', secret()).update('reset:' + pl).digest('base64url'); if (sg && sg.length === ex.length && crypto.timingSafeEqual(Buffer.from(sg), Buffer.from(ex))) d = JSON.parse(Buffer.from(pl, 'base64url').toString()); } catch (e) {}
+      if (!d || d.exp < Date.now()) return send(res, 400, { error: 'Deze link is verlopen. Vraag een nieuwe aan.' });
+      if (pw.length < 6) return send(res, 400, { error: 'Wachtwoord: minstens 6 tekens' });
+      let g = null;
+      await mutate('guests', G => { const x = G.guests.find(y => y.id === d.gid); if (!x || String(x.pw || x.googleSub || '').slice(0, 10) !== d.v) return; x.salt = crypto.randomBytes(12).toString('hex'); x.pw = hashPw(pw, x.salt); g = x; });
+      if (!g) return send(res, 400, { error: 'Deze link is al gebruikt. Vraag een nieuwe aan.' });
+      await addLog({ name: g.name }, 'Wachtwoord opnieuw ingesteld');
+      return send(res, 200, { token: sign({ gid: g.id, name: g.name, role: 'guest', exp: Date.now() + 180 * 864e5 }), name: g.name });
+    }
     if ((a === 'g-register' || a === 'g-login') && req.method === 'POST') {
       const b = await body(req);
       let email = clean(b.email, 120).toLowerCase(), pw = String(b.password || '');
@@ -833,6 +853,17 @@ module.exports = async (req, res) => {
       const { g, pw, rs, t } = await seedDemo(email, 'Voorbeeld Gast');
       await addLog(u, rs.length + ' voorbeeldreservaties aangemaakt voor Voorbeeld Gast');
       return send(res, 200, { ok: true, email, password: pw, items: rs.map(r => ({ id: r.id, kind: r.kind, phase: (r.to || r.date) < t ? 'Afgelopen' : (r.from || r.date) <= t ? 'Nu bezig' : 'Gepland', label: r.kind === 'room' ? r.roomName + ' · kamer ' + String(r.roomNo).padStart(2, '0') : r.kind === 'event' ? r.title : 'Vrij atelier Pottery', when: r.kind === 'room' ? r.from + ' → ' + r.to : r.date + (r.time ? ' · ' + r.time : ''), qr: qrCode('R', r.id), valid: validity(r) })) });
+    }
+    if (a === 'golive-reset') {
+      if (u.role !== 'owner' || b.confirm !== 'WIS TESTDATA') return send(res, 403, { error: 'Alleen de eigenaar, met bevestiging' });
+      const n = {};
+      await mutate('guests', d => { n.guests = d.guests.length; n.reservations = d.reservations.length; n.requests = d.requests.length; d.guests = []; d.reservations = []; d.requests = []; });
+      await mutate('orders', d => { n.orders = d.orders.length; d.orders = []; });
+      await mutate('calendar', d => { const k = d.entries.filter(e => !e.ref && !e.demo && !e.guestId); n.calendarRemoved = d.entries.length - k.length; n.calendarKept = k.length; d.entries = k; });
+      await mutate('housekeeping', d => { d.days = {}; });
+      await mutate('config', C => { n.invoiceSeq = C.invoiceSeq || {}; C.invoiceSeq = {}; C.demoLogin = false; });
+      await addLog(u, 'Testdata gewist, factuurteller op nul, demo-logins uit');
+      return send(res, 200, { ok: true, removed: n });
     }
     if (a === 'demo-login-set') {
       if (u.role !== 'owner') return send(res, 403, { error: 'Alleen de eigenaar' });
