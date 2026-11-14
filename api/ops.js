@@ -280,6 +280,27 @@ module.exports = async (req, res) => {
       if (p.status === 'paid') await addLog(null, `Online betaling ontvangen · ${rid} · € ${p.amount.value} · ${nm}`);
       return send(res, 200, { ok: true });
     }
+    if (a === 'cron') {
+      const okCron = /vercel-cron/i.test(req.headers['user-agent'] || '') || (process.env.CRON_SECRET && (req.headers.authorization || '') === 'Bearer ' + process.env.CRON_SECRET);
+      const uu = verify((req.headers.authorization || '').replace(/^Bearer /, ''));
+      if (!okCron && !(uu && uu.role === 'owner')) return send(res, 401, { error: 'unauthorized' });
+      const [{ data: C }, { data: G }] = await Promise.all([load('config'), load('guests')]);
+      mail.use(C.mail);
+      const t = today(), todo = [];
+      for (const r of G.reservations) {
+        if (r.kind !== 'room' || r.status === 'geannuleerd' || r.demo) continue;
+        const g = G.guests.find(x => x.id === r.guestId); if (!g || g.demo || !g.email) continue;
+        const m = r.mails || {}, dIn = daysUntil(r.from), dOut = daysUntil(r.to);
+        if (!m.pre && dIn >= 1 && dIn <= 3 && !(r.checkin && r.checkin.t && dIn < 1)) todo.push([r.id, 'pre', () => mail.preArrival(g, { ...r, _days: dIn })]);
+        if (!m.out && dOut === 0 && !r.checkedOut) todo.push([r.id, 'out', () => mail.checkoutDay(g, r, BZ.totals(C, r))]);
+        if (!m.post && dOut <= -1 && dOut >= -3) todo.push([r.id, 'post', () => mail.postStay(g, r)]);
+      }
+      const sent = [];
+      for (const [rid, k, fn] of todo) { try { const x = await fn(); if (x && !x.skipped && !x.error) sent.push([rid, k]); } catch (e) {} }
+      if (sent.length) await mutate('guests', d => { sent.forEach(([rid, k]) => { const r = d.reservations.find(x => x.id === rid); if (r) { r.mails = r.mails || {}; r.mails[k] = Date.now(); } }); });
+      if (sent.length) await addLog(null, `Automatische mails verstuurd: ${sent.length}`);
+      return send(res, 200, { ok: true, date: t, sent });
+    }
     if (a === 'ical') {
       const room = url.searchParams.get('room');
       const { data: C } = await load('config');
@@ -529,6 +550,36 @@ module.exports = async (req, res) => {
         await mutate('guests', d => { const x = d.reservations.find(y => y.id === r.id); if (x) { x.payments = x.payments || []; x.payments.push({ id: p.id, mollieId: p.id, amount, status: 'open', method: 'online', t: Date.now(), what: b.what === 'deposit' ? 'voorschot' : 'saldo' }); } });
         return send(res, 200, { ok: true, url: p._links.checkout.href });
       }
+      if (a === 'g-checkin') {
+        const tx = (v, n) => clean(v, n || 80);
+        const m = b.main || {};
+        const main = { first: tx(m.first), last: tx(m.last), birth: isDate(m.birth) ? m.birth : '', birthplace: tx(m.birthplace), nationality: tx(m.nationality, 40), street: tx(m.street, 120), zip: tx(m.zip, 12), city: tx(m.city), country: tx(m.country, 40), idType: ['identiteitskaart', 'paspoort', 'rijbewijs', 'verblijfsvergunning'].includes(m.idType) ? m.idType : 'identiteitskaart', idNo: tx(m.idNo, 30) };
+        if (!main.first || !main.last || !main.birth || !main.nationality || !main.city || !main.country || !main.idNo) return send(res, 400, { error: 'Vul alle verplichte velden in' });
+        if (!b.consent) return send(res, 400, { error: 'Bevestig dat de gegevens kloppen' });
+        const others = (b.others || []).slice(0, 5).map(o => ({ first: tx(o.first), last: tx(o.last), birth: isDate(o.birth) ? o.birth : '', nationality: tx(o.nationality, 40) })).filter(o => o.first && o.last);
+        let out = null, gg = null;
+        await mutate('guests', d => { const r = d.reservations.find(x => x.id === b.id && x.guestId === gid && x.kind === 'room'); if (!r || r.status === 'geannuleerd') return; if (daysUntil(r.from) > 7 || daysUntil(r.to) < 0) { out = 'time'; return; }
+          r.checkin = { main, others, arrival: /^\d{2}:\d{2}$/.test(b.arrival || '') ? b.arrival : '', plate: tx(b.plate, 20), wishes: tx(b.wishes, 300), t: Date.now() }; out = r; gg = d.guests.find(x => x.id === gid);
+          if (gg && !gg.phone && b.phone) gg.phone = tx(b.phone, 40); });
+        if (!out) return send(res, 404, { error: 'Reservatie niet gevonden' });
+        if (out === 'time') return send(res, 400, { error: 'Online inchecken kan vanaf 7 dagen voor aankomst' });
+        await addLog({ name: out.guestName }, `Online ingecheckt · ${out.roomName} · ${out.from}`);
+        if (gg) await sendMail('checkinDone', gg, out);
+        return send(res, 200, { ok: true });
+      }
+      if (a === 'g-checkout') {
+        const { data: C } = await load('config');
+        let out = null, gg = null;
+        await mutate('guests', d => { const r = d.reservations.find(x => x.id === b.id && x.guestId === gid && x.kind === 'room'); if (!r || r.status === 'geannuleerd') return; if (daysUntil(r.to) > 1 || daysUntil(r.from) > 0) { out = 'time'; return; } if (r.checkedOut) { out = 'done'; return; }
+          r.checkedOut = Date.now(); if (b.rating) r.feedback = { rating: Math.max(1, Math.min(5, parseInt(b.rating, 10) || 5)), note: clean(b.note, 400) }; out = r; gg = d.guests.find(x => x.id === gid); });
+        if (!out) return send(res, 404, { error: 'Reservatie niet gevonden' });
+        if (out === 'time') return send(res, 400, { error: 'Uitchecken kan vanaf de dag voor vertrek, tijdens je verblijf' });
+        if (out === 'done') return send(res, 400, { error: 'Je bent al uitgecheckt' });
+        const T = BZ.totals(C, out);
+        await addLog({ name: out.guestName }, `Online uitgecheckt · ${out.roomName}${T.due ? ' · open € ' + T.due : ''}`);
+        if (gg) await sendMail('checkedOut', gg, out, T, '/factuur?id=' + out.id + '&k=' + invKey(out.id));
+        return send(res, 200, { ok: true, due: T.due });
+      }
       if (a === 'g-cancel') {
         let out = null;
         await mutate('guests', d => { const r = d.reservations.find(x => x.id === b.id && x.guestId === gid); if (!r || r.status === 'geannuleerd') { out = 'nf'; return; } if (daysUntil(r.from || r.date) < 2) { out = 'late'; return; } r.status = 'geannuleerd'; r.cancelled = Date.now(); out = r; });
@@ -581,6 +632,26 @@ module.exports = async (req, res) => {
       if (!can(u, 'orders')) return send(res, 403, { error: 'Geen toegang' });
       const { data } = await load('orders');
       return send(res, 200, { orders: data.orders.slice(0, 200) });
+    }
+    if (a === 'register' || a === 'register-csv') {
+      if (!can(u, 'guests')) return send(res, 403, { error: 'Geen toegang' });
+      const month = /^\d{4}-\d{2}$/.test(url.searchParams.get('month') || '') ? url.searchParams.get('month') : today().slice(0, 7);
+      const { data: G } = await load('guests');
+      const rows = G.reservations.filter(r => r.kind === 'room' && r.status !== 'geannuleerd' && r.from && r.from.slice(0, 7) === month).sort((x, y) => (x.from < y.from ? -1 : 1))
+        .map(r => ({ id: r.id, room: r.roomName, from: r.from, to: r.to, guests: r.guests, guestName: r.guestName, checkin: r.checkin || null, checkedIn: r.checkedIn || null, checkedOut: r.checkedOut || null }));
+      if (a === 'register') return send(res, 200, { month, rows });
+      const L = [['Aankomst', 'Vertrek', 'Kamer', 'Reservatie', 'Rol', 'Voornaam', 'Naam', 'Geboortedatum', 'Geboorteplaats', 'Nationaliteit', 'Adres', 'Postcode', 'Gemeente', 'Land', 'Identiteitsdocument', 'Documentnummer', 'Online ingecheckt']];
+      rows.forEach(r => { const c = r.checkin; if (!c) { L.push([r.from, r.to, r.room, r.id, 'hoofdgast', r.guestName, '', '', '', '', '', '', '', '', '', '', 'nee']); return; } const M = c.main;
+        L.push([r.from, r.to, r.room, r.id, 'hoofdgast', M.first, M.last, M.birth, M.birthplace, M.nationality, M.street, M.zip, M.city, M.country, M.idType, M.idNo, new Date(c.t).toISOString().slice(0, 16).replace('T', ' ')]);
+        c.others.forEach(o => L.push([r.from, r.to, r.room, r.id, 'medereiziger', o.first, o.last, o.birth, '', o.nationality, '', '', '', '', '', '', ''])); });
+      res.statusCode = 200; res.setHeader('content-type', 'text/csv; charset=utf-8'); res.setHeader('content-disposition', `attachment; filename="gastenregister-${month}.csv"`);
+      return res.end('\ufeff' + L.map(r => r.map(v => { const x = String(v == null ? '' : v); return /[;"\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; }).join(';')).join('\r\n'));
+    }
+    if (a === 'mail-preview') {
+      if (u.role !== 'owner') return send(res, 403, { error: 'Geen toegang' });
+      const { data: C } = await load('config'); mail.use(C.mail);
+      if (!url.searchParams.get('t')) return send(res, 200, { templates: mail.TEMPLATES });
+      return send(res, 200, { mails: mail.preview(url.searchParams.get('t')) });
     }
     if (a === 'hk') {
       if (!can(u, 'today')) return send(res, 403, { error: 'Geen toegang' });
@@ -653,6 +724,7 @@ module.exports = async (req, res) => {
         if (typeof b.from === 'string' && b.from.includes('@')) C.mail.from = String(b.from).replace(/[\r\n"]/g, '').slice(0, 120).trim();
         if (typeof b.replyTo === 'string' && b.replyTo.includes('@')) C.mail.replyTo = clean(b.replyTo, 120);
         if (typeof b.notify === 'string') C.mail.notify = clean(b.notify, 300);
+        if (typeof b.reviewUrl === 'string' && (/^https:\/\//.test(b.reviewUrl) || !b.reviewUrl)) C.mail.reviewUrl = clean(b.reviewUrl, 300);
       });
       const { data: C } = await load('config'); mail.use(C.mail);
       await addLog(u, 'E-mailinstellingen aangepast');

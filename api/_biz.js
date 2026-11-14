@@ -50,7 +50,7 @@ function housekeeping(K, G, HK, date) {
     const who = (arr || stay || dep);
     const rr = who && res(who.ref);
     const mark = ((HK.days || {})[date] || {})[room] || null;
-    return { room, name: ROOM_NAMES[room], no: i + 1, status: st, guest: who ? who.guest || '' : '', guests: rr ? rr.guests : null, extras: rr ? rr.extras : null, lateCheckout: !!(rr && rr.extras && rr.extras.late && dep), done: mark };
+    return { room, name: ROOM_NAMES[room], no: i + 1, status: st, guest: who ? who.guest || '' : '', guests: rr ? rr.guests : null, extras: rr ? rr.extras : null, lateCheckout: !!(rr && rr.extras && rr.extras.late && dep), done: mark, checkedOut: (dep && res(dep.ref) || {}).checkedOut || null, arrival: (arr && res(arr.ref) && res(arr.ref).checkin && res(arr.ref).checkin.arrival) || '', onlineCheckin: !!(arr && res(arr.ref) && res(arr.ref).checkin) };
   });
 }
 

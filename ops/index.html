@@ -232,6 +232,9 @@ button{cursor:pointer}
  .tabs{overflow-y:auto}
  [onclick="go('more')"].btn2{display:none}
 }
+.reg{border-bottom:1px solid #ffffff0d}.reg summary{display:flex;align-items:center;gap:12px;padding:12px 4px;cursor:pointer;list-style:none}.reg summary::-webkit-details-marker{display:none}.reg .tx{flex:1}.reg .tx b,.reg .tx small{display:block}.reg .ok{color:var(--green);font-size:12.5px}.reg .no{color:var(--muted);font-size:12.5px}
+.regd{padding:0 4px 14px;display:grid;gap:6px;font-size:13.5px}.regd span{display:inline-block;min-width:110px;color:var(--muted);font-size:12px}
+.mprev{width:100%;height:560px;border:1px solid var(--line);border-radius:14px;background:#0f0c0a;margin-top:8px}
 </style>
 </head>
 <body>
@@ -351,6 +354,7 @@ function TOOLS(){const P=S.perms,o=S.user.role==='owner';return [
  P.includes('menus')&&['menus',"Ontbijtmenu's",'i-menu',"menusView()"],
  P.includes('today')&&['hk','Schoonmaak','i-today',"hkView()"],
  P.includes('guests')&&['guests','Gasten','i-team',"guestsView()"],
+ P.includes('guests')&&['reg','Gastenregister','i-key',"regView()"],
  P.includes('guests')&&['pay','Betalingen & facturen','i-euro',"payView()"],
  o&&['rep','Rapporten & export','i-log',"reportView()"],
  P.includes('staff')&&['staff','Personeel','i-team',"staffView()"],
@@ -431,10 +435,12 @@ async function mailSheet(){let st={};try{st=await api('mail-status')}catch(e){}
  <label class="field"><span>Resend API-sleutel ${st.on?'(ingesteld, laat leeg om te behouden)':''}</span><input id="mk" placeholder="re_…" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
  <label class="field"><span>Afzender</span><input id="mf" value="${esc(st.from||'')}" autocapitalize="off" spellcheck="false"></label>
  <label class="field"><span>Antwoorden naar</span><input id="mr" value="${esc(st.replyTo||'')}" autocapitalize="off" spellcheck="false"></label>
- <label class="field"><span>Melding naar personeel (komma's)</span><input id="mn" value="${esc((st.notify||[]).join(', '))}" placeholder="info@villa-amano.com" autocapitalize="off" spellcheck="false"></label>
+ <label class="field"><span>Melding naar eigenaar (komma's)</span><input id="mn" value="${esc((st.notify||[]).join(', '))}" placeholder="info@villa-amano.com" autocapitalize="off" spellcheck="false"></label>
+ <label class="field"><span>Link voor reviews (bv. Google)</span><input id="mrv" value="${esc(st.reviewUrl||'')}" placeholder="https://g.page/r/…" autocapitalize="off" spellcheck="false"></label>
  <button class="cta full" id="ms">Opslaan</button>
- <label class="field" style="margin-top:16px"><span>Testmail sturen naar</span><input id="mt" type="email" placeholder="jij@voorbeeld.be"></label><button class="btn2" style="width:100%" id="mtb">Verstuur test</button>`);
- $('#ms').onclick=async()=>{const b={from:$('#mf').value.trim(),replyTo:$('#mr').value.trim(),notify:$('#mn').value.trim()};const k=$('#mk').value.trim();if(k)b.key=k;try{await api('mail-set',b);toast('Opgeslagen ✓');closeSheet();vMore()}catch(e){toast(e.message,1)}};
+ <label class="field" style="margin-top:16px"><span>Testmail sturen naar</span><input id="mt" type="email" placeholder="jij@voorbeeld.be"></label><button class="btn2" style="width:100%" id="mtb">Verstuur test</button>
+ <div class="sec" style="margin-top:18px"><h3>Templates</h3></div><p class="k" style="margin:0 0 8px">Automatisch: 3 dagen voor aankomst, op de vertrekdag om 8u en de dag na vertrek.</p><div class="card" style="padding:4px 12px">${(await api('mail-preview')).templates.map(([k,l])=>`<div class="row" style="cursor:pointer" onclick="mailPreview('${k}')"><div class="tx"><b style="font-weight:400">${esc(l)}</b></div><span class="k">Bekijk →</span></div>`).join('')}</div>`);
+ $('#ms').onclick=async()=>{const b={from:$('#mf').value.trim(),replyTo:$('#mr').value.trim(),notify:$('#mn').value.trim(),reviewUrl:$('#mrv').value.trim()};const k=$('#mk').value.trim();if(k)b.key=k;try{await api('mail-set',b);toast('Opgeslagen ✓');closeSheet();vMore()}catch(e){toast(e.message,1)}};
  $('#mtb').onclick=async()=>{try{await api('mail-test',{to:$('#mt').value.trim()});toast('Testmail verstuurd ✓')}catch(e){toast(e.message,1)}}}
 function googleSheet(){const cur=S.googleClientId||'',o=location.origin;openSheet(`<h3>Google-login</h3><div class="sub">Gasten loggen dan in met één tik op “Doorgaan met Google”.</div>
  <ol class="steps"><li>Open <a href="https://console.cloud.google.com/auth/clients/create" target="_blank" rel="noopener" style="color:var(--gold2)">Google Cloud → Clients</a> (maak eerst een project als dat gevraagd wordt).</li><li>Type: <b>Webapplicatie</b>, naam: Villa Amano.</li><li>Bij <b>Toegestane JavaScript-oorsprongen</b>: <b style="user-select:all">${o}</b> (en later je eigen domein).</li><li>Tik op Maken en kopieer de <b>Client ID</b>.</li></ol>
@@ -619,7 +625,7 @@ async function hkView(date){TAB='more';$('#title').textContent='Schoonmaak';date
  const todo=d.rooms.filter(r=>r.status!=='vrij'&&!r.done).length;
  $('#app').innerHTML=`<button class="btn2" style="margin-bottom:12px" onclick="go('more')">← Terug</button>
  <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><button class="btn2" onclick="hkView('${nd(-1)}')">‹</button><div style="text-align:center"><b style="font:400 20px var(--serif)">${new Date(date+'T12:00').toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}</b><div class="k">${todo?todo+' kamer'+(todo>1?'s':'')+' te doen':'Alles klaar ✓'}</div></div><button class="btn2" onclick="hkView('${nd(1)}')">›</button></div>
- ${d.rooms.map(r=>{const L=HKL[r.status];return `<div class="card hk ${r.done?'done':''}" style="--c:${L[1]}"><div class="row" style="border:0;padding:0"><div class="tx"><b>${String(r.no).padStart(2,'0')} · ${esc(r.name)}</b><small><span class="hkst">${L[0]}</span> ${esc(L[2])}${r.guest?' · '+esc(r.guest):''}${r.guests?' · '+r.guests+' pers.':''}${r.lateCheckout?' · <b style="color:var(--gold2)">late check-out 13:00</b>':''}</small>${r.done?`<small style="color:var(--green)">✓ Klaar · ${esc(r.done.by)} ${new Date(r.done.t).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'})}</small>`:''}</div>
+ ${d.rooms.map(r=>{const L=HKL[r.status];return `<div class="card hk ${r.done?'done':''}" style="--c:${L[1]}"><div class="row" style="border:0;padding:0"><div class="tx"><b>${String(r.no).padStart(2,'0')} · ${esc(r.name)}</b><small><span class="hkst">${L[0]}</span> ${esc(L[2])}${r.guest?' · '+esc(r.guest):''}${r.guests?' · '+r.guests+' pers.':''}${r.lateCheckout?' · <b style="color:var(--gold2)">late check-out 13:00</b>':''}${r.checkedOut?' · <b style="color:var(--green)">uitgecheckt '+new Date(r.checkedOut).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'})+'</b>':''}${r.onlineCheckin?' · <b style="color:var(--green)">online ingecheckt</b>':''}${r.arrival?' · aankomst rond '+esc(r.arrival):''}</small>${r.done?`<small style="color:var(--green)">✓ Klaar · ${esc(r.done.by)} ${new Date(r.done.t).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'})}</small>`:''}</div>
  ${r.status!=='vrij'?`<button class="${r.done?'btn2':'cta'}" style="min-width:96px" onclick="hkSet('${date}','${r.room}',${!r.done})">${r.done?'Ongedaan':'Klaar'}</button>`:''}</div></div>`}).join('')}`}
 async function hkSet(date,room,done){try{await api('hk-set',{date,room,done});toast(done?'Kamer klaar ✓':'Teruggezet');hkView(date)}catch(e){toast(e.message,1)}}
 
@@ -667,6 +673,20 @@ async function bizSheet(){let B;try{B=await api('biz-get')}catch(e){toast(e.mess
  <label class="field"><span>Mollie API-sleutel (test_… of live_…)</span><input id="mk" placeholder="${B.mollieMode?'ingesteld · leeg laten om te behouden':'test_…'}" autocapitalize="off" spellcheck="false"></label>
  <button class="cta full" id="bs">Opslaan</button>`);
  $('#bs').onclick=async()=>{const b={};document.querySelectorAll('#sheet [data-k]').forEach(i=>b[i.dataset.k]=i.value.trim());const k=$('#mk').value.trim();if(k)b.mollieKey=k;try{await api('biz-set',b);closeSheet();toast('Opgeslagen ✓')}catch(e){toast(e.message,1)}}}
+
+
+/* ---------- gastenregister ---------- */
+async function regView(month){TAB='more';$('#title').textContent='Gastenregister';month=month||TODAY().slice(0,7);$('#app').innerHTML='<div class="empty">Laden…</div>';
+ let d;try{d=await api('register&month='+month)}catch(e){toast(e.message,1);return}
+ const mv=n=>{const [y,m]=month.split('-').map(Number);return new Date(Date.UTC(y,m-1+n,1)).toISOString().slice(0,7)};
+ const done=d.rows.filter(r=>r.checkin).length;
+ $('#app').innerHTML=`<button class="btn2" style="margin-bottom:12px" onclick="go('more')">← Terug</button>
+ <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><button class="btn2" onclick="regView('${mv(-1)}')">‹</button><div style="text-align:center"><b style="font:400 20px var(--serif);text-transform:capitalize">${new Date(month+'-15').toLocaleDateString('nl-BE',{month:'long',year:'numeric'})}</b><div class="k">${done} van ${d.rows.length} verblijven online ingecheckt</div></div><button class="btn2" onclick="regView('${mv(1)}')">›</button></div>
+ <div class="card">${d.rows.map(r=>{const c=r.checkin,M=c&&c.main;return `<details class="reg"><summary><div class="tx"><b>${esc(M?M.first+' '+M.last:r.guestName)}</b><small>${esc(r.room)} · ${nice(r.from)} → ${nice(r.to)} · ${r.guests} pers.</small></div><span class="${c?'ok':'no'}">${c?'✓ Ingecheckt':'Nog niet'}</span></summary>
+ ${c?`<div class="regd"><div><span>Geboren</span>${esc(M.birth)}${M.birthplace?' · '+esc(M.birthplace):''}</div><div><span>Nationaliteit</span>${esc(M.nationality)}</div><div><span>Adres</span>${esc([M.street,M.zip+' '+M.city,M.country].filter(x=>x&&x.trim()).join(', '))}</div><div><span>Document</span>${esc(M.idType)} · ${esc(M.idNo)}</div>${c.arrival?`<div><span>Aankomst</span>rond ${esc(c.arrival)}</div>`:''}${c.plate?`<div><span>Nummerplaat</span>${esc(c.plate)}</div>`:''}${c.wishes?`<div><span>Wensen</span>${esc(c.wishes)}</div>`:''}${c.others.map(o=>`<div><span>Medereiziger</span>${esc(o.first+' '+o.last)} · ${esc(o.birth||'')} · ${esc(o.nationality)}</div>`).join('')}</div>`:'<div class="regd k">Gast heeft nog niet online ingecheckt. Vraag de gegevens aan de balie.</div>'}</details>`}).join('')||'<div class="empty">Geen verblijven deze maand.</div>'}</div>
+ <button class="cta full" onclick="dlCsv('register-csv&month=${month}','gastenregister-${month}.csv')">Download register (CSV)</button>`}
+async function dlCsv(q,name){try{const r=await fetch('/api/ops?a='+q,{headers:{authorization:'Bearer '+TOKEN}});if(!r.ok)throw new Error('Download mislukt');const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();toast('Gedownload ✓')}catch(e){toast(e.message,1)}}
+async function mailPreview(t){try{const d=await api('mail-preview&t='+t);openSheet(`<h3>Voorbeeld</h3>${d.mails.map(m=>`<div class="sub" style="margin-top:8px"><b>${esc(m.subject)}</b><br>Aan: ${esc([].concat(m.to).join(', '))}</div><iframe class="mprev" srcdoc="${esc(m.html)}"></iframe>`).join('')}<button class="btn2" style="width:100%;margin-top:10px" onclick="mailSheet()">← Terug</button>`)}catch(e){toast(e.message,1)}}
 
 function logView(){$('#title').textContent='Logboek';$('#app').innerHTML=`<button class="btn2" style="margin-bottom:12px" onclick="go('more')">← Terug</button><div class="card log">${(S.log||[]).map(l=>`<div class="row"><div class="tx"><b>${esc(l.text)}</b><small>${esc(l.who)}</small></div><div class="rt">${new Date(l.t).toLocaleString('nl-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div></div>`).join('')||'<div class="empty">Nog niets.</div>'}</div>`}
 

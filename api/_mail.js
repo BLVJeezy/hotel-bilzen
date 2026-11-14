@@ -22,7 +22,9 @@ ${cta ? `<tr><td style="padding:26px 32px 0" align="center"><a href="${cta[1]}" 
 }
 const text = (title, rows, cta) => [title, '', ...(rows || []).map(([k, v]) => `${k}: ${v}`), '', cta ? `${cta[0]}: ${cta[1]}` : '', '', 'Villa Amano · Wijsstraat 1, 3740 Bilzen-Hoeselt'].join('\n');
 
+let SENDER = null;
 async function send(to, subject, html, txt, tags) {
+  if (SENDER) return SENDER(to, subject, html);
   const key = process.env.RESEND_API_KEY || CFG.key;
   if (!key || !to) return { skipped: true };
   const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 5000);
@@ -38,7 +40,7 @@ async function send(to, subject, html, txt, tags) {
   } catch (e) { console.error('resend', e && e.message); return { error: true }; }
   finally { clearTimeout(t); }
 }
-const staff = () => (process.env.OPS_NOTIFY_EMAIL || CFG.notify || '').split(',').map(s => s.trim()).filter(Boolean);
+const staff = () => (process.env.OPS_NOTIFY_EMAIL || CFG.notify || REPLY()).split(',').map(s => s.trim()).filter(Boolean);
 
 function resRows(r) {
   if (r.kind === 'room') {
@@ -51,7 +53,7 @@ function resRows(r) {
 
 module.exports = {
   use(c) { CFG = c || {}; },
-  status() { return { on: !!(process.env.RESEND_API_KEY || CFG.key), from: FROM(), replyTo: REPLY(), notify: staff() }; },
+  status() { return { on: !!(process.env.RESEND_API_KEY || CFG.key), from: FROM(), replyTo: REPLY(), notify: staff(), reviewUrl: CFG.reviewUrl || '' }; },
   test(to) { const t = 'Test van Villa Amano'; return send(to, t, layout(t, 'E-mails vanuit de website werken. Gasten krijgen voortaan een bevestiging bij account, reservatie, annulatie en ontbijt.', null, ['Open de website', SITE]), text(t)); },
   welcome(g) {
     const t = `Welkom, ${g.name.split(' ')[0]}`;
@@ -79,5 +81,52 @@ module.exports = {
     if (staff().length) p.push(send(staff(), `Ontbijt ${o.id} · kamer ${o.room} · ${o.time}`, layout('Nieuwe ontbijtbestelling', esc(g.name), rows, ['Open ops', SITE + '/ops/']), text('Ontbijt', rows), [{ name: 'type', value: 'staff' }]));
     return Promise.all(p);
   },
+
+  preArrival(g, r) {
+    const first = esc(g.name.split(' ')[0]), ex = r.extras || {};
+    const up = [!ex.ontbijt && ['Ontbijt', '€ 25 p.p. · op je kamer of op het terras'], !ex.well && ['Wellness-moment', '€ 35 p.p. · privé sauna & stoombad'], ['Pottery House', 'Vrij atelier tot 22:00 · € 30 p.p.'], !ex.late && ['Late check-out', 'Blijf tot 13:00 · € 45']].filter(Boolean);
+    const upHtml = up.map(([a, b]) => `<tr><td style="padding:8px 0;border-bottom:1px solid #2a221c"><b style="color:#efe6d6;font-weight:normal">${a}</b><br><span style="color:#a99b88;font-size:13px">${b}</span></td></tr>`).join('');
+    const t = `Nog ${r._days || 3} dagen, ${g.name.split(' ')[0]}`;
+    const intro = `we maken ${esc(r.roomName)} voor je klaar. Check in online, dan sta je bij aankomst meteen in je kamer.<br><br><b style="color:#e6b866;font-weight:normal">Maak je verblijf compleet</b><table role="presentation" width="100%" style="margin-top:6px">${upHtml}</table>`;
+    const rows = [['Aankomst', nice(r.from) + ' · 15:00 – 21:00'], ['Vertrek', nice(r.to) + (ex.late ? ' · tot 13:00' : ' · tot 11:00')], ['Adres', 'Wijsstraat 1, 3740 Bilzen-Hoeselt'], ['Parking', 'Gratis, aan de villa']];
+    const cta = ['Online inchecken', SITE + '/portaal/?checkin=' + r.id];
+    return send(g.email, `Je verblijf in Villa Amano komt eraan · ${nice(r.from)}`, layout(t, `Dag ${first}, ` + intro, rows, cta, 'Iets nodig of later aankomen? Antwoord gewoon op deze e-mail.'), text(t, rows, cta), [{ name: 'type', value: 'pre-arrival' }]);
+  },
+  checkoutDay(g, r, T) {
+    const t = 'Tijd om uit te checken';
+    const rows = [['Kamer', r.roomName], ['Check-out', (r.extras && r.extras.late ? 'tot 13:00' : 'tot 11:00')], ['Totaal verblijf', eur(T.total)], ['Nog te betalen', eur(T.due)]];
+    const cta = ['Online uitchecken', SITE + '/portaal/?checkout=' + r.id];
+    return send(g.email, 'Online uitchecken · Villa Amano', layout(t, `Goedemorgen ${esc(g.name.split(' ')[0])}. Je kan in je portaal in één minuut uitchecken${T.due ? ' en het saldo betalen' : ''}. Laat de sleutel gewoon op de kamer.`, rows, cta), text(t, rows, cta), [{ name: 'type', value: 'checkout-day' }]);
+  },
+  postStay(g, r) {
+    const t = 'Bedankt voor je verblijf';
+    const cta = ['Laat een review achter', process.env.REVIEW_URL || CFG.reviewUrl || SITE + '/reviews'];
+    return send(g.email, `Bedankt, ${g.name.split(' ')[0]} · Villa Amano`, layout(t, `Het was fijn je te ontvangen in ${esc(r.roomName)}. Heb je twee minuten? Een korte review helpt ons enorm.<br><br>Als dank: <b style="color:#e6b866;font-weight:normal">10% korting</b> op je volgende verblijf met code <b style="color:#efe6d6">WELKOMTERUG</b>.`, null, cta, 'Je factuur vind je altijd in je portaal.'), text(t, null, cta), [{ name: 'type', value: 'post-stay' }]);
+  },
+  checkedOut(g, r, T, inv) {
+    const t = 'Je bent uitgecheckt';
+    const rows = [['Kamer', r.roomName], ['Verblijf', nice(r.from) + ' – ' + nice(r.to)], ['Totaal', eur(T.total)], ['Betaald', eur(T.paid)], ['Saldo', eur(T.due)]];
+    const cta = ['Download je factuur', SITE + inv];
+    const p = [send(g.email, 'Uitgecheckt · factuur Villa Amano', layout(t, 'Goede reis! Hieronder je overzicht en je factuur.', rows, cta), text(t, rows, cta), [{ name: 'type', value: 'checked-out' }])];
+    if (staff().length) p.push(send(staff(), `Uitgecheckt: ${r.roomName} · ${g.name}`, layout('Gast uitgecheckt', `${esc(g.name)} heeft online uitgecheckt. ${T.due ? '<b style="color:#e6b866">Nog open: ' + eur(T.due) + '</b>' : 'Volledig betaald.'}`, rows, ['Open ops', SITE + '/ops/']), text('Uitgecheckt', rows), [{ name: 'type', value: 'staff' }]));
+    return Promise.all(p);
+  },
+  checkinDone(g, r) {
+    if (!staff().length) return;
+    const c = r.checkin || {}, rows = [['Kamer', r.roomName], ['Aankomst', nice(r.from) + (c.arrival ? ' · rond ' + c.arrival : '')], ['Gasten', r.guests], ...(c.plate ? [['Nummerplaat', c.plate]] : []), ...(c.wishes ? [['Wensen', c.wishes]] : [])];
+    return send(staff(), `Online ingecheckt: ${g.name} · ${nice(r.from)}`, layout('Gast is online ingecheckt', esc(g.name), rows, ['Open ops', SITE + '/ops/']), text('Online ingecheckt', rows), [{ name: 'type', value: 'staff' }]);
+  },
+  preview(name) {
+    const g = { name: 'Sofie Peeters', email: 'sofie@voorbeeld.be', phone: '+32 470 12 34 56' };
+    const d = n => { const x = new Date(Date.now() + n * 864e5); return x.toISOString().slice(0, 10); };
+    const r = { id: 'RVOORBEELD', kind: 'room', room: 'moon', roomName: 'Moonstone', from: d(3), to: d(5), guests: 2, total: 520, extras: { ontbijt: true, well: false, bike: false, late: false }, _days: 3, checkin: { arrival: '17:00', wishes: 'Extra kussen graag' } };
+    const T = { total: 520, paid: 156, due: 364 };
+    const cap = [];
+    const fake = (to, subject, html) => { cap.push({ to, subject, html }); return { id: 'preview' }; };
+    const F = { welcome: () => this.welcome(g), reservation: () => this.reservation(g, r), preArrival: () => this.preArrival(g, r), checkoutDay: () => this.checkoutDay(g, r, T), checkedOut: () => this.checkedOut(g, r, T, '/factuur?id=RVOORBEELD'), postStay: () => this.postStay(g, r), cancelled: () => this.cancelled(g, r), checkinDone: () => this.checkinDone(g, r) };
+    SENDER = fake; try { F[name] && F[name](); } finally { SENDER = null; }
+    return cap;
+  },
+  TEMPLATES: [['reservation', 'Bevestiging reservatie (+ melding eigenaar)'], ['welcome', 'Welkom bij nieuw account'], ['preArrival', '3 dagen voor aankomst · online inchecken & extra\'s'], ['checkinDone', 'Melding eigenaar: gast online ingecheckt'], ['checkoutDay', 'Vertrekdag · online uitchecken'], ['checkedOut', 'Uitgecheckt · factuur (+ melding eigenaar)'], ['postStay', 'Dag na vertrek · bedankt & review'], ['cancelled', 'Annulatie (+ melding eigenaar)']],
   _layout: layout, _send: send,
 };
