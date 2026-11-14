@@ -217,6 +217,7 @@ button{cursor:pointer}
 .scanbar .sb-tx{flex:1}.scanbar b{display:block;font:500 17px var(--sans)}.scanbar small{font-size:12.5px;opacity:.75}.scanbar .sb-ar{width:20px;height:20px;stroke:#24180e;fill:none;stroke-width:1.6}
 @media(min-width:1024px){.scanbar{display:none}}
 @media(max-width:1023px){body.t-today .scanb{display:none}}
+.payv small{display:block}.hk{border-left:3px solid var(--c)}.hk.done{opacity:.6}.hkst{color:var(--c);font-weight:500;margin-right:4px}.btn2.on{border-color:var(--gold);color:var(--gold2)}
 </style>
 </head>
 <body>
@@ -547,8 +548,8 @@ function eventSheet(e){e=e||{date:TODAY(),cat:'event',time:'',title:'',text:'',p
 function vMore(){const P=S.perms,li=(ic,t,sub,fn)=>`<button class="list-btn" onclick="${fn}"><svg><use href="#${ic}"/></svg><span>${t}</span><em>${sub||''}</em><svg style="width:16px;stroke:var(--muted)"><use href="#i-arrow"/></svg></button>`;
  const np='Notification' in window?Notification.permission:'unsupported';
  const pend=P.includes('guests')?(S.guests||[]).reduce((n,g)=>n+Object.values(g.memberships||{}).filter(m=>m.status==='aangevraagd').length,0)+(S.requests||[]).filter(r=>r.status!=='klaar').length:0;
- $('#app').innerHTML=`<div class="card">${P.includes('guests')?li('i-team','Gasten',(pend?pend+' open · ':'')+(S.guests||[]).length+' accounts',"guestsView()"):''}${P.includes('agenda')?li('i-agenda','Agenda & events',(S.events||[]).filter(e=>e.date>=TODAY()).length+' komend',"go('agenda')"):''}${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'',"menusView()"):''}</div>
- <div class="sec"><h3>Instellingen</h3></div><div class="card">${P.includes('staff')?li('i-team','Personeel',(S.staff||[]).length+' personen',"staffView()"):''}${P.includes('connect')?li('i-web','Google-login gasten',S.googleEnv||S.googleClientId?'Aan':'Uit',"googleSheet()"):''}${S.user&&S.user.role==='owner'?li('i-web','E-mails naar gasten','',"mailSheet()"):''}${li('i-bell','Meldingen',np==='granted'?'Aan':np==='denied'?'Geblokkeerd':'Uit',"notif()")}${li('i-phone','Zet op beginscherm','',"installSheet()")}${P.includes('log')?li('i-log','Logboek','',"logView()"):''}</div>
+ $('#app').innerHTML=`<div class="card">${P.includes('guests')?li('i-team','Gasten',(pend?pend+' open · ':'')+(S.guests||[]).length+' accounts',"guestsView()"):''}${P.includes('agenda')?li('i-agenda','Agenda & events',(S.events||[]).filter(e=>e.date>=TODAY()).length+' komend',"go('agenda')"):''}${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'',"menusView()"):''}${P.includes('today')?li('i-today','Schoonmaak','Kamers van vandaag',"hkView()"):''}${P.includes('guests')?li('i-euro','Betalingen & facturen','',"payView()"):''}${S.user.role==='owner'?li('i-log','Rapporten & export','Bezetting, omzet, verblijfsbelasting',"reportView()"):''}</div>
+ <div class="sec"><h3>Instellingen</h3></div><div class="card">${P.includes('staff')?li('i-team','Personeel',(S.staff||[]).length+' personen',"staffView()"):''}${P.includes('connect')?li('i-web','Google-login gasten',S.googleEnv||S.googleClientId?'Aan':'Uit',"googleSheet()"):''}${S.user&&S.user.role==='owner'?li('i-web','E-mails naar gasten','',"mailSheet()")+li('i-euro','Facturatie & betalen','Btw, IBAN, Mollie',"bizSheet()"):''}${li('i-bell','Meldingen',np==='granted'?'Aan':np==='denied'?'Geblokkeerd':'Uit',"notif()")}${li('i-phone','Zet op beginscherm','',"installSheet()")}${P.includes('log')?li('i-log','Logboek','',"logView()"):''}</div>
  <div class="card">${li('i-web','Open de website','',"window.open('/','_blank')")}${li('i-out','Uitloggen','',"logout()")}</div>
  ${S.user.role==='owner'?`<div class="sec"><h3>Demo</h3></div><div class="card">${li('i-key','Demo-logins',S.demoLogin?'Aan · admin/admin & customer/customer':'Uit',"demoLoginSheet()")}</div>`:''}
  ${S.user.role==='owner'?`<p class="k" style="text-align:center;margin-top:16px"><button onclick="demoSheet()" style="background:none;border:0;color:var(--muted);font:inherit;text-decoration:underline">Testreservaties met QR aanmaken</button></p>`:''}
@@ -584,6 +585,64 @@ function staffSheet(s){s=s||{name:'',role:'receptie',active:true};let role=s.rol
  $('#sr').onclick=e=>{const b=e.target.closest('button');if(!b)return;role=b.dataset.v;[...$('#sr').children].forEach(y=>y.classList.toggle('on',y===b))};
  $('#sv').onclick=async()=>{try{await api('staff-save',{id:s.id,name:$('#sn').value,role,pin:$('#sp').value,active:$('#sa')?$('#sa').checked:true});closeSheet();toast('Opgeslagen ✓');await reload();staffView()}catch(e){toast(e.message,1)}};
  if($('#dl'))$('#dl').onclick=async()=>{if(!confirmBox('Verwijderen?'))return;try{await api('staff-del',{id:s.id});closeSheet();await reload();staffView()}catch(e){toast(e.message,1)}}}
+
+/* ---------- schoonmaak ---------- */
+const HKL={vertrek:['Vertrek','#e6b866','Uitchecken, dan volledig poetsen'],aankomst:['Aankomst','#9fd8a8','Klaarzetten voor nieuwe gasten'],wissel:['Wissel','#f0a080','Vertrek én aankomst vandaag'],bezet:['Bezet','#9fb8e6','Opfrissen: handdoeken & bed'],vrij:['Vrij','#8f8272','Niets te doen']};
+async function hkView(date){TAB='more';$('#title').textContent='Schoonmaak';date=date||TODAY();$('#app').innerHTML='<div class="empty">Laden…</div>';
+ let d;try{d=await api('hk&date='+date)}catch(e){toast(e.message,1);return}
+ const nd=n=>{const x=new Date(date+'T12:00');x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};
+ const todo=d.rooms.filter(r=>r.status!=='vrij'&&!r.done).length;
+ $('#app').innerHTML=`<button class="btn2" style="margin-bottom:12px" onclick="go('more')">← Terug</button>
+ <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><button class="btn2" onclick="hkView('${nd(-1)}')">‹</button><div style="text-align:center"><b style="font:400 20px var(--serif)">${new Date(date+'T12:00').toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}</b><div class="k">${todo?todo+' kamer'+(todo>1?'s':'')+' te doen':'Alles klaar ✓'}</div></div><button class="btn2" onclick="hkView('${nd(1)}')">›</button></div>
+ ${d.rooms.map(r=>{const L=HKL[r.status];return `<div class="card hk ${r.done?'done':''}" style="--c:${L[1]}"><div class="row" style="border:0;padding:0"><div class="tx"><b>${String(r.no).padStart(2,'0')} · ${esc(r.name)}</b><small><span class="hkst">${L[0]}</span> ${esc(L[2])}${r.guest?' · '+esc(r.guest):''}${r.guests?' · '+r.guests+' pers.':''}${r.lateCheckout?' · <b style="color:var(--gold2)">late check-out 13:00</b>':''}</small>${r.done?`<small style="color:var(--green)">✓ Klaar · ${esc(r.done.by)} ${new Date(r.done.t).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'})}</small>`:''}</div>
+ ${r.status!=='vrij'?`<button class="${r.done?'btn2':'cta'}" style="min-width:96px" onclick="hkSet('${date}','${r.room}',${!r.done})">${r.done?'Ongedaan':'Klaar'}</button>`:''}</div></div>`}).join('')}`}
+async function hkSet(date,room,done){try{await api('hk-set',{date,room,done});toast(done?'Kamer klaar ✓':'Teruggezet');hkView(date)}catch(e){toast(e.message,1)}}
+
+/* ---------- betalingen & facturen ---------- */
+async function payView(){TAB='more';$('#title').textContent='Betalingen & facturen';$('#app').innerHTML='<div class="empty">Laden…</div>';
+ let d;try{d=await api('res-list')}catch(e){toast(e.message,1);return}payView.L=d.list;const q=(payView.q||'').toLowerCase();
+ const L=d.list.filter(r=>!q||(r.guestName+' '+r.id+' '+(r.invoiceNo||'')).toLowerCase().includes(q));
+ const open=d.list.reduce((n,r)=>n+r.due,0);
+ $('#app').innerHTML=`<button class="btn2" style="margin-bottom:12px" onclick="go('more')">← Terug</button>
+ <div class="stats"><div class="stat hot"><small>Nog te ontvangen</small><b>${fmt(open)}</b></div><div class="stat"><small>Volledig betaald</small><b>${d.list.filter(r=>r.total&&!r.due).length}</b></div></div>
+ <label class="field"><span>Zoek op gast, reservatie of factuurnummer</span><input id="pq" value="${esc(payView.q||'')}"></label>
+ <div class="card payv">${L.map(r=>`<div class="row"><div class="tx"><b>${esc(r.guestName)}</b><small>${r.kind==='room'?esc(r.roomName)+' · '+nice(r.from)+' → '+nice(r.to):esc(r.title||({pottery:'Vrij atelier',wellness:'Wellness',lessen:'Lessenreeks'})[r.kind]||r.kind)+' · '+nice(r.date)} · ${r.id}${r.invoiceNo?' · F'+esc(r.invoiceNo):''}</small><small>${fmt(r.total)} · ${r.due?`<b style="color:var(--gold2)">open ${fmt(r.due)}</b>`:'<span style="color:var(--green)">betaald</span>'}</small></div>
+ <div style="display:flex;flex-direction:column;gap:6px">${r.due?`<button class="cta" style="height:36px;font-size:13px" onclick="paySheet('${r.id}')">Betaald</button>`:''}<a class="btn2" style="height:36px;font-size:13px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:var(--text)" href="${r.inv}" target="_blank" rel="noopener">Factuur</a></div></div>`).join('')||'<div class="empty">Geen reservaties.</div>'}</div>`;
+ const i=$('#pq');i.oninput=()=>{payView.q=i.value;clearTimeout(i._t);i._t=setTimeout(()=>{payView();},350)}}
+function paySheet(id){const r=(payView.L||[]).find(x=>x.id===id);openSheet(`<h3>Betaling registreren</h3><div class="sub">${esc(r.guestName)} · ${r.id} · open ${fmt(r.due)}</div>
+ <label class="field"><span>Bedrag</span><input id="pa" type="number" step="0.01" value="${r.due}"></label>
+ <div class="grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">${['kaart','cash','overschrijving'].map((m,i)=>`<button class="btn2 ${i?'':'on'}" data-m="${m}" style="height:44px">${m[0].toUpperCase()+m.slice(1)}</button>`).join('')}</div>
+ <button class="cta full" id="ps">Registreer betaling</button>`);let m='kaart';
+ document.querySelectorAll('#sheet [data-m]').forEach(b=>b.onclick=()=>{m=b.dataset.m;document.querySelectorAll('#sheet [data-m]').forEach(x=>x.classList.toggle('on',x===b))});
+ $('#ps').onclick=async()=>{try{await api('pay-add',{id,amount:+$('#pa').value,method:m});closeSheet();toast('Betaling geregistreerd ✓');payView()}catch(e){toast(e.message,1)}}}
+
+/* ---------- rapporten ---------- */
+async function reportView(month){TAB='more';$('#title').textContent='Rapporten';month=month||TODAY().slice(0,7);$('#app').innerHTML='<div class="empty">Laden…</div>';
+ let d;try{d=await api('report&month='+month)}catch(e){toast(e.message,1);return}
+ const mv=n=>{const [y,m]=month.split('-').map(Number);const x=new Date(Date.UTC(y,m-1+n,1));return x.toISOString().slice(0,7)};
+ const R=d.revenue,bar=(v,max,c)=>`<i style="display:block;height:8px;border-radius:6px;background:${c||'var(--gold)'};width:${max?Math.max(2,v/max*100):0}%"></i>`;
+ $('#app').innerHTML=`<button class="btn2" style="margin-bottom:12px" onclick="go('more')">← Terug</button>
+ <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><button class="btn2" onclick="reportView('${mv(-1)}')">‹</button><b style="font:400 22px var(--serif);text-transform:capitalize">${new Date(month+'-15').toLocaleDateString('nl-BE',{month:'long',year:'numeric'})}</b><button class="btn2" onclick="reportView('${mv(1)}')">›</button></div>
+ <div class="stats"><div class="stat hot"><small>Bezetting</small><b>${d.occupancy.toLocaleString('nl-BE')}%</b><small>${d.sold} van ${d.available} kamernachten</small></div><div class="stat"><small>Omzet (incl. btw)</small><b>${fmt(R.total)}</b></div><div class="stat"><small>Gem. prijs / nacht (ADR)</small><b>${fmt(d.adr)}</b></div><div class="stat"><small>Opbrengst / beschikbare kamer</small><b>${fmt(d.revpar)}</b></div></div>
+ <div class="sec"><h3>Omzet</h3></div><div class="card">${[['Kamers',R.rooms],["Extra's bij verblijf",R.extras],['Ontbijt (kamerrekening)',R.breakfast],['Pottery, wellness & events',R.activities]].map(([k,v])=>`<div class="row" style="display:block"><div style="display:flex;justify-content:space-between"><span>${k}</span><b>${fmt(v)}</b></div>${bar(v,R.total)}</div>`).join('')}<div class="row"><span>Ontvangen deze maand</span><b>${fmt(d.paid)}</b></div></div>
+ <div class="sec"><h3>Per kamer</h3></div><div class="card">${d.perRoom.map(r=>`<div class="row" style="display:block"><div style="display:flex;justify-content:space-between"><span>${esc(r.name)}</span><span class="k">${r.nights} nachten · ${r.occupancy.toLocaleString('nl-BE')}%</span></div>${bar(r.occupancy,100,RN[r.room][2])}</div>`).join('')}</div>
+ <div class="sec"><h3>Verblijfsbelasting</h3></div><div class="card"><div class="row"><span>Persoonsnachten</span><b>${d.touristTax.personNights}</b></div><div class="row"><span>Tarief p.p. per nacht</span><b>${d.touristTax.rate?fmt(d.touristTax.rate):'nog niet ingesteld'}</b></div><div class="row"><span>Te betalen aan de gemeente</span><b>${fmt(d.touristTax.amount)}</b></div>${d.touristTax.estimated?'<p class="k" style="margin:8px 4px 0">Bevat manuele boekingen zonder gastenaantal; die zijn als 2 personen geteld.</p>':''}</div>
+ <div class="sec"><h3>Herkomst boekingen</h3></div><div class="card"><div class="row"><span>Via de website</span><b>${d.sources.website} nachten</b></div><div class="row"><span>Manueel in de kalender</span><b>${d.sources.manueel} nachten</b></div><p class="k" style="margin:8px 4px 0">Manuele boekingen zijn aan de standaard kamerprijs gerekend.</p></div>
+ <button class="cta full" onclick="exportCsv('${month}')">Export voor de boekhouder (CSV)</button>`}
+async function exportCsv(month){try{const r=await fetch('/api/ops?a=export&month='+month,{headers:{authorization:'Bearer '+TOKEN}});if(!r.ok)throw new Error('Export mislukt');const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='villa-amano-'+month+'.csv';document.body.appendChild(a);a.click();a.remove();toast('Export gedownload ✓')}catch(e){toast(e.message,1)}}
+
+/* ---------- facturatie & betalen ---------- */
+async function bizSheet(){let B;try{B=await api('biz-get')}catch(e){toast(e.message,1);return}
+ const f=(k,l,ph,t)=>`<label class="field"><span>${l}</span><input data-k="${k}" ${t?'type="'+t+'" step="0.01"':''} value="${esc(B[k]??'')}" placeholder="${ph||''}"></label>`;
+ openSheet(`<h3>Facturatie & betalen</h3><div class="sub">Verschijnt op elke factuur. Laat btw-tarieven nakijken door jullie boekhouder.</div>
+ ${f('legal','Juridische naam','Villa Amano BV')}${f('vat','Btw-nummer','BE0…')}${f('address','Adres')}${f('iban','IBAN','BE..')}${f('email','E-mail op factuur')}
+ <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">${f('vatLogies','Btw logies %','','number')}${f('vatFood','Btw ontbijt %','','number')}${f('vatOther','Btw activiteiten %','','number')}</div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${f('touristTax','Verblijfsbelasting € p.p./nacht','','number')}${f('deposit','Voorschot %','','number')}</div>
+ <div class="sec" style="margin-top:6px"><h3>Online betalen (Mollie)</h3></div><p class="k" style="margin:0 0 10px">${B.mollieMode?`<span style="color:var(--green)">● Gekoppeld (${B.mollieMode==='live'?'live':'testmodus'})</span>`:'Nog niet gekoppeld. Gasten betalen dan ter plaatse.'} Bancontact, kaart, Apple Pay en meer, via je Mollie-account.</p>
+ <label class="field"><span>Mollie API-sleutel (test_… of live_…)</span><input id="mk" placeholder="${B.mollieMode?'ingesteld · leeg laten om te behouden':'test_…'}" autocapitalize="off" spellcheck="false"></label>
+ <button class="cta full" id="bs">Opslaan</button>`);
+ $('#bs').onclick=async()=>{const b={};document.querySelectorAll('#sheet [data-k]').forEach(i=>b[i.dataset.k]=i.value.trim());const k=$('#mk').value.trim();if(k)b.mollieKey=k;try{await api('biz-set',b);closeSheet();toast('Opgeslagen ✓')}catch(e){toast(e.message,1)}}}
+
 function logView(){$('#title').textContent='Logboek';$('#app').innerHTML=`<button class="btn2" style="margin-bottom:12px" onclick="go('more')">← Terug</button><div class="card log">${(S.log||[]).map(l=>`<div class="row"><div class="tx"><b>${esc(l.text)}</b><small>${esc(l.who)}</small></div><div class="rt">${new Date(l.t).toLocaleString('nl-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div></div>`).join('')||'<div class="empty">Nog niets.</div>'}</div>`}
 
 /* ---------- sheet ---------- */

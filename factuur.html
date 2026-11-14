@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Factuur · Villa Amano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1d1611;--mut:#7d6f60;--line:#e6ddcf;--gold:#b98a3e}
+*{box-sizing:border-box}body{margin:0;background:#efe8dc;font:300 14.5px/1.5 'Jost',system-ui,sans-serif;color:var(--ink)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:10px;justify-content:center;padding:12px;background:#17120fee;backdrop-filter:blur(8px)}
+.bar button,.bar a{height:44px;padding:0 20px;border-radius:999px;border:1px solid #e6b86680;background:none;color:#f6dfa4;font:400 14px 'Jost',sans-serif;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.bar .p{background:linear-gradient(120deg,#f6dfa4,#e6b866 55%,#c98d3e);color:#24180e;border:0}
+.doc{max-width:820px;margin:24px auto;background:#fffdf9;padding:48px 52px;border-radius:6px;box-shadow:0 20px 60px #0000001f}
+.hd{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:22px}
+.hd img{height:64px}.hd h1{font:400 34px/1 'Cormorant Garamond',serif;margin:0 0 8px;text-align:right}.hd .meta{text-align:right;color:var(--mut);font-size:13px}
+.hd .meta b{color:var(--ink);font-weight:400}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:26px 0}.two h4{margin:0 0 6px;font:500 11px 'Jost';letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}.two p{margin:0;font-size:13.5px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th{text-align:left;font:500 11px 'Jost';letter-spacing:.12em;text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--line);padding:8px 6px}
+td{padding:10px 6px;border-bottom:1px solid #f1ebe1;vertical-align:top}.n{text-align:right;white-space:nowrap}
+.tot{margin-left:auto;width:min(340px,100%);margin-top:18px;font-size:14px}.tot div{display:flex;justify-content:space-between;padding:5px 0}.tot .big{border-top:1px solid var(--ink);margin-top:6px;padding-top:10px;font:400 22px 'Cormorant Garamond',serif}.tot .due{color:var(--gold)}
+.foot{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);color:var(--mut);font-size:12px}
+.paid{display:inline-block;border:2px solid #4c8a5a;color:#4c8a5a;padding:4px 12px;border-radius:6px;font:500 13px 'Jost';letter-spacing:.14em;transform:rotate(-4deg);margin-top:10px}
+.err{max-width:520px;margin:80px auto;text-align:center;font:400 22px 'Cormorant Garamond',serif}
+@media(max-width:640px){.doc{padding:26px 20px;margin:0;border-radius:0}.hd{flex-direction:column}.hd h1,.hd .meta{text-align:left}.two{grid-template-columns:1fr}th:nth-child(2),td:nth-child(2),th:nth-child(3),td:nth-child(3){display:none}}
+@media print{body{background:#fff}.bar{display:none}.doc{box-shadow:none;margin:0;max-width:none;padding:10mm 4mm}@page{size:A4;margin:12mm}}
+</style></head><body>
+<div class="bar"><button class="p" onclick="print()">Download als PDF</button><a href="/portaal/">Naar portaal</a></div>
+<div id="doc"></div>
+<script>
+const q=new URLSearchParams(location.search),eur=n=>'€ '+(+n||0).toLocaleString('nl-BE',{minimumFractionDigits:2,maximumFractionDigits:2}),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),d=s=>s?new Date((s.length===10?s+'T12:00':s)).toLocaleDateString('nl-BE',{day:'numeric',month:'long',year:'numeric'}):'';
+fetch('/api/ops?a=invoice&id='+encodeURIComponent(q.get('id')||'')+'&k='+encodeURIComponent(q.get('k')||'')).then(r=>r.json()).then(x=>{
+ if(x.error){document.getElementById('doc').innerHTML='<div class="err">'+esc(x.error)+'</div>';return}
+ const B=x.biz,G=x.guest,R=x.reservation;document.title='Factuur '+x.invoiceNo+' · Villa Amano';
+ document.getElementById('doc').innerHTML=`<div class="doc">
+ <div class="hd"><div><img src="/img/logo_full.png" alt="Villa Amano" style="filter:invert(1) sepia(.4) saturate(.6) brightness(.35)"></div>
+  <div><h1>Factuur</h1><div class="meta">Nummer <b>${esc(x.invoiceNo)}</b><br>Datum <b>${d(x.invoiceDate)}</b><br>Reservatie <b>${esc(R.id)}</b></div></div></div>
+ <div class="two"><div><h4>Van</h4><p><b style="font-weight:500">${esc(B.legal||B.company)}</b><br>${esc(B.address)}${B.vat?'<br>Btw '+esc(B.vat):''}${B.iban?'<br>IBAN '+esc(B.iban):''}<br>${esc(B.email)}</p></div>
+  <div><h4>Aan</h4><p><b style="font-weight:500">${esc(G.company||G.name)}</b>${G.company?'<br>t.a.v. '+esc(G.name):''}${G.vat?'<br>Btw '+esc(G.vat):''}<br>${esc(G.email)}${G.phone?'<br>'+esc(G.phone):''}</p></div></div>
+ <table><thead><tr><th>Omschrijving</th><th class="n">Aantal</th><th class="n">Prijs</th><th class="n">Btw</th><th class="n">Totaal</th></tr></thead><tbody>
+ ${x.lines.map(l=>`<tr><td>${esc(l.label)}</td><td class="n">${l.qty}</td><td class="n">${eur(l.unit)}</td><td class="n">${l.vat==null?'–':l.vat+'%'}</td><td class="n">${eur(l.total)}</td></tr>`).join('')}</tbody></table>
+ <div class="tot"><div><span>Totaal excl. btw</span><span>${eur(x.total-x.vatTotal)}</span></div>
+  ${Object.entries(x.vat).map(([k,v])=>`<div><span>Btw ${k}%</span><span>${eur(v)}</span></div>`).join('')}
+  <div class="big"><span>Totaal</span><span>${eur(x.total)}</span></div>
+  ${x.paid?`<div><span>Reeds betaald</span><span>− ${eur(x.paid)}</span></div>`:''}
+  <div class="${x.due?'due':''}"><span>${x.due?'Nog te betalen':'Volledig betaald'}</span><span>${eur(x.due)}</span></div>
+  ${!x.due&&x.total?'<div style="justify-content:flex-end"><span class="paid">BETAALD</span></div>':''}</div>
+ ${x.payments.length?`<p style="font-size:12.5px;color:var(--mut);margin-top:16px">Betalingen: ${x.payments.map(p=>`${eur(p.amount)} op ${d(new Date(p.t).toISOString().slice(0,10))} (${esc(p.method)})`).join(' · ')}</p>`:''}
+ <div class="foot">Prijzen inclusief btw. ${R.kind==='room'?`Verblijf ${d(R.from)} – ${d(R.to)}, ${R.guests} gast${R.guests>1?'en':''}. `:''}${x.due&&B.iban?`Gelieve het openstaande bedrag over te schrijven op ${esc(B.iban)} met vermelding ${esc(x.invoiceNo)}, of te betalen bij aankomst.`:''}<br>${esc(B.company)} · ${esc(B.address)}</div></div>`;
+ if(q.get('print'))setTimeout(print,600)});
+</script></body></html>

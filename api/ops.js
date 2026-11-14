@@ -3,6 +3,7 @@
 // Optioneel: OPS_SECRET (sessies), OPS_OWNER_PIN (vaste eigenaars-pincode).
 const crypto = require('crypto');
 const mail = require('./_mail');
+const BZ = require('./_biz');
 let blob = null;
 try { blob = require('@vercel/blob'); } catch (e) { /* lokaal zonder dependency */ }
 
@@ -46,6 +47,7 @@ const DEFAULTS = {
   orders: () => ({ orders: [] }),
   guests: () => ({ guests: [], reservations: [], requests: [] }),
   log: () => ({ log: [] }),
+  housekeeping: () => ({ days: {} }),
 };
 
 const PLANS = {
@@ -116,6 +118,22 @@ function verify(token) {
 }
 const qrSig = (t, x) => crypto.createHmac('sha256', secret()).update('qr:' + t + ':' + x).digest('base64url').slice(0, 14);
 const qrCode = (t, x) => 'VA' + t + '-' + x + '-' + qrSig(t, x);
+const invKey = rid => crypto.createHmac('sha256', secret()).update('inv:' + rid).digest('base64url').slice(0, 16);
+const SITE = () => process.env.SITE_URL || 'https://hotel-bilzen.vercel.app';
+const mollieKey = C => process.env.MOLLIE_API_KEY || (C.biz || {}).mollieKey || '';
+async function mollie(C, path, opts = {}) {
+  const r = await fetch('https://api.mollie.com/v2/' + path, { ...opts, headers: { authorization: 'Bearer ' + mollieKey(C), 'content-type': 'application/json' } });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error((j && (j.detail || j.title)) || 'Betaling mislukt');
+  return j;
+}
+async function ensureInvoiceNo(rid) {
+  const { data: G } = await load('guests'); const r0 = G.reservations.find(x => x.id === rid);
+  if (!r0) return null; if (r0.invoiceNo) return r0.invoiceNo;
+  let no; await mutate('config', C => { const y = new Date().getFullYear(); C.invoiceSeq = C.invoiceSeq || {}; C.invoiceSeq[y] = (C.invoiceSeq[y] || 0) + 1; no = y + '-' + String(C.invoiceSeq[y]).padStart(4, '0'); });
+  await mutate('guests', d => { const r = d.reservations.find(x => x.id === rid); if (r && !r.invoiceNo) { r.invoiceNo = no; r.invoiceDate = today(); } else if (r) no = r.invoiceNo; });
+  return no;
+}
 function qrParse(code) {
   const m = /^VA([RM])-([A-Za-z0-9]+)-([\w-]{14})$/.exec(String(code || '').trim().replace(/^.*[?#&]qr=/, ''));
   if (!m || m[3] !== qrSig(m[1], m[2])) return null;
@@ -241,6 +259,26 @@ module.exports = async (req, res) => {
       await addLog(null, `Nieuwe ontbijtbestelling ${order.id} · kamer ${room} · ${stay.guestName} · € ${total}`);
       { const gg = G.guests.find(x => x.id === gu.gid); if (gg) await sendMail('order', gg, order); }
       return send(res, 200, { ok: true, id: order.id, total, included, room, roomName: order.roomName });
+    }
+    if (a === 'invoice') {
+      const rid = url.searchParams.get('id') || '', k = url.searchParams.get('k') || '';
+      if (!rid || k.length !== 16 || k !== invKey(rid)) return send(res, 404, { error: 'Factuur niet gevonden' });
+      const no = await ensureInvoiceNo(rid);
+      const [{ data: C }, { data: G }] = await Promise.all([load('config'), load('guests')]);
+      const r = G.reservations.find(x => x.id === rid); if (!r) return send(res, 404, { error: 'Factuur niet gevonden' });
+      const g = G.guests.find(x => x.id === r.guestId) || {};
+      const B = BZ.biz(C); delete B.mollieKey;
+      return send(res, 200, { biz: B, invoiceNo: no, invoiceDate: r.invoiceDate || today(), guest: { name: g.name || r.guestName, email: g.email || '', phone: g.phone || '', company: g.company || '', vat: g.vatNo || '' }, reservation: { id: r.id, kind: r.kind, status: r.status, roomName: r.roomName, from: r.from, to: r.to, date: r.date, guests: r.guests }, payments: (r.payments || []).filter(p => p.status === 'paid').map(p => ({ amount: p.amount, method: p.method, t: p.t })), ...BZ.totals(C, r) });
+    }
+    if (a === 'mollie-hook' && req.method === 'POST') {
+      let b = req.body; if (typeof b === 'string') b = Object.fromEntries(new URLSearchParams(b)); if (!b || typeof b !== 'object') b = Object.fromEntries(new URLSearchParams(await new Promise(r => { let d = ''; req.on('data', c => (d += c)); req.on('end', () => r(d)); })));
+      const pid = String(b.id || ''); if (!/^tr_\w+$/.test(pid)) return send(res, 200, { ok: true });
+      const { data: C } = await load('config');
+      const p = await mollie(C, 'payments/' + pid);
+      const rid = p.metadata && p.metadata.rid; let nm = '';
+      await mutate('guests', d => { const r = d.reservations.find(x => x.id === rid); if (!r) return; nm = r.guestName; r.payments = r.payments || []; let q = r.payments.find(x => x.mollieId === pid); if (!q) { q = { id: pid, mollieId: pid, amount: +p.amount.value, method: 'online', t: Date.now() }; r.payments.push(q); } q.status = p.status === 'paid' ? 'paid' : p.status; if (p.status === 'paid') { q.t = Date.now(); q.method = 'online · ' + (p.method || 'Mollie'); } });
+      if (p.status === 'paid') await addLog(null, `Online betaling ontvangen · ${rid} · € ${p.amount.value} · ${nm}`);
+      return send(res, 200, { ok: true });
     }
     if (a === 'ical') {
       const room = url.searchParams.get('room');
@@ -430,14 +468,14 @@ module.exports = async (req, res) => {
     if (u.role === 'guest') {
       const gid = u.gid;
       if (a === 'g-me') {
-        const [{ data: G }, { data: O }] = await Promise.all([load('guests'), load('orders')]);
+        const [{ data: G }, { data: O }, { data: C0 }] = await Promise.all([load('guests'), load('orders'), load('config')]);
         const g = G.guests.find(x => x.id === gid);
         if (!g) return send(res, 401, { error: 'Log opnieuw in' });
         return send(res, 200, {
           me: { name: g.name, email: g.email, phone: g.phone, memberships: g.memberships || {}, memberNo: 'VA-' + g.id.slice(0, 6).toUpperCase(), qr: qrCode('M', g.id) },
-          reservations: G.reservations.filter(r => r.guestId === gid).map(r => ({ ...r, qr: qrCode('R', r.id), valid: validity(r), lastScan: (r.scans || [])[0] || null, extraTotal: (r.charges || []).reduce((n, c) => n + c.amount, 0) })).sort((x, y) => ((x.from || x.date) < (y.from || y.date) ? -1 : 1)),
+          reservations: G.reservations.filter(r => r.guestId === gid).map(r => ({ ...r, pay: (({ total, paid, due, deposit }) => ({ total, paid, due, deposit }))(BZ.totals(C0, r)), inv: '/factuur?id=' + r.id + '&k=' + invKey(r.id), qr: qrCode('R', r.id), valid: validity(r), lastScan: (r.scans || [])[0] || null, extraTotal: (r.charges || []).reduce((n, c) => n + c.amount, 0) })).sort((x, y) => ((x.from || x.date) < (y.from || y.date) ? -1 : 1)),
           requests: G.requests.filter(r => r.guestId === gid).slice(0, 30),
-          orders: O.orders.filter(o => o.guestId === gid).slice(0, 30), plans: PLANS, today: today(),
+          orders: O.orders.filter(o => o.guestId === gid).slice(0, 30), plans: PLANS, today: today(), payOnline: !!mollieKey(C0), depositPct: BZ.biz(C0).deposit,
         });
       }
       if (req.method !== 'POST') return send(res, 405, { error: 'POST verwacht' });
@@ -477,6 +515,19 @@ module.exports = async (req, res) => {
         await addLog({ name: g.name }, `Reservatie ${r.id} · ${kind === 'room' ? r.roomName + ' ' + r.from + ' → ' + r.to : (kind === 'event' ? r.title + ' ' : kind === 'wellness' ? 'Wellness ' : kind === 'lessen' ? 'Lessenreeks ' : 'Vrij atelier ') + r.date}`);
         await sendMail('reservation', g, r);
         return send(res, 200, { ok: true, reservation: r });
+      }
+      if (a === 'g-pay') {
+        const { data: C } = await load('config');
+        if (!mollieKey(C)) return send(res, 400, { error: 'Online betalen is nog niet beschikbaar. Je betaalt ter plaatse.' });
+        const { data: G } = await load('guests');
+        const r = G.reservations.find(x => x.id === b.id && x.guestId === gid);
+        if (!r || r.status === 'geannuleerd') return send(res, 404, { error: 'Reservatie niet gevonden' });
+        const T = BZ.totals(C, r);
+        const amount = BZ.r2(b.what === 'deposit' ? Math.min(T.deposit, T.due) : T.due);
+        if (amount < 1) return send(res, 400, { error: 'Er staat niets meer open' });
+        const p = await mollie(C, 'payments', { method: 'POST', body: JSON.stringify({ amount: { currency: 'EUR', value: amount.toFixed(2) }, description: `Villa Amano · ${r.id}${b.what === 'deposit' ? ' · voorschot' : ''}`, redirectUrl: SITE() + '/portaal/?betaald=' + r.id, webhookUrl: SITE() + '/api/ops?a=mollie-hook', locale: 'nl_BE', metadata: { rid: r.id } }) });
+        await mutate('guests', d => { const x = d.reservations.find(y => y.id === r.id); if (x) { x.payments = x.payments || []; x.payments.push({ id: p.id, mollieId: p.id, amount, status: 'open', method: 'online', t: Date.now(), what: b.what === 'deposit' ? 'voorschot' : 'saldo' }); } });
+        return send(res, 200, { ok: true, url: p._links.checkout.href });
       }
       if (a === 'g-cancel') {
         let out = null;
@@ -531,6 +582,31 @@ module.exports = async (req, res) => {
       const { data } = await load('orders');
       return send(res, 200, { orders: data.orders.slice(0, 200) });
     }
+    if (a === 'hk') {
+      if (!can(u, 'today')) return send(res, 403, { error: 'Geen toegang' });
+      const date = isDate(url.searchParams.get('date')) ? url.searchParams.get('date') : today();
+      const [{ data: K }, { data: G }, { data: HK }] = await Promise.all([load('calendar'), load('guests'), load('housekeeping')]);
+      return send(res, 200, { date, rooms: BZ.housekeeping(K, G, HK, date) });
+    }
+    if (a === 'report' || a === 'export') {
+      if (u.role !== 'owner') return send(res, 403, { error: 'Alleen de eigenaar' });
+      const month = /^\d{4}-\d{2}$/.test(url.searchParams.get('month') || '') ? url.searchParams.get('month') : today().slice(0, 7);
+      const [{ data: C }, { data: K }, { data: G }, { data: O }] = await Promise.all(['config', 'calendar', 'guests', 'orders'].map(n => load(n)));
+      if (a === 'export') { res.statusCode = 200; res.setHeader('content-type', 'text/csv; charset=utf-8'); res.setHeader('content-disposition', `attachment; filename="villa-amano-${month}.csv"`); return res.end(BZ.exportMonth(C, G, month)); }
+      return send(res, 200, BZ.report(C, K, G, O, month));
+    }
+    if (a === 'res-list') {
+      if (!can(u, 'guests')) return send(res, 403, { error: 'Geen toegang' });
+      const [{ data: C }, { data: G }] = await Promise.all([load('config'), load('guests')]);
+      const list = G.reservations.filter(r => r.status !== 'geannuleerd').sort((x, y) => ((x.from || x.date) < (y.from || y.date) ? 1 : -1)).slice(0, 150)
+        .map(r => { const T = BZ.totals(C, r); return { id: r.id, kind: r.kind, guestName: r.guestName, roomName: r.roomName, title: r.title, from: r.from, to: r.to, date: r.date, total: T.total, paid: T.paid, due: T.due, invoiceNo: r.invoiceNo || null, inv: '/factuur?id=' + r.id + '&k=' + invKey(r.id), payments: (r.payments || []).filter(p => p.status === 'paid') }; });
+      return send(res, 200, { list });
+    }
+    if (a === 'biz-get') {
+      if (u.role !== 'owner') return send(res, 403, { error: 'Geen toegang' });
+      const { data: C } = await load('config'); const B = BZ.biz(C); const k = mollieKey(C);
+      return send(res, 200, { ...B, mollieKey: undefined, mollieMode: k ? (k.startsWith('live_') ? 'live' : 'test') : null, mollieEnv: !!process.env.MOLLIE_API_KEY });
+    }
     if (a === 'mail-status') {
       if (u.role !== 'owner') return send(res, 403, { error: 'Geen toegang' });
       const { data: C } = await load('config'); mail.use(C.mail);
@@ -539,6 +615,35 @@ module.exports = async (req, res) => {
     if (req.method !== 'POST') return send(res, 405, { error: 'POST verwacht' });
     const b = await body(req);
 
+    if (a === 'hk-set') {
+      if (!can(u, 'today')) return send(res, 403, { error: 'Geen toegang' });
+      if (!isDate(b.date) || !ROOMS.includes(b.room)) return send(res, 400, { error: 'Ongeldig' });
+      await mutate('housekeeping', d => { d.days = d.days || {}; d.days[b.date] = d.days[b.date] || {}; if (b.done) d.days[b.date][b.room] = { by: u.name, t: Date.now() }; else delete d.days[b.date][b.room]; Object.keys(d.days).filter(k => k < BZ.addDays(today(), -30)).forEach(k => delete d.days[k]); });
+      if (b.done) await addLog(u, `Kamer klaar: ${ROOM_NAMES[b.room]}`);
+      return send(res, 200, { ok: true });
+    }
+    if (a === 'pay-add') {
+      if (!can(u, 'guests')) return send(res, 403, { error: 'Geen toegang' });
+      const amount = BZ.r2(b.amount), method = ['cash', 'kaart', 'overschrijving'].includes(b.method) ? b.method : 'kaart';
+      if (!(amount > 0)) return send(res, 400, { error: 'Geef een bedrag' });
+      let nm = null;
+      await mutate('guests', d => { const r = d.reservations.find(x => x.id === b.id); if (!r) return; nm = r.guestName; r.payments = r.payments || []; r.payments.push({ id: 'P' + Date.now().toString(36), amount, method, status: 'paid', t: Date.now(), by: u.name }); });
+      if (nm === null) return send(res, 404, { error: 'Reservatie niet gevonden' });
+      await addLog(u, `Betaling € ${amount} (${method}) · ${b.id} · ${nm}`);
+      return send(res, 200, { ok: true });
+    }
+    if (a === 'biz-set') {
+      if (u.role !== 'owner') return send(res, 403, { error: 'Geen toegang' });
+      await mutate('config', C => {
+        C.biz = C.biz || {};
+        ['company', 'legal', 'vat', 'address', 'iban', 'email'].forEach(k => { if (typeof b[k] === 'string') C.biz[k] = clean(b[k], 160); });
+        ['vatLogies', 'vatFood', 'vatOther', 'touristTax', 'deposit'].forEach(k => { if (b[k] !== undefined && b[k] !== '' && !isNaN(+b[k]) && +b[k] >= 0 && +b[k] <= 100) C.biz[k] = BZ.r2(+b[k]); });
+        if (typeof b.mollieKey === 'string' && /^(test|live)_\w{20,}$/.test(b.mollieKey.trim())) C.biz.mollieKey = b.mollieKey.trim();
+        if (b.mollieKey === null) delete C.biz.mollieKey;
+      });
+      await addLog(u, 'Facturatie- en betaalinstellingen aangepast');
+      return send(res, 200, { ok: true });
+    }
     if (a === 'mail-set') {
       if (u.role !== 'owner') return send(res, 403, { error: 'Geen toegang' });
       await mutate('config', C => {
