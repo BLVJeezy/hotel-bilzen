@@ -253,7 +253,7 @@ button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:i
 
 <script>
 const R={rose:['Rose Quartz','#e8a0b0','rose-1'],clear:['Clear Quartz','#cfe3ee','clear-1'],sun:['Sunstone','#e6b866','sun-1'],moon:['Moonstone','#9fb8e6','moon-1'],amethyst:['Amethyst','#b48ce6','ame-1']};
-const ADDR='Wijsstraat 1, 3740 Bilzen-Hoeselt',MAIL='info@villa-amano.be',MAPS='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent('Wijsstraat 1, 3740 Bilzen');
+const ADDR='Wijsstraat 1, 3740 Bilzen-Hoeselt',MAIL='info@villa-amano.com',MAPS='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent('Wijsstraat 1, 3740 Bilzen');
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pd=s=>new Date(s+'T12:00'),nice=s=>pd(s).toLocaleDateString('nl-BE',{weekday:'short',day:'numeric',month:'short'});
 const fmt=n=>'€ '+Number(n).toLocaleString('nl-BE',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2});

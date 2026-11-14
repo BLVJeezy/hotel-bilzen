@@ -647,14 +647,14 @@ module.exports = async (req, res) => {
     }
     if (a === 'demo-seed' || a === 'demo-clear') {
       if (u.role !== 'owner') return send(res, 403, { error: 'Alleen de eigenaar' });
-      const email = process.env.DEMO_SEED_EMAIL || 'jason-demo@villa-amano.be';
+      const email = process.env.DEMO_SEED_EMAIL || 'voorbeeld@villa-amano.com';
       if (a === 'demo-clear') {
         await mutate('guests', d => { d.reservations = d.reservations.filter(r => !r.demo); });
         await mutate('calendar', d => { d.entries = d.entries.filter(e => !e.demo); });
         await addLog(u, 'Voorbeeldreservaties verwijderd'); return send(res, 200, { ok: true });
       }
-      const { g, pw, rs, t } = await seedDemo(email, 'Jason Balongo');
-      await addLog(u, rs.length + ' voorbeeldreservaties aangemaakt voor Jason Balongo');
+      const { g, pw, rs, t } = await seedDemo(email, 'Voorbeeld Gast');
+      await addLog(u, rs.length + ' voorbeeldreservaties aangemaakt voor Voorbeeld Gast');
       return send(res, 200, { ok: true, email, password: pw, items: rs.map(r => ({ id: r.id, kind: r.kind, phase: (r.to || r.date) < t ? 'Afgelopen' : (r.from || r.date) <= t ? 'Nu bezig' : 'Gepland', label: r.kind === 'room' ? r.roomName + ' · kamer ' + String(r.roomNo).padStart(2, '0') : r.kind === 'event' ? r.title : 'Vrij atelier Pottery', when: r.kind === 'room' ? r.from + ' → ' + r.to : r.date + (r.time ? ' · ' + r.time : ''), qr: qrCode('R', r.id), valid: validity(r) })) });
     }
     if (a === 'demo-login-set') {

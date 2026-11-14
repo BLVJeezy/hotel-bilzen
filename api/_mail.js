@@ -2,7 +2,7 @@
 const SITE = process.env.SITE_URL || 'https://hotel-bilzen.vercel.app';
 let CFG = {};
 const FROM = () => process.env.RESEND_FROM || CFG.from || 'Villa Amano <onboarding@resend.dev>';
-const REPLY = () => process.env.RESEND_REPLY_TO || CFG.replyTo || 'info@villa-amano.be';
+const REPLY = () => process.env.RESEND_REPLY_TO || CFG.replyTo || 'info@villa-amano.com';
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nice = d => d ? new Date(d + 'T12:00:00Z').toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) : '';
 const eur = n => '€ ' + Number(n || 0).toLocaleString('nl-BE', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
