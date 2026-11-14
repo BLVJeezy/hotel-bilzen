@@ -2,7 +2,7 @@
 (function(){
  const el=document.getElementById('roomTop');if(!el)return;
  const R={id:el.dataset.room,name:el.dataset.name,no:el.dataset.no,stone:el.dataset.stone,p:+el.dataset.price,max:+el.dataset.max,tint:el.dataset.tint,gal:el.dataset.gal.split(','),tag:el.dataset.tag||''};
- const X=[['ontbijt','Ontbijt','€ 25 p.p. per ochtend',(g,n)=>25*g*n],['well','Wellness-moment','€ 35 p.p. · 2 uur',(g,n)=>35*g],['bike','E-bike','€ 45 p.p. per dag',(g,n)=>45*g*n],['late','Late check-out','€ 45 · tot 13:00',(g,n)=>45]];
+ const X=[['ontbijt','Ontbijt','vanaf € 25 p.p. per ochtend · bekijk de menu\'s',(g,n,s)=>VABf.cost(s)*g*n],['well','Wellness-moment','€ 35 p.p. · 2 uur',(g,n)=>35*g],['bike','E-bike','€ 45 p.p. per dag',(g,n)=>45*g*n],['late','Late check-out','€ 45 · tot 13:00',(g,n)=>45]];
  const fmt=v=>'€ '+v.toLocaleString('nl-BE');const iso=d=>d.toISOString().slice(0,10);
  const t0=new Date();t0.setHours(12);const d1=new Date(t0);d1.setDate(d1.getDate()+14);const d2=new Date(d1);d2.setDate(d2.getDate()+2);
  const st={from:iso(d1),to:iso(d2),g:2,x:{}};let AV=null,T=null;try{T=localStorage.getItem('va_g_t')}catch(e){}
@@ -18,7 +18,7 @@
    <div class="rt-price"><b>${fmt(R.p)}</b><span>per nacht</span></div>
    <div class="rt-dates"><label><span>Aankomst</span><input type="date" id="rtIn" value="${st.from}" min="${iso(t0)}"></label><label><span>Vertrek</span><input type="date" id="rtOut" value="${st.to}" min="${st.from}"></label></div>
    <div class="rt-row"><div><span>Gasten</span><small>max. ${R.max}</small></div><div class="rt-step"><button type="button" data-s="-1" aria-label="Minder">−</button><b id="rtG">2</b><button type="button" data-s="1" aria-label="Meer">+</button></div></div>
-   <details class="rt-x"><summary>Extra's toevoegen <i id="rtXn"></i></summary>${X.map(([k,l,s])=>`<label class="rt-xi"><input type="checkbox" data-x="${k}"><span><b>${l}</b><small>${s}</small></span></label>`).join('')}</details>
+   <details class="rt-x"><summary>Extra's toevoegen <i id="rtXn"></i></summary>${X.map(([k,l,s])=>`<label class="rt-xi"><input type="checkbox" data-x="${k}"><span><b>${l}</b><small>${s}</small></span></label>${k==='ontbijt'?'<div id="rtBf"></div>':''}`).join('')}</details>
    <div class="rt-av" id="rtAv"></div>
    <div class="rt-tot" id="rtTot"></div>
    <button class="btn gold rt-go" id="rtGo">Reserveer <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></button>
@@ -35,18 +35,18 @@
  const busy=(f,t)=>AV&&AV.some(([a,b])=>a<t&&b>f);
  function calc(){const n=Math.round((new Date(st.to)-new Date(st.from))/864e5);const ok=n>0;
   q('#rtOut').min=st.from;q('#rtG').textContent=st.g;q('#rtXn').textContent=Object.values(st.x).filter(Boolean).length?'· '+Object.values(st.x).filter(Boolean).length:'';
-  const base=ok?R.p*n:0;let ex=0;X.forEach(([k,,,f])=>{if(st.x[k])ex+=f(st.g,Math.max(1,n))});const tot=base+ex;
+  const base=ok?R.p*n:0;let ex=0;X.forEach(([k,,,f])=>{if(st.x[k])ex+=f(st.g,Math.max(1,n),st)});const tot=base+ex;
   q('#rtTot').innerHTML=ok?`<div><span>${fmt(R.p)} × ${n} nacht${n>1?'en':''}</span><span>${fmt(base)}</span></div>${ex?`<div><span>Extra's</span><span>${fmt(ex)}</span></div>`:''}<div class="rt-sum"><span>Totaal</span><span>${fmt(tot)}</span></div>`:'<div class="rt-err">Kies een vertrekdatum na je aankomst.</div>';
   const av=q('#rtAv');if(!ok)av.innerHTML='';else if(AV===null)av.innerHTML='<span class="rt-chk">Beschikbaarheid controleren…</span>';else if(busy(st.from,st.to))av.innerHTML='<span class="rt-no">Niet beschikbaar op deze data. Kies andere data of een <a href="/kamers">andere kamer</a>.</span>';else av.innerHTML=`<span class="rt-ok">● Beschikbaar · ${nice(st.from)} → ${nice(st.to)}</span>`;
   const can=ok&&AV!==null&&!busy(st.from,st.to);q('#rtGo').disabled=!can;q('#rtBarGo').disabled=!can;q('#rtBarN').textContent=ok?`${n} nacht${n>1?'en':''} · ${fmt(tot)}`:'kies je data';return {n,tot,can}}
  q('#rtIn').onchange=e=>{st.from=e.target.value;if(st.to<=st.from){const d=new Date(st.from+'T12:00');d.setDate(d.getDate()+1);st.to=iso(d);q('#rtOut').value=st.to}calc()};
  q('#rtOut').onchange=e=>{st.to=e.target.value;calc()};
  el.querySelectorAll('.rt-step button').forEach(b=>b.onclick=()=>{st.g=Math.min(R.max,Math.max(1,st.g+ +b.dataset.s));calc()});
- el.querySelectorAll('[data-x]').forEach(c=>c.onchange=()=>{st.x[c.dataset.x]=c.checked;calc()});
+ const bfDraw=VABf.mount(el.querySelector('#rtBf'),st,()=>calc());el.querySelectorAll('[data-x]').forEach(c=>c.onchange=()=>{st.x[c.dataset.x]=c.checked;if(c.dataset.x==='ontbijt')bfDraw();calc()});
  // booking
  const api=(a,b,t)=>fetch('/api/ops?a='+a,{method:'POST',headers:{'content-type':'application/json',...(t?{authorization:'Bearer '+t}:{})},body:JSON.stringify(b)}).then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.error||'Er ging iets mis'),{status:r.status});return j});
  async function reserve(tok){const {can}=calc();if(!can)return;const go=q('#rtGo');go.disabled=true;go.textContent='Even geduld…';
-  try{const r=await api('g-reserve',{kind:'room',room:R.id,from:st.from,to:st.to,guests:st.g,extras:{ontbijt:!!st.x.ontbijt,well:!!st.x.well,bike:!!st.x.bike,late:!!st.x.late}},tok);location.href='/portaal/?nieuw='+r.reservation.id}
+  try{const r=await api('g-reserve',{kind:'room',room:R.id,from:st.from,to:st.to,guests:st.g,bfMenu:VABf.payload(st).bfMenu,extras:{ontbijt:VABf.payload(st).ontbijt,well:!!st.x.well,bike:!!st.x.bike,late:!!st.x.late}},tok);location.href='/portaal/?nieuw='+r.reservation.id}
   catch(e){go.disabled=false;go.innerHTML='Reserveer <svg viewBox="0 0 24 24"><use href="#arrow"/></svg>';if(e.status===401){try{localStorage.removeItem('va_g_t')}catch(x){}T=null;auth()}else alert(e.message)}}
  let mode='register';
  function auth(){const a=q('#rtAuth');a.hidden=false;a.innerHTML=`<div class="rt-au"><b>${mode==='register'?'Maak je account':'Log in'}</b><small>${mode==='register'?'Nodig om te reserveren. Duurt 10 seconden.':'Welkom terug.'}</small>

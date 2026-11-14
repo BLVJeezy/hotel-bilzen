@@ -527,6 +527,7 @@ $('#sbg').onclick=closeSheet;
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&T)reload()});
 const RST=new URLSearchParams(location.search).get('reset');if(RST)resetView(RST);else if(T)start();else{showAuth();if(location.hash==='#nieuw')authMode('register')}
 </script>
+<script src="/css/bfpick.js" defer></script>
 <script src="/css/bookpop.js" defer></script>
 </body>
 </html>

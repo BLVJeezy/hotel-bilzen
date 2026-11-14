@@ -2,7 +2,7 @@
 (function(){
  if(window.VABook)return;
  const RM={rose:{n:'Rose Quartz',p:225,max:2,tag:'Max. 2 personen',img:'rose-1',t:'#e8a0b0'},clear:{n:'Clear Quartz',p:225,max:2,tag:'Max. 2 personen',img:'clear-1',t:'#cfe3ee'},sun:{n:'Sunstone',p:225,max:2,tag:'Max. 2 personen',img:'sun-1',t:'#e6b866'},moon:{n:'Moonstone',p:235,max:2,tag:'Max. 2 · privébalkon',img:'moon-1',t:'#9fb8e6'},amethyst:{n:'Amethyst',p:245,max:3,tag:'Max. 3 · zetelbed op aanvraag',img:'ame-1',t:'#b48ce6'}};
- const X=[['ontbijt','Ontbijt','€ 25 p.p. per ochtend',(g,n)=>25*g*n],['well','Wellness-moment','€ 35 p.p. · privé sauna & stoombad',(g,n)=>35*g],['bike','E-bike','€ 45 p.p. per dag',(g,n)=>45*g*n],['late','Late check-out','€ 45 · blijf tot 13:00',(g,n)=>45]];
+ const X=[['ontbijt','Ontbijt','vanaf € 25 p.p. per ochtend · bekijk de menu\'s',(g,n,s)=>VABf.cost(s)*g*n],['well','Wellness-moment','€ 35 p.p. · privé sauna & stoombad',(g,n)=>35*g],['bike','E-bike','€ 45 p.p. per dag',(g,n)=>45*g*n],['late','Late check-out','€ 45 · blijf tot 13:00',(g,n)=>45]];
  const SLOTS=['10:00','13:00','16:00','19:00'];
  const fmt=v=>'€ '+v.toLocaleString('nl-BE');const iso=d=>d.toISOString().slice(0,10);
  const nice=s=>new Date(s+'T12:00').toLocaleDateString('nl-BE',{weekday:'short',day:'numeric',month:'short'});
@@ -91,7 +91,7 @@
     <div class="vf"><span>Vertrek</span><div class="vst" style="justify-content:center"><b id="vOut" style="font-size:14px"></b></div></div></div>
    <div class="vav" id="vAv"></div>
    <span class="vlb">Extra's bij je verblijf</span>
-   ${X.map(([k,l,s])=>`<label class="vopt"><input type="checkbox" data-x="${k}" ${S.x[k]?'checked':''}><span><b>${l}</b><small>${s}</small></span></label>`).join('')}
+   ${X.map(([k,l,s])=>`<label class="vopt"><input type="checkbox" data-x="${k}" ${S.x[k]?'checked':''}><span><b>${l}</b><small>${s}</small></span></label>${k==='ontbijt'?'<div id="vBf"></div>':''}`).join('')}
    <span class="vlb">Workshop</span>
    <label class="vopt"><input type="checkbox" id="vPot" ${S.pot?'checked':''}><span><b>Pottery House: vrij atelier</b><small>€ 30 p.p. · draai je eigen stuk, open tot 22:00</small></span></label>
    <div class="vsub vg2 ${S.pot?'on':''}" id="vPotSub"><label class="vf"><span>Dag</span><select id="vPD"></select></label><label class="vf"><span>Tijdstip</span><select id="vPT">${SLOTS.map(t=>`<option ${t===S.potTime?'selected':''}>${t}</option>`).join('')}</select></label></div>
@@ -105,14 +105,14 @@
   $('#vIn').onchange=e=>{S.from=e.target.value||S.from;S.potDate=null;calc()};
   dl.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{S.n=Math.max(1,Math.min(14,S.n+ +b.dataset.n));calc()});
   dl.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{S.g=Math.max(1,Math.min(R.max,S.g+ +b.dataset.g));calc()});
-  dl.querySelectorAll('[data-x]').forEach(c=>c.onchange=()=>{S.x[c.dataset.x]=c.checked;calc()});
+  const bfDraw=VABf.mount($('#vBf'),S,()=>calc());dl.querySelectorAll('[data-x]').forEach(c=>c.onchange=()=>{S.x[c.dataset.x]=c.checked;if(c.dataset.x==='ontbijt')bfDraw();calc()});
   $('#vPot').onchange=e=>{S.pot=e.target.checked;$('#vPotSub').classList.toggle('on',S.pot);calc()};
   $('#vPD').onchange=e=>{S.potDate=e.target.value;calc()};$('#vPT').onchange=e=>{S.potTime=e.target.value};
   $('#vGo').onclick=go;calc()}
  function calc(){const R=RM[S.room],out=addD(S.from,S.n),n=S.n;S.to=out;
   $('#vN').textContent=n+(n>1?' nachten':' nacht');$('#vG').textContent=S.g+(S.g>1?' gasten':' gast');$('#vOut').textContent=nice(out);
   const pd=$('#vPD');const days=Array.from({length:n},(_,i)=>addD(S.from,i));if(!S.potDate||!days.includes(S.potDate))S.potDate=days[Math.min(1,n-1)];pd.innerHTML=days.map(d=>`<option value="${d}" ${d===S.potDate?'selected':''}>${nice(d)}</option>`).join('');
-  const base=R.p*n;let ex=0;X.forEach(([k,,,f])=>{if(S.x[k])ex+=f(S.g,n)});const pot=S.pot?30*S.g:0,tot=base+ex+pot;
+  const base=R.p*n;let ex=0;X.forEach(([k,,,f])=>{if(S.x[k])ex+=f(S.g,n,S)});const pot=S.pot?30*S.g:0,tot=base+ex+pot;
   const av=$('#vAv'),bz=busy(S.room,S.from,out);
   av.innerHTML=AV===null?'<span class="vck">Beschikbaarheid controleren…</span>':bz?'<span class="vno">Niet beschikbaar op deze data. Kies andere data of een andere kamer hierboven.</span>':`<span class="vok">● Beschikbaar · ${nice(S.from)} → ${nice(out)}</span>`;
   $('#vTot').textContent=fmt(tot);$('#vTs').textContent=`${n} nacht${n>1?'en':''} · ${S.g} gast${S.g>1?'en':''}${ex+pot?' · incl. extra\'s':''}`;
@@ -120,7 +120,7 @@
  function dl_st(){const d=$('#vabDl');d.querySelector('[data-n="-1"]').disabled=S.n<=1;d.querySelector('[data-g="-1"]').disabled=S.g<=1;d.querySelector('[data-g="1"]').disabled=S.g>=RM[S.room].max}
  const api=(a,b,t)=>fetch('/api/ops?a='+a,{method:'POST',headers:{'content-type':'application/json',...(t?{authorization:'Bearer '+t}:{})},body:JSON.stringify(b)}).then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.error||'Er ging iets mis'),{status:r.status});return j});
  async function reserve(tok){if(!calc())return;const go=$('#vGo');go.disabled=true;go.textContent='Even geduld…';
-  try{const r=await api('g-reserve',{kind:'room',room:S.room,from:S.from,to:S.to,guests:S.g,extras:{ontbijt:!!S.x.ontbijt,well:!!S.x.well,bike:!!S.x.bike,late:!!S.x.late}},tok);
+  try{const r=await api('g-reserve',{kind:'room',room:S.room,from:S.from,to:S.to,guests:S.g,bfMenu:VABf.payload(S).bfMenu,extras:{ontbijt:VABf.payload(S).ontbijt,well:!!S.x.well,bike:!!S.x.bike,late:!!S.x.late}},tok);
    if(S.pot){try{await api('g-reserve',{kind:'pottery',date:S.potDate,time:S.potTime,guests:S.g},tok)}catch(e){}}
    location.href='/portaal/?nieuw='+r.reservation.id}
   catch(e){go.disabled=false;go.textContent='Reserveer';if(e.status===401){try{localStorage.removeItem('va_g_t')}catch(x){}T=null;auth()}else{const a=$('#vAuth');a.innerHTML=`<div class="ver">${e.message}</div>`}}}

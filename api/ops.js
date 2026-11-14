@@ -63,7 +63,7 @@ function quote(cfg, r) {
   if (r.kind === 'room') {
     const n = Math.max(1, Math.round((new Date(r.to) - new Date(r.from)) / 864e5)), g = r.guests;
     let t = (cfg.prices[r.room] || 225) * n;
-    if (r.extras.ontbijt) t += 25 * g * n; if (r.extras.well) t += 35 * g; if (r.extras.bike) t += 45 * g * n; if (r.extras.late) t += 45;
+    if (r.extras.ontbijt) t += (r.bfPrice || 25) * g * n; if (r.extras.well) t += 35 * g; if (r.extras.bike) t += 45 * g * n; if (r.extras.late) t += 45;
     return { total: t, nights: n };
   }
   const base = r.kind === 'lessen' ? 385 : 30;
@@ -534,6 +534,7 @@ module.exports = async (req, res) => {
           r.room = b.room; r.roomName = ROOM_NAMES[b.room]; r.roomNo = ROOMS.indexOf(b.room) + 1; r.from = b.from; r.to = b.to;
           r.guests = Math.min(r.guests, b.room === 'amethyst' ? 3 : 2);
           r.extras = Object.fromEntries(Object.keys(EXTRA_PRICES).map(k => [k, !!(b.extras || {})[k]]));
+          if (r.extras.ontbijt && b.bfMenu) { const { data: MM } = await load('menus'); const mm = MM.menus.find(x => x.id === b.bfMenu && x.active); if (mm) { r.bfMenu = mm.id; r.bfName = mm.name; r.bfPrice = mm.price; } }
         } else if (kind === 'event') {
           const { data: A } = await load('agenda');
           const ev = A.events.find(e => e.id === b.eventId);
@@ -549,7 +550,7 @@ module.exports = async (req, res) => {
         else if (kind === 'event') { const { data: A } = await load('agenda'); const ev = A.events.find(e => e.id === r.eventId); const n = parseFloat(String(ev.price).replace(/[^\d,.]/g, '').replace(',', '.')) || 0; r.total = n * r.guests; }
         else Object.assign(r, quote(C, r));
         if (kind === 'room') {
-          const clash = await mutate('calendar', d => { const c = d.entries.find(x => x.room === r.room && x.from < r.to && x.to > r.from); if (c) return c; d.entries.push({ id: 'c' + r.id, ref: r.id, room: r.room, from: r.from, to: r.to, type: 'booking', guest: g.name, guestId: gid, note: 'Online · ' + r.guests + ' pers.' + (r.extras.ontbijt ? ' · ontbijt' : '') + (r.extras.late ? ' · late check-out' : ''), by: 'Website', created: Date.now() }); return null; });
+          const clash = await mutate('calendar', d => { const c = d.entries.find(x => x.room === r.room && x.from < r.to && x.to > r.from); if (c) return c; d.entries.push({ id: 'c' + r.id, ref: r.id, room: r.room, from: r.from, to: r.to, type: 'booking', guest: g.name, guestId: gid, note: 'Online · ' + r.guests + ' pers.' + (r.extras.ontbijt ? ' · ontbijt' + (r.bfName ? ' (' + r.bfName + ')' : '') : '') + (r.extras.late ? ' · late check-out' : ''), by: 'Website', created: Date.now() }); return null; });
           if (clash) return send(res, 409, { error: 'Deze kamer is net bezet voor (een deel van) deze periode. Kies andere data.' });
         }
         await mutate('guests', d => { d.reservations.push(r); });

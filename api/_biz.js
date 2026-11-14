@@ -18,7 +18,7 @@ function lines(C, r) {
   if (r.kind === 'room') {
     const n = nightsOf(r.from, r.to), g = r.guests || 1, price = (C.prices || {})[r.room] || 225, ex = r.extras || {};
     add(`Overnachting ${r.roomName} · ${r.from} → ${r.to}`, n, price, B.vatLogies);
-    if (ex.ontbijt) add('Ontbijt (inbegrepen in verblijf)', g * n, 25, B.vatFood);
+    if (ex.ontbijt) add('Ontbijt' + (r.bfName ? ' · ' + r.bfName : ''), g * n, r.bfPrice || 25, B.vatFood);
     if (ex.well) add('Wellness-moment', g, 35, B.vatOther);
     if (ex.bike) add('E-bike', g * n, 45, B.vatOther);
     if (ex.late) add('Late check-out', 1, 45, B.vatLogies);
@@ -70,7 +70,7 @@ function report(C, K, G, O, month) {
   const inMonth = d => d >= start && d < end;
   let extras = 0, activities = 0, breakfast = 0, paid = 0;
   G.reservations.filter(r => r.status !== 'geannuleerd').forEach(r => {
-    if (r.kind === 'room') { const ex = r.extras || {}; const n = nightsOf(r.from, r.to), g = r.guests || 1; if (inMonth(r.from)) extras += (ex.ontbijt ? 25 * g * n : 0) + (ex.well ? 35 * g : 0) + (ex.bike ? 45 * g * n : 0) + (ex.late ? 45 : 0); }
+    if (r.kind === 'room') { const ex = r.extras || {}; const n = nightsOf(r.from, r.to), g = r.guests || 1; if (inMonth(r.from)) extras += (ex.ontbijt ? (r.bfPrice || 25) * g * n : 0) + (ex.well ? 35 * g : 0) + (ex.bike ? 45 * g * n : 0) + (ex.late ? 45 : 0); }
     else if (inMonth(r.date)) activities += r.total || 0;
     (r.payments || []).forEach(p => { if (p.status === 'paid' && inMonth(new Date(p.t).toISOString().slice(0, 10))) paid += p.amount; });
   });

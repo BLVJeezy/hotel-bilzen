@@ -44,7 +44,7 @@ const staff = () => (process.env.OPS_NOTIFY_EMAIL || CFG.notify || REPLY()).spli
 
 function resRows(r) {
   if (r.kind === 'room') {
-    const ex = Object.entries(r.extras || {}).filter(([, v]) => v).map(([k]) => ({ ontbijt: 'ontbijt', well: 'wellness', bike: 'e-bike', late: 'late check-out' }[k])).join(', ');
+    const ex = Object.entries(r.extras || {}).filter(([, v]) => v).map(([k]) => ({ ontbijt: 'ontbijt' + (r.bfName ? ' (' + r.bfName + ')' : ''), well: 'wellness', bike: 'e-bike', late: 'late check-out' }[k])).join(', ');
     return [['Kamer', r.roomName], ['Aankomst', nice(r.from) + ' · vanaf 15:00'], ['Vertrek', nice(r.to) + ' · tot 11:00'], ['Gasten', r.guests], ...(ex ? [["Extra's", ex]] : []), ['Totaal', eur(r.total)], ['Reservatienummer', r.id]];
   }
   const what = r.kind === 'event' ? r.title : r.kind === 'wellness' ? 'Wellness-moment' : r.kind === 'lessen' ? 'Lessenreeks Pottery House' : 'Vrij atelier · Pottery House';
