@@ -1037,7 +1037,7 @@ function gem(id,cls){const g=GEM[id],k='g'+(gemN++),P={A:[14,46],B:[9,31],C:[17,
   <g class="twinkle" transform="translate(27 9)"><path d="M0 -4 L.7 -.7 L4 0 L.7 .7 L0 4 L-.7 .7 L-4 0 L-.7 -.7Z" fill="#fff"/></g>
  </svg>`}
 const arrowBtn='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><use href="#arrow"/></svg>';
-const card=r=>`<article class="room" style="--tint:${r.tint}"><a href="#${r.slug}" aria-label="${r.name}"><div class="ph"><div class="img" style="background-image:url('${IMG(r.img)}')"></div></div></a><div class="body"><h3><a href="#${r.slug}">${r.name}</a></h3><p>${r.d}</p><div class="foot"><div class="pwrap"><div><div class="price">€ ${r.p}<small> / nacht</small></div><div class="tag">${r.tag}</div></div></div><a class="link" href="#${r.slug}">Bekijk kamer ${arrow}</a><button type="button" class="bk-q" data-book="${r.id}">Boek</button></div></div></article>`;
+const card=r=>`<article class="room" style="--tint:${r.tint}"><a href="/kamers/${r.slug.slice(6)}" aria-label="${r.name}"><div class="ph"><div class="img" style="background-image:url('${IMG(r.img)}')"></div></div></a><div class="body"><h3><a href="/kamers/${r.slug.slice(6)}">${r.name}</a></h3><p>${r.d}</p><div class="foot"><div class="pwrap"><div><div class="price">€ ${r.p}<small> / nacht</small></div><div class="tag">${r.tag}</div></div></div><a class="link" href="/kamers/${r.slug.slice(6)}">Bekijk kamer ${arrow}</a><button type="button" class="bk-q" data-book="${r.id}">Boek</button></div></div></article>`;
 
 // header
 const hdr=document.getElementById('hdr');
@@ -1156,7 +1156,7 @@ function coverflow(root,items,opts={}){
   measure();render();setTimeout(()=>{measure();render()},300);
   return {go,layout:()=>{measure();render()}};
 }
-const cfRooms=coverflow(document.getElementById('cfRooms'),ROOMS.map(r=>({snd:r.id,vid:1,img:r.img,title:r.name,short:'€ '+r.p+' / nacht',meta:`<b>€ ${r.p}</b> / nacht · ${r.tag}`,href:'#'+r.slug,cta:'Bekijk kamer',book:r.id,tint:r.tint,play:'bed'})),{onSound:(k,it)=>AMB.toggle(it.snd),onChange:(k,it)=>AMB.switchTo(it.snd)});
+const cfRooms=coverflow(document.getElementById('cfRooms'),ROOMS.map(r=>({snd:r.id,vid:1,img:r.img,title:r.name,short:'€ '+r.p+' / nacht',meta:`<b>€ ${r.p}</b> / nacht · ${r.tag}`,href:'/kamers/'+r.slug.slice(6),cta:'Bekijk kamer',book:r.id,tint:r.tint,play:'bed'})),{onSound:(k,it)=>AMB.toggle(it.snd),onChange:(k,it)=>AMB.switchTo(it.snd)});
 const ACT_CF=[
  {k:'pottery',img:'pottery',title:'Pottery House',short:'Open tot 22:00',meta:'<b>€ 30</b> vrij atelier · € 385 lessenreeks · open tot 22:00',href:'#boeken',on:'pottery',cta:'Reserveer nu',tint:'#c98d5a',play:'clock'},
  {k:'wellness',img:'wellness',title:'Wellness & ontspanning',short:'10:00–19:30',meta:'<b>€ 35</b> p.p. · max. 3 uur · alleen hotelgasten',href:'#boeken',cta:'Ontdek wellness',tint:'#b06ad0',play:'lotus'},
@@ -1233,7 +1233,7 @@ function jump(h,smooth){let el=document.getElementById(h);const k=ACT_CF.findInd
  const ar='<svg viewBox="0 0 24 24"><use href="#arrow"/></svg>';
  const card=(h,img,t,sub,c,i,on)=>`<a class="mg-card" href="${h}" style="--t:${c};--i:${i}" ${on?`onclick="${on}"`:''}><div class="im" style="background-image:url('${IMG(img)}')"></div><div class="tx"><em></em><b>${t}</b><small>${sub}</small></div></a>`;
  const st=document.getElementById('megaStay');
- st.innerHTML=`<div class="mg-side"><span class="caps">Boutique Hotel</span><h4>Verblijf</h4><p>Vijf kamers, elk met de sfeer van een eigen edelsteen. Japandi-Ibiza, warm licht en rust.</p><div class="lk"><a href="/kamers">Alle kamers ${ar}</a><a href="javascript:void 0" onclick="openSheet('stay')">Snel reserveren ${ar}</a></div></div><div class="mg-cards" style="--n:5">${ROOMS.map((r,i)=>card('#'+r.slug,r.img,r.name,`€ ${r.p} / nacht · ${r.tag}`,r.tint,i)).join('')}</div>`;
+ st.innerHTML=`<div class="mg-side"><span class="caps">Boutique Hotel</span><h4>Verblijf</h4><p>Vijf kamers, elk met de sfeer van een eigen edelsteen. Japandi-Ibiza, warm licht en rust.</p><div class="lk"><a href="/kamers">Alle kamers ${ar}</a><a href="javascript:void 0" onclick="openSheet('stay')">Snel reserveren ${ar}</a></div></div><div class="mg-cards" style="--n:5">${ROOMS.map((r,i)=>card('/kamers/'+r.slug.slice(6),r.img,r.name,`€ ${r.p} / nacht · ${r.tag}`,r.tint,i)).join('')}</div>`;
  const doo=document.getElementById('megaDo');
  doo.innerHTML=`<div class="mg-side"><span class="caps">Rest · Create · Be</span><h4>Beleven</h4><p>Wellness, keramiek en ontbijt, elke dag in een eigen ritme.</p><div class="mg-today" id="mgToday"></div><div class="lk"><a href="#agenda">Bekijk de agenda ${ar}</a></div></div><div class="mg-cards" style="--n:4">${[
   ['#wellness','wellness','Wellness','10:00–19:30 · € 35 p.p.','#b06ad0'],
@@ -1448,7 +1448,7 @@ function openSheet(p){
   dock.querySelectorAll('.pill').forEach(b=>b.setAttribute('aria-expanded',b.dataset.p===p));
   const ar='<svg class="ar" viewBox="0 0 24 24"><use href="#arrow"/></svg>';
   if(p==='stay'){document.getElementById('sheetK').textContent='Reserveer je bezoek';document.getElementById('sheetT').textContent='Kies je kamer';
-    document.getElementById('sheetL').innerHTML=ROOMS.map(r=>`<a class="opt" style="--tint:${r.tint}" href="#${r.slug}" data-room="${r.id}"><div class="th" style="background-image:url('${IMG(r.img)}')"></div><div class="tx"><b>${r.name}</b><span>${r.tag}</span></div><em>€ ${r.p}</em>${ar}</a>`).join('');
+    document.getElementById('sheetL').innerHTML=ROOMS.map(r=>`<a class="opt" style="--tint:${r.tint}" href="/kamers/${r.slug.slice(6)}" data-room="${r.id}"><div class="th" style="background-image:url('${IMG(r.img)}')"></div><div class="tx"><b>${r.name}</b><span>${r.tag}</span></div><em>€ ${r.p}</em>${ar}</a>`).join('');
   }else{document.getElementById('sheetK').textContent='Ontdek Villa Amano';document.getElementById('sheetT').textContent='Activiteiten';
     document.getElementById('sheetL').innerHTML=ACTS.map(([img,t,sub,h,c])=>`<a class="opt" style="--tint:${c}" href="${h}"><div class="th" style="background-image:url('${IMG(img)}')"></div><div class="tx"><b>${t}</b><span>${sub}</span></div>${ar}</a>`).join('');}
   sheet.classList.add('open');sbg.classList.add('open');
@@ -1458,7 +1458,7 @@ function sheetBook(id){
   const r=ROOMS.find(x=>x.id===id),L=document.getElementById('sheetL');
   document.getElementById('sheetK').innerHTML='<button type="button" class="sh-back" onclick="openP=null;openSheet(\'stay\')"><svg viewBox="0 0 24 24"><use href="#arrow"/></svg> Alle kamers</button>';
   document.getElementById('sheetT').textContent=r.name;
-  L.innerHTML=`<div class="sh-room" style="--tint:${r.tint}"><div class="sh-img" style="background-image:url('${IMG(r.img)}')"></div><a class="sh-link" href="#${r.slug}">Bekijk de kamer <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div><div class="sh-bk" style="--tint:${r.tint}"></div>`;
+  L.innerHTML=`<div class="sh-room" style="--tint:${r.tint}"><div class="sh-img" style="background-image:url('${IMG(r.img)}')"></div><a class="sh-link" href="/kamers/${r.slug.slice(6)}">Bekijk de kamer <svg viewBox="0 0 24 24"><use href="#arrow"/></svg></a></div><div class="sh-bk" style="--tint:${r.tint}"></div>`;
   makeBooking(L.querySelector('.sh-bk'),r);
   L.querySelector('.sh-link').addEventListener('click',()=>closeSheet());
   L.scrollTop=0;
@@ -1471,7 +1471,8 @@ sbg.onclick=closeSheet;addEventListener('keydown',e=>{if(e.key==='Escape')closeS
 const home=document.getElementById('home'),rp=document.getElementById('roomPage');
 function route(){
   const h=location.hash.slice(1),r=ROOMS.find(x=>x.slug===h);
-  if(r){
+  if(r){location.replace('/kamers/'+r.slug.slice(6));return}
+  if(false){
     rp.innerHTML=roomPage(r);rp.hidden=false;home.hidden=true;
     makeBooking(rp.querySelector('#roomBook'),r);makeBooking(rp.querySelector('#roomQuick'),r,true);
     rp.querySelectorAll('.gal figure').forEach(f=>f.onclick=()=>{lb.querySelector('img').src=IMG(f.dataset.src);lb.classList.add('open')});
