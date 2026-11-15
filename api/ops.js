@@ -710,8 +710,16 @@ module.exports = async (req, res) => {
     if (a === 'hk-set') {
       if (!can(u, 'today')) return send(res, 403, { error: 'Geen toegang' });
       if (!isDate(b.date) || !ROOMS.includes(b.room)) return send(res, 400, { error: 'Ongeldig' });
-      await mutate('housekeeping', d => { d.days = d.days || {}; d.days[b.date] = d.days[b.date] || {}; if (b.done) d.days[b.date][b.room] = { by: u.name, t: Date.now() }; else delete d.days[b.date][b.room]; Object.keys(d.days).filter(k => k < BZ.addDays(today(), -30)).forEach(k => delete d.days[k]); });
-      if (b.done) await addLog(u, `Kamer klaar: ${ROOM_NAMES[b.room]}`);
+      const state = b.state || (b.done ? 'klaar' : 'reset'); const note = clean(b.note, 200);
+      if (!['klaar', 'nodig', 'reset', 'note'].includes(state)) return send(res, 400, { error: 'Ongeldig' });
+      await mutate('housekeeping', d => { d.days = d.days || {}; d.days[b.date] = d.days[b.date] || {}; const D = d.days[b.date], cur = D[b.room] || {};
+        if (state === 'reset') delete D[b.room];
+        else if (state === 'note') D[b.room] = { ...cur, note, noteBy: u.name };
+        else D[b.room] = { ...cur, state, by: u.name, t: Date.now() };
+        Object.keys(d.days).filter(k => k < BZ.addDays(today(), -30)).forEach(k => delete d.days[k]); });
+      if (state === 'klaar') await addLog(u, `Kamer klaar: ${ROOM_NAMES[b.room]}`);
+      if (state === 'nodig') await addLog(u, `Kamer moet gepoetst worden: ${ROOM_NAMES[b.room]}`);
+      if (state === 'note' && note) await addLog(u, `Melding ${ROOM_NAMES[b.room]}: ${note}`);
       return send(res, 200, { ok: true });
     }
     if (a === 'pay-add') {

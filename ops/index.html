@@ -245,6 +245,19 @@ button{cursor:pointer}
 .hello p{text-transform:none}.hello p::first-letter{text-transform:uppercase}
 @media(max-width:1023px){#me{font-size:0;padding:4px}#me b{font-size:13px;margin:0}#title{white-space:nowrap}}
 @media(min-width:1024px){body.t-today #app{max-width:860px}}
+.back{margin-bottom:12px;height:48px;padding:0 20px}
+.hkday{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:24px;background:#ffffff05;margin-bottom:14px}
+.hkarr{flex:none;width:56px;height:56px;border-radius:50%;border:1px solid var(--line);background:#ffffff08;color:var(--text);font-size:26px;line-height:1;cursor:pointer}.hkarr:active{background:#ffffff18}
+.hkd{flex:1;text-align:center;min-width:0}.hkd b{display:block;font:400 22px var(--serif)}.hkd small{display:block;font-size:13px;color:var(--gold2);margin-top:2px}.hkd small.ok{color:var(--green)}
+.hktoday{margin-top:6px;background:none;border:0;color:var(--muted);text-decoration:underline;font-size:13px;cursor:pointer;padding:6px}
+.hkc{display:flex;align-items:center;gap:14px;width:100%;min-height:84px;padding:14px 14px 14px 16px;margin-bottom:10px;border-radius:22px;border:1px solid color-mix(in srgb,var(--c) 40%,#ffffff14);border-left:4px solid var(--c);background:linear-gradient(120deg,color-mix(in srgb,var(--c) 10%,transparent),#ffffff04);color:var(--text);text-align:left;cursor:pointer;font-family:var(--sans)}
+.hkc:active{transform:scale(.99)}.hkc.idle{border-color:var(--line);border-left-color:#ffffff22;background:#ffffff04}.hkc.done{opacity:.7;border-left-color:var(--green)}
+.hkn{flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:#00000033;font:400 18px var(--serif);color:var(--muted)}
+.hkt{flex:1;min-width:0}.hkt b{display:block;font:500 17px var(--sans)}.hkt small{display:block;color:var(--muted);font-size:13px;margin-top:3px}.hkc .hkst{color:var(--c);font-weight:500;margin-right:4px}.hkc.done .hkst{color:var(--green)}.hknote{color:#f0a080!important}
+.hkbtn{flex:none;min-width:84px;height:48px;padding:0 14px;border-radius:999px;display:grid;place-items:center;font:500 15px var(--sans);background:linear-gradient(120deg,#f6dfa4,#e6b866 55%,#c98d3e);color:#24180e}
+.hkc.idle .hkbtn{background:#ffffff0d;color:var(--muted);min-width:56px;font-size:18px;letter-spacing:2px}.hkbtn.is{background:#9fd8a822;color:var(--green);min-width:56px;font-size:20px}
+.hkopts{display:grid;gap:10px}.hko{display:block;width:100%;text-align:left;padding:16px 18px;border-radius:18px;border:1px solid var(--line);background:#ffffff06;color:var(--text);cursor:pointer;font-family:var(--sans)}.hko b{display:block;font:500 16px var(--sans)}.hko small{color:var(--muted);font-size:13px}
+.hko.main{border-color:transparent;background:linear-gradient(120deg,#f6dfa4,#e6b866 55%,#c98d3e);color:#24180e}.hko.main small{color:#24180ebb}
 </style>
 </head>
 <body>
@@ -484,13 +497,13 @@ function vToday(){const t=TODAY(),cal=S.calendar||[],P=S.perms;
  const arr=cal.filter(e=>e.type==='booking'&&e.from===t),dep=cal.filter(e=>e.type==='booking'&&e.to===t),occ=new Set(cal.filter(e=>e.from<=t&&e.to>t).map(e=>e.room));
  const ords=(S.orders||[]).filter(o=>o.date===t&&(o.status==='nieuw'||o.status==='bereiding')).sort((a,b)=>a.time<b.time?-1:1);
  const reqs=P.includes('guests')?(S.requests||[]).filter(r=>r.status!=='klaar'):[];
- const hk=(HKT&&HKT.date===t?HKT.rooms:[]),clean=hk.filter(r=>['vertrek','wissel','bezet'].includes(r.status)&&!r.done),arrH=hk.filter(r=>['aankomst','wissel'].includes(r.status));
+ const hk=(HKT&&HKT.date===t?HKT.rooms:[]),clean=hk.filter(r=>(['vertrek','wissel','bezet'].includes(r.status)||r.need)&&!r.done),arrH=hk.filter(r=>['aankomst','wissel'].includes(r.status));
  const ev=(S.events||[]).filter(e=>e.date===t);
  const h=new Date().getHours(),hi=h<12?'Goedemorgen':h<18?'Goedemiddag':'Goedenavond';
  const T=[];// [kleur, icoon, titel, uitleg, knoptekst, actie]
  ords.forEach(o=>T.push([RBYN[o.room][2],'i-orders',`Ontbijt ${esc(o.time)} · ${esc(o.roomName)}`,o.items.map(i=>i.qty+'× '+esc(i.name)).join(', ')+(o.where==='terras'?' · terras':' · op de kamer')+(o.diet.length?' · ⚠ '+o.diet.map(esc).join(', '):''),o.status==='nieuw'?'Start':'Geleverd',`ordSt('${o.id}','${o.status==='nieuw'?'bereiding':'geleverd'}')`]));
  reqs.forEach(r=>T.push(['#e6b866','i-bell',esc(r.type)+(r.room?' · '+esc(r.room):''),esc(r.guestName||'')+(r.text?' · '+esc(r.text):''),'Klaar',`reqDone('${r.id}')`]));
- clean.forEach(r=>T.push([RN[r.room][2],'i-today',`Kamer poetsen · ${esc(r.name)}`,({vertrek:'Gast vertrekt vandaag',wissel:'Vertrek én nieuwe gasten vandaag',bezet:'Opfrissen: handdoeken & bed'})[r.status]+(r.lateCheckout?' · late check-out 13:00':'')+(r.checkedOut?' · gast is al weg':''),'Klaar',`hkSet2('${r.room}')`]));
+ clean.forEach(r=>T.push([RN[r.room][2],'i-today',`Kamer poetsen · ${esc(r.name)}`,(({vertrek:'Gast vertrekt vandaag',wissel:'Vertrek én nieuwe gasten vandaag',bezet:'Opfrissen: handdoeken & bed'})[r.status]||'Gemarkeerd om te poetsen')+(r.note?' · ⚠ '+esc(r.note):'')+(r.lateCheckout?' · late check-out 13:00':'')+(r.checkedOut?' · gast is al weg':''),'Klaar',`hkSet2('${r.room}')`]));
  (arrH.length?arrH:arr.map(e=>({room:e.room,name:RN[e.room][1],guest:e.guest}))).forEach(r=>T.push([RN[r.room][2],'i-key',`Aankomst · ${esc(r.guest||'Gast')}`,esc(r.name)+(r.arrival?' · rond '+esc(r.arrival):' · tussen 15:00 en 21:00')+(r.onlineCheckin?' · ✓ online ingecheckt':''),'Scan code','scanOpen()',1]));
  ev.forEach(e=>T.push([CATS[e.cat][1],'i-agenda',esc(e.title),esc(e.time)+' · '+esc(e.price),'Scan code','scanOpen()',1]));
  const must=T.filter(x=>!x[6]).length;
@@ -501,7 +514,7 @@ function vToday(){const t=TODAY(),cal=S.calendar||[],P=S.perms;
  ${!must?`<div class="alldone"><b>✓</b><span>Alles is klaar</span><small>Je hoort een signaal als er iets nieuws binnenkomt.</small></div>`:''}`;
  if(P.includes('today')&&(!HKT||HKT.date!==t||Date.now()-HKT.at>20000)){api('hk&date='+t).then(d=>{HKT={...d,at:Date.now()};if(TAB==='today')vToday()}).catch(()=>{HKT={date:t,rooms:[],at:Date.now()}})}}
 async function ordSt(id,st){try{await api('order-status',{id,status:st});const o=S.orders.find(x=>x.id===id);if(o){o.status=st;o.by=S.user.name;delete o._new}toast(st==='geleverd'?'Geleverd ✓':'Gestart');badge();vToday()}catch(e){toast(e.message,1)}}
-async function hkSet2(room){try{await api('hk-set',{date:TODAY(),room,done:true});const r=HKT&&HKT.rooms.find(x=>x.room===room);if(r)r.done={by:S.user.name,t:Date.now()};toast('Kamer klaar ✓');vToday()}catch(e){toast(e.message,1)}}
+async function hkSet2(room){try{await api('hk-set',{date:TODAY(),room,state:'klaar'});const r=HKT&&HKT.rooms.find(x=>x.room===room);if(r)r.done={by:S.user.name,t:Date.now()};toast('Kamer klaar ✓');vToday()}catch(e){toast(e.message,1)}}
 const stLabel=s=>({nieuw:'<span style="color:var(--gold2)">Nieuw</span>',bereiding:'In bereiding',geleverd:'<span style="color:var(--green)">Geleverd</span>',geannuleerd:'Geannuleerd'})[s];
 
 /* ---------- BESTELLINGEN ---------- */
@@ -643,16 +656,29 @@ function staffSheet(s){s=s||{name:'',role:'receptie',active:true};let role=s.rol
 
 /* ---------- schoonmaak ---------- */
 const HKL={vertrek:['Vertrek','#e6b866','Uitchecken, dan volledig poetsen'],aankomst:['Aankomst','#9fd8a8','Klaarzetten voor nieuwe gasten'],wissel:['Wissel','#f0a080','Vertrek én aankomst vandaag'],bezet:['Bezet','#9fb8e6','Opfrissen: handdoeken & bed'],vrij:['Vrij','#8f8272','Niets te doen']};
-async function hkView(date){TAB='more';$('#title').textContent='Schoonmaak';date=date||TODAY();$('#app').innerHTML='<div class="empty">Laden…</div>';
- let d;try{d=await api('hk&date='+date)}catch(e){toast(e.message,1);return}
+async function hkView(date){TAB='more';$('#title').textContent='Schoonmaak';date=date||TODAY();hkView.date=date;
+ let d;try{d=await api('hk&date='+date)}catch(e){toast(e.message,1);return}hkView.d=d;
  const nd=n=>{const x=new Date(date+'T12:00');x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};
- const todo=d.rooms.filter(r=>r.status!=='vrij'&&!r.done).length;
- $('#app').innerHTML=`<button class="btn2" style="margin-bottom:12px" onclick="go('more')">← Terug</button>
- <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><button class="btn2" onclick="hkView('${nd(-1)}')">‹</button><div style="text-align:center"><b style="font:400 20px var(--serif)">${new Date(date+'T12:00').toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}</b><div class="k">${todo?todo+' kamer'+(todo>1?'s':'')+' te doen':'Alles klaar ✓'}</div></div><button class="btn2" onclick="hkView('${nd(1)}')">›</button></div>
- ${d.rooms.map(r=>{const L=HKL[r.status];return `<div class="card hk ${r.done?'done':''}" style="--c:${L[1]}"><div class="row" style="border:0;padding:0"><div class="tx"><b>${String(r.no).padStart(2,'0')} · ${esc(r.name)}</b><small><span class="hkst">${L[0]}</span> ${esc(L[2])}${r.guest?' · '+esc(r.guest):''}${r.guests?' · '+r.guests+' pers.':''}${r.lateCheckout?' · <b style="color:var(--gold2)">late check-out 13:00</b>':''}${r.checkedOut?' · <b style="color:var(--green)">uitgecheckt '+new Date(r.checkedOut).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'})+'</b>':''}${r.onlineCheckin?' · <b style="color:var(--green)">online ingecheckt</b>':''}${r.arrival?' · aankomst rond '+esc(r.arrival):''}</small>${r.done?`<small style="color:var(--green)">✓ Klaar · ${esc(r.done.by)} ${new Date(r.done.t).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'})}</small>`:''}</div>
- ${r.status!=='vrij'?`<button class="${r.done?'btn2':'cta'}" style="min-width:96px" onclick="hkSet('${date}','${r.room}',${!r.done})">${r.done?'Ongedaan':'Klaar'}</button>`:''}</div></div>`}).join('')}`}
-async function hkSet(date,room,done){try{await api('hk-set',{date,room,done});toast(done?'Kamer klaar ✓':'Teruggezet');hkView(date)}catch(e){toast(e.message,1)}}
-
+ const work=r=>r.status!=='vrij'||r.need;
+ const todo=d.rooms.filter(r=>work(r)&&!r.done).length;
+ $('#app').innerHTML=`<button class="btn2 back" onclick="go('more')">← Terug</button>
+ <div class="hkday"><button class="hkarr" onclick="hkView('${nd(-1)}')" aria-label="Vorige dag">‹</button><div class="hkd"><b>${new Date(date+'T12:00').toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}</b><small class="${todo?'':'ok'}">${todo?todo+' kamer'+(todo>1?'s':'')+' te doen':'Alles klaar ✓'}</small>${date!==TODAY()?`<button class="hktoday" onclick="hkView()">Naar vandaag</button>`:''}</div><button class="hkarr" onclick="hkView('${nd(1)}')" aria-label="Volgende dag">›</button></div>
+ ${d.rooms.map(r=>{const L=r.need&&r.status==='vrij'?['Poetsen','#f0a080','Gemarkeerd om te poetsen']:HKL[r.status];const w=work(r);
+ return `<button class="hkc ${r.done?'done':''} ${w?'':'idle'}" style="--c:${L[1]}" onclick="hkTap('${r.room}')">
+  <span class="hkn">${String(r.no).padStart(2,'0')}</span>
+  <span class="hkt"><b>${esc(r.name)}</b><small><span class="hkst">${r.done?'✓ Klaar':L[0]}</span> ${r.done?esc(r.done.by)+' · '+new Date(r.done.t).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'}):esc(L[2])}</small>${r.guest?`<small>${esc(r.guest)}${r.guests?' · '+r.guests+' pers.':''}${r.lateCheckout?' · <b style="color:var(--gold2)">late check-out 13:00</b>':''}${r.checkedOut?' · <b style="color:var(--green)">al vertrokken</b>':''}${r.onlineCheckin?' · <b style="color:var(--green)">online ingecheckt</b>':''}${r.arrival?' · rond '+esc(r.arrival):''}</small>`:''}${r.note?`<small class="hknote">⚠ ${esc(r.note)}</small>`:''}</span>
+  <span class="hkbtn ${r.done?'is':''}">${r.done?'✓':w?'Klaar':'···'}</span></button>`}).join('')}
+ <p class="k" style="text-align:center;margin:14px 8px 0">Tik op een kamer voor meer opties.</p>`}
+function hkTap(room){const r=hkView.d.rooms.find(x=>x.room===room),date=hkView.date,w=r.status!=='vrij'||r.need;
+ openSheet(`<h3>${String(r.no).padStart(2,'0')} · ${esc(r.name)}</h3><div class="sub">${new Date(date+'T12:00').toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}</div>
+ <div class="hkopts">
+ ${r.done?`<button class="hko" onclick="hkSet('${date}','${room}','reset')"><b>↺ Toch nog niet klaar</b><small>Zet de kamer terug op te doen</small></button>`:`<button class="hko main" onclick="hkSet('${date}','${room}','klaar')"><b>✓ Kamer is klaar</b><small>Gepoetst en klaar voor gasten</small></button>`}
+ ${!w?`<button class="hko" onclick="hkSet('${date}','${room}','nodig')"><b>🧹 Moet gepoetst worden</b><small>Zet deze vrije kamer op de lijst</small></button>`:''}
+ ${r.need&&!r.done?`<button class="hko" onclick="hkSet('${date}','${room}','reset')"><b>Niet meer nodig</b><small>Haal van de lijst</small></button>`:''}
+ <label class="field" style="margin-top:6px"><span>Probleem of opmerking (lamp kapot, vlek…)</span><input id="hkN" value="${esc(r.note||'')}" placeholder="Typ hier…"></label>
+ <button class="btn2" style="width:100%;height:52px" onclick="hkNote('${date}','${room}')">Opmerking opslaan</button></div>`)}
+async function hkSet(date,room,state){try{await api('hk-set',{date,room,state});closeSheet();toast(state==='klaar'?'Kamer klaar ✓':state==='nodig'?'Op de lijst gezet':'Teruggezet');hkView(date)}catch(e){toast(e.message,1)}}
+async function hkNote(date,room){try{await api('hk-set',{date,room,state:'note',note:$('#hkN').value.trim()});closeSheet();toast('Opgeslagen ✓');hkView(date)}catch(e){toast(e.message,1)}}
 /* ---------- betalingen & facturen ---------- */
 async function payView(){TAB='more';$('#title').textContent='Betalingen & facturen';$('#app').innerHTML='<div class="empty">Laden…</div>';
  let d;try{d=await api('res-list')}catch(e){toast(e.message,1);return}payView.L=d.list;const q=(payView.q||'').toLowerCase();
