@@ -63,9 +63,19 @@ module.exports = {
   reservation(g, r) {
     const rows = resRows(r), cta = ['Bekijk in je portaal (met QR)', SITE + '/portaal/?nieuw=' + r.id];
     const t = r.kind === 'room' ? 'Je verblijf is bevestigd' : 'Je reservatie is bevestigd';
-    const p = [send(g.email, `${t} · ${r.id}`, layout(t, `Dag ${esc(g.name.split(' ')[0])}, we kijken ernaar uit je te ontvangen. Je QR-code staat in je portaal; laat die bij aankomst scannen.`, rows, cta, 'Gratis annuleren kan tot 48 uur vooraf via je portaal.'), text(t, rows, cta), [{ name: 'type', value: 'reservation' }])];
+    const p = [send(g.email, `${t} · ${r.id}`, layout(t, `Dag ${esc(g.name.split(' ')[0])}, we kijken ernaar uit je te ontvangen. Je QR-code staat in je portaal; laat die bij aankomst scannen.`, rows, cta, 'Wijzigen of annuleren kan tot 48 uur voor aankomst, gratis, via je portaal. Daarna is wijzigen niet meer mogelijk.'), text(t, rows, cta), [{ name: 'type', value: 'reservation' }])];
     if (staff().length) p.push(send(staff(), `Nieuwe reservatie ${r.id} · ${g.name}`, layout('Nieuwe reservatie', `${esc(g.name)} · ${esc(g.email)}${g.phone ? ' · ' + esc(g.phone) : ''}`, rows, ['Open ops', SITE + '/ops/']), text('Nieuwe reservatie', rows), [{ name: 'type', value: 'staff' }]));
     return Promise.all(p);
+  },
+  modified(g, r, old) {
+    const t = 'Je reservatie is gewijzigd', rows = [['Was', nice(old.from) + ' – ' + nice(old.to) + ' · ' + old.guests + ' pers.'], ...resRows(r)], cta = ['Bekijk in je portaal', SITE + '/portaal/'];
+    const p = [send(g.email, `${t} · ${r.id}`, layout(t, `Dag ${esc(g.name.split(' ')[0])}, dit zijn je nieuwe gegevens. Je QR-code blijft dezelfde.`, rows, cta, 'Wijzigen of annuleren kan tot 48 uur voor aankomst via je portaal.'), text(t, rows, cta), [{ name: 'type', value: 'modified' }])];
+    if (staff().length) p.push(send(staff(), `Gewijzigd: ${r.id} · ${g.name}`, layout('Reservatie gewijzigd', `${esc(g.name)} · ${esc(g.email)}`, rows, ['Open ops', SITE + '/ops/']), text('Reservatie gewijzigd', rows), [{ name: 'type', value: 'staff' }]));
+    return Promise.all(p);
+  },
+  invoice(g, r, T, inv) {
+    const t = 'Je factuur ' + r.invoiceNo, rows = [['Factuurnummer', r.invoiceNo], ['Reservatie', r.id], ['Totaal incl. btw', eur(T.total)], ['Reeds betaald', eur(T.paid)], ['Nog te betalen', eur(T.due)]], cta = ['Bekijk en download factuur', SITE + inv];
+    return send(g.email, `Factuur ${r.invoiceNo} · Villa Amano`, layout(t, `Dag ${esc(g.name.split(' ')[0])}, hierbij je factuur voor ${esc(r.kind === 'room' ? 'je verblijf in ' + r.roomName : 'je reservatie')}.`, rows, cta, T.due ? 'Het openstaande bedrag kan je in je portaal of ter plaatse betalen.' : 'Deze factuur is volledig betaald. Bedankt!'), text(t, rows, cta), [{ name: 'type', value: 'invoice' }]);
   },
   cancelled(g, r) {
     const rows = resRows(r), t = 'Je reservatie is geannuleerd';
@@ -127,10 +137,10 @@ module.exports = {
     const T = { total: 520, paid: 156, due: 364 };
     const cap = [];
     const fake = (to, subject, html) => { cap.push({ to, subject, html }); return { id: 'preview' }; };
-    const F = { welcome: () => this.welcome(g), reservation: () => this.reservation(g, r), preArrival: () => this.preArrival(g, r), checkoutDay: () => this.checkoutDay(g, r, T), checkedOut: () => this.checkedOut(g, r, T, '/factuur?id=RVOORBEELD'), postStay: () => this.postStay(g, r), cancelled: () => this.cancelled(g, r), checkinDone: () => this.checkinDone(g, r) };
+    const F = { welcome: () => this.welcome(g), reservation: () => this.reservation(g, r), preArrival: () => this.preArrival(g, r), checkoutDay: () => this.checkoutDay(g, r, T), checkedOut: () => this.checkedOut(g, r, T, '/factuur?id=RVOORBEELD'), postStay: () => this.postStay(g, r), cancelled: () => this.cancelled(g, r), modified: () => this.modified(g, r, { from: d(1), to: d(3), guests: 2 }), invoice: () => this.invoice(g, { ...r, invoiceNo: '2026-0042' }, T, '/factuur?id=RVOORBEELD'), order: () => this.order(g, { id: 'VA-VOORBEELD', date: d(4), time: '08:30', where: 'kamer', room: 4, roomName: 'Moonstone', items: [{ qty: 2, name: 'Amano Classic' }], extras: [{ name: 'Glas cava' }], included: 2, total: 9 }), checkinDone: () => this.checkinDone(g, r) };
     SENDER = fake; try { F[name] && F[name](); } finally { SENDER = null; }
     return cap;
   },
-  TEMPLATES: [['reservation', 'Bevestiging reservatie (+ melding eigenaar)'], ['welcome', 'Welkom bij nieuw account'], ['preArrival', '3 dagen voor aankomst · online inchecken & extra\'s'], ['checkinDone', 'Melding eigenaar: gast online ingecheckt'], ['checkoutDay', 'Vertrekdag · online uitchecken'], ['checkedOut', 'Uitgecheckt · factuur (+ melding eigenaar)'], ['postStay', 'Dag na vertrek · bedankt & review'], ['cancelled', 'Annulatie (+ melding eigenaar)']],
+  TEMPLATES: [['reservation', 'Bevestiging reservatie (+ melding eigenaar: nieuwe boeking)'], ['modified', 'Wijziging reservatie (+ melding eigenaar)'], ['order', 'Ontbijt besteld (+ melding eigenaar/keuken)'], ['invoice', 'Factuur naar de gast'], ['welcome', 'Welkom bij nieuw account'], ['preArrival', '3 dagen voor aankomst · online inchecken & extra\'s'], ['checkinDone', 'Melding eigenaar: gast online ingecheckt'], ['checkoutDay', 'Vertrekdag · online uitchecken'], ['checkedOut', 'Uitgecheckt · factuur (+ melding eigenaar)'], ['postStay', 'Dag na vertrek · bedankt & review'], ['cancelled', 'Annulatie (+ melding eigenaar)']],
   _layout: layout, _send: send,
 };

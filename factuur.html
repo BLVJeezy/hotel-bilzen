@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon.ico" sizes="any">
 <title>Factuur · Villa Amano</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -28,12 +28,12 @@ td{padding:10px 6px;border-bottom:1px solid #f1ebe1;vertical-align:top}.n{text-a
 const q=new URLSearchParams(location.search),eur=n=>'€ '+(+n||0).toLocaleString('nl-BE',{minimumFractionDigits:2,maximumFractionDigits:2}),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),d=s=>s?new Date((s.length===10?s+'T12:00':s)).toLocaleDateString('nl-BE',{day:'numeric',month:'long',year:'numeric'}):'';
 fetch('/api/ops?a=invoice&id='+encodeURIComponent(q.get('id')||'')+'&k='+encodeURIComponent(q.get('k')||'')).then(r=>r.json()).then(x=>{
  if(x.error){document.getElementById('doc').innerHTML='<div class="err">'+esc(x.error)+'</div>';return}
- const B=x.biz,G=x.guest,R=x.reservation;document.title='Factuur '+x.invoiceNo+' · Villa Amano';
+ const B=x.biz,G=x.guest,R=x.reservation;const DOC=x.doc==='leverbon'?'Leverbon':'Factuur';document.title=DOC+' '+x.invoiceNo+' · Villa Amano';
  document.getElementById('doc').innerHTML=`<div class="doc">
  <div class="hd"><div><img src="/img/logo_full.png" alt="Villa Amano" style="filter:invert(1) sepia(.4) saturate(.6) brightness(.35)"></div>
-  <div><h1>Factuur</h1><div class="meta">Nummer <b>${esc(x.invoiceNo)}</b><br>Datum <b>${d(x.invoiceDate)}</b><br>Reservatie <b>${esc(R.id)}</b></div></div></div>
+  <div><h1>${DOC}</h1><div class="meta">Nummer <b>${esc(x.invoiceNo)}</b><br>Datum <b>${d(x.invoiceDate)}</b><br>Reservatie <b>${esc(R.id)}</b></div></div></div>
  <div class="two"><div><h4>Van</h4><p><b style="font-weight:500">${esc(B.legal||B.company)}</b><br>${esc(B.address)}${B.vat?'<br>Btw '+esc(B.vat):''}${B.iban?'<br>IBAN '+esc(B.iban):''}<br>${esc(B.email)}</p></div>
-  <div><h4>Aan</h4><p><b style="font-weight:500">${esc(G.company||G.name)}</b>${G.company?'<br>t.a.v. '+esc(G.name):''}${G.vat?'<br>Btw '+esc(G.vat):''}<br>${esc(G.email)}${G.phone?'<br>'+esc(G.phone):''}</p></div></div>
+  <div><h4>Aan</h4><p><b style="font-weight:500">${esc(G.company||G.name)}</b>${G.company?'<br>t.a.v. '+esc(G.name):''}${G.vat?'<br>Btw '+esc(G.vat):''}${G.address?'<br>'+esc(G.address):''}<br>${esc(G.email)}${G.phone?'<br>'+esc(G.phone):''}</p></div></div>
  <table><thead><tr><th>Omschrijving</th><th class="n">Aantal</th><th class="n">Prijs</th><th class="n">Btw</th><th class="n">Totaal</th></tr></thead><tbody>
  ${x.lines.map(l=>`<tr><td>${esc(l.label)}</td><td class="n">${l.qty}</td><td class="n">${eur(l.unit)}</td><td class="n">${l.vat==null?'–':l.vat+'%'}</td><td class="n">${eur(l.total)}</td></tr>`).join('')}</tbody></table>
  <div class="tot"><div><span>Totaal excl. btw</span><span>${eur(x.total-x.vatTotal)}</span></div>
@@ -43,6 +43,6 @@ fetch('/api/ops?a=invoice&id='+encodeURIComponent(q.get('id')||'')+'&k='+encodeU
   <div class="${x.due?'due':''}"><span>${x.due?'Nog te betalen':'Volledig betaald'}</span><span>${eur(x.due)}</span></div>
   ${!x.due&&x.total?'<div style="justify-content:flex-end"><span class="paid">BETAALD</span></div>':''}</div>
  ${x.payments.length?`<p style="font-size:12.5px;color:var(--mut);margin-top:16px">Betalingen: ${x.payments.map(p=>`${eur(p.amount)} op ${d(new Date(p.t).toISOString().slice(0,10))} (${esc(p.method)})`).join(' · ')}</p>`:''}
- <div class="foot">Prijzen inclusief btw. ${R.kind==='room'?`Verblijf ${d(R.from)} – ${d(R.to)}, ${R.guests} gast${R.guests>1?'en':''}. `:''}${x.due&&B.iban?`Gelieve het openstaande bedrag over te schrijven op ${esc(B.iban)} met vermelding ${esc(x.invoiceNo)}, of te betalen bij aankomst.`:''}<br>${esc(B.company)} · ${esc(B.address)}</div></div>`;
+ <div class="foot">${x.doc==='leverbon'?'<b>Dit is een leverbon, geen factuur.</b> Een factuur krijg je op vraag of na je verblijf. ':''}Prijzen inclusief btw. ${R.kind==='room'?`Verblijf ${d(R.from)} – ${d(R.to)}, ${R.guests} gast${R.guests>1?'en':''}. `:''}${x.due&&B.iban?`Gelieve het openstaande bedrag over te schrijven op ${esc(B.iban)} met vermelding ${esc(x.invoiceNo)}, of te betalen bij aankomst.`:''}<br>${esc(B.company)} · ${esc(B.address)}</div></div>`;
  if(q.get('print'))setTimeout(print,600)});
 </script></body></html>

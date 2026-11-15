@@ -263,12 +263,12 @@ module.exports = async (req, res) => {
     if (a === 'invoice') {
       const rid = url.searchParams.get('id') || '', k = url.searchParams.get('k') || '';
       if (!rid || k.length !== 16 || k !== invKey(rid)) return send(res, 404, { error: 'Factuur niet gevonden' });
-      const no = await ensureInvoiceNo(rid);
       const [{ data: C }, { data: G }] = await Promise.all([load('config'), load('guests')]);
       const r = G.reservations.find(x => x.id === rid); if (!r) return send(res, 404, { error: 'Factuur niet gevonden' });
+      const no = r.invoiceNo || null;
       const g = G.guests.find(x => x.id === r.guestId) || {};
       const B = BZ.biz(C); delete B.mollieKey;
-      return send(res, 200, { biz: B, invoiceNo: no, invoiceDate: r.invoiceDate || today(), guest: { name: g.name || r.guestName, email: g.email || '', phone: g.phone || '', company: g.company || '', vat: g.vatNo || '' }, reservation: { id: r.id, kind: r.kind, status: r.status, roomName: r.roomName, from: r.from, to: r.to, date: r.date, guests: r.guests }, payments: (r.payments || []).filter(p => p.status === 'paid').map(p => ({ amount: p.amount, method: p.method, t: p.t })), ...BZ.totals(C, r) });
+      return send(res, 200, { biz: B, doc: no ? 'factuur' : 'leverbon', invoiceNo: no || 'LB-' + r.id, invoiceDate: r.invoiceDate || today(), guest: { name: g.name || r.guestName, email: g.email || '', phone: g.phone || '', company: (r.bill || {}).company || g.company || '', vat: (r.bill || {}).vat || g.vatNo || '', address: (r.bill || {}).address || '' }, reservation: { id: r.id, kind: r.kind, status: r.status, roomName: r.roomName, from: r.from, to: r.to, date: r.date, guests: r.guests }, payments: (r.payments || []).filter(p => p.status === 'paid').map(p => ({ amount: p.amount, method: p.method, t: p.t })), ...BZ.totals(C, r) });
     }
     if (a === 'mollie-hook' && req.method === 'POST') {
       let b = req.body; if (typeof b === 'string') b = Object.fromEntries(new URLSearchParams(b)); if (!b || typeof b !== 'object') b = Object.fromEntries(new URLSearchParams(await new Promise(r => { let d = ''; req.on('data', c => (d += c)); req.on('end', () => r(d)); })));
@@ -601,6 +601,23 @@ module.exports = async (req, res) => {
         if (gg) await sendMail('checkedOut', gg, out, T, '/factuur?id=' + out.id + '&k=' + invKey(out.id));
         return send(res, 200, { ok: true, due: T.due });
       }
+      if (a === 'g-modify') {
+        const [{ data: C }, { data: G0 }] = await Promise.all([load('config'), load('guests')]);
+        const r0 = G0.reservations.find(x => x.id === b.id && x.guestId === gid && x.kind === 'room');
+        if (!r0 || r0.status === 'geannuleerd') return send(res, 404, { error: 'Reservatie niet gevonden' });
+        if (daysUntil(r0.from) < 2) return send(res, 400, { error: 'Wijzigen kan tot 48 uur vooraf. Neem contact met ons op.' });
+        if (!isDate(b.from) || !isDate(b.to) || b.to <= b.from || daysUntil(b.from) < 2) return send(res, 400, { error: 'Kies geldige data, minstens 48 uur vanaf nu' });
+        const guests = Math.max(1, Math.min(r0.room === 'amethyst' ? 3 : 2, parseInt(b.guests, 10) || r0.guests));
+        const old = { from: r0.from, to: r0.to, guests: r0.guests, total: r0.total };
+        const clash = await mutate('calendar', d => { const c = d.entries.find(x => x.room === r0.room && x.ref !== r0.id && x.from < b.to && x.to > b.from); if (c) return c; const e = d.entries.find(x => x.ref === r0.id); if (e) { e.from = b.from; e.to = b.to; e.note = String(e.note || '').replace(/\d+ pers\./, guests + ' pers.'); } return null; });
+        if (clash) return send(res, 409, { error: 'De kamer is niet vrij op die data. Kies andere data.' });
+        let out = null;
+        await mutate('guests', d => { const r = d.reservations.find(x => x.id === r0.id); if (!r) return; r.from = b.from; r.to = b.to; r.guests = guests; Object.assign(r, quote(C, r)); r.modified = Date.now(); delete r.checkin; r.mails = {}; out = r; });
+        const gg = G0.guests.find(x => x.id === gid);
+        await addLog({ name: out.guestName }, `Reservatie ${out.id} gewijzigd: ${old.from} → ${old.to} wordt ${out.from} → ${out.to}`);
+        if (gg) await sendMail('modified', gg, out, old);
+        return send(res, 200, { ok: true, reservation: out });
+      }
       if (a === 'g-cancel') {
         let out = null;
         await mutate('guests', d => { const r = d.reservations.find(x => x.id === b.id && x.guestId === gid); if (!r || r.status === 'geannuleerd') { out = 'nf'; return; } if (daysUntil(r.from || r.date) < 2) { out = 'late'; return; } r.status = 'geannuleerd'; r.cancelled = Date.now(); out = r; });
@@ -691,7 +708,7 @@ module.exports = async (req, res) => {
       if (!can(u, 'guests')) return send(res, 403, { error: 'Geen toegang' });
       const [{ data: C }, { data: G }] = await Promise.all([load('config'), load('guests')]);
       const list = G.reservations.filter(r => r.status !== 'geannuleerd').sort((x, y) => ((x.from || x.date) < (y.from || y.date) ? 1 : -1)).slice(0, 150)
-        .map(r => { const T = BZ.totals(C, r); return { id: r.id, kind: r.kind, guestName: r.guestName, roomName: r.roomName, title: r.title, from: r.from, to: r.to, date: r.date, total: T.total, paid: T.paid, due: T.due, invoiceNo: r.invoiceNo || null, inv: '/factuur?id=' + r.id + '&k=' + invKey(r.id), payments: (r.payments || []).filter(p => p.status === 'paid') }; });
+        .map(r => { const T = BZ.totals(C, r); return { id: r.id, kind: r.kind, guestName: r.guestName, roomName: r.roomName, title: r.title, from: r.from, to: r.to, date: r.date, total: T.total, paid: T.paid, due: T.due, invoiceNo: r.invoiceNo || null, invoiceMailed: r.invoiceMailed || null, bill: r.bill || null, inv: '/factuur?id=' + r.id + '&k=' + invKey(r.id), payments: (r.payments || []).filter(p => p.status === 'paid') }; });
       return send(res, 200, { list });
     }
     if (a === 'biz-get') {
@@ -721,6 +738,29 @@ module.exports = async (req, res) => {
       if (state === 'nodig') await addLog(u, `Kamer moet gepoetst worden: ${ROOM_NAMES[b.room]}`);
       if (state === 'note' && note) await addLog(u, `Melding ${ROOM_NAMES[b.room]}: ${note}`);
       return send(res, 200, { ok: true });
+    }
+    if (a === 'invoice-make' || a === 'invoice-mail' || a === 'peppol-send') {
+      if (!can(u, 'guests')) return send(res, 403, { error: 'Geen toegang' });
+      const { data: G0 } = await load('guests'); const r0 = G0.reservations.find(x => x.id === b.id);
+      if (!r0 || r0.status === 'geannuleerd') return send(res, 404, { error: 'Reservatie niet gevonden' });
+      if (a === 'invoice-make') {
+        if (b.company !== undefined || b.vat !== undefined || b.address !== undefined) await mutate('guests', d => { const r = d.reservations.find(x => x.id === b.id); if (r) r.bill = { company: clean(b.company, 120), vat: clean(b.vat, 30), address: clean(b.address, 200) }; });
+        const no = await ensureInvoiceNo(b.id);
+        await addLog(u, `Leverbon omgezet naar factuur ${no} · ${r0.guestName}`);
+        return send(res, 200, { ok: true, invoiceNo: no });
+      }
+      if (!r0.invoiceNo) return send(res, 400, { error: 'Maak eerst een factuur van de leverbon' });
+      const { data: C } = await load('config');
+      if (a === 'invoice-mail') {
+        const g = G0.guests.find(x => x.id === r0.guestId); if (!g || !g.email) return send(res, 400, { error: 'Geen e-mailadres bekend voor deze gast' });
+        mail.use(C.mail); const x = await mail.invoice(g, r0, BZ.totals(C, r0), '/factuur?id=' + r0.id + '&k=' + invKey(r0.id));
+        if (!x || x.skipped || x.error || !x.id) return send(res, 502, { error: 'Versturen mislukt. Controleer de e-mailinstellingen.' });
+        await mutate('guests', d => { const r = d.reservations.find(y => y.id === b.id); if (r) r.invoiceMailed = Date.now(); });
+        await addLog(u, `Factuur ${r0.invoiceNo} gemaild naar ${g.email}`);
+        return send(res, 200, { ok: true });
+      }
+      if (!(r0.bill && r0.bill.vat)) return send(res, 400, { error: 'Peppol kan alleen naar een bedrijf. Vul eerst het btw-nummer van de klant in.' });
+      return send(res, 400, { error: 'Peppol is nog niet gekoppeld. Er is eerst een Peppol-aanbieder nodig.' });
     }
     if (a === 'pay-add') {
       if (!can(u, 'guests')) return send(res, 403, { error: 'Geen toegang' });
