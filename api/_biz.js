@@ -88,7 +88,7 @@ function report(C, K, G, O, month) {
   };
 }
 
-function csv(rows) { return '﻿' + rows.map(r => r.map(v => { const s = String(v == null ? '' : v); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(';')).join('\r\n'); }
+function csv(rows) { return '﻿' + rows.map(r => r.map(v => { let s = String(v == null ? '' : v); if (/^[=+@\t]/.test(s) || /^-[^\d]/.test(s)) s = "'" + s; return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(';')).join('\r\n'); }
 function exportMonth(C, G, month) {
   const rows = [['Factuurnr', 'Reservatie', 'Datum', 'Gast', 'Omschrijving', 'Aantal', 'Eenheidsprijs', 'Totaal incl. btw', 'Btw %', 'Btw', 'Excl. btw', 'Betaald (reservatie)', 'Saldo (reservatie)', 'Status']];
   const inMonth = d => d && d.slice(0, 7) === month;

@@ -48,6 +48,7 @@ const DEFAULTS = {
   guests: () => ({ guests: [], reservations: [], requests: [] }),
   log: () => ({ log: [] }),
   housekeeping: () => ({ days: {} }),
+  auth: () => ({ fails: {} }),
 };
 
 const PLANS = {
@@ -179,6 +180,9 @@ async function seedDemo(email, name) {
   return { g, pw, rs, t };
 }
 async function sendMail(fn, ...args) { try { const { data: C } = await load('config'); mail.use(C.mail); await mail[fn](...args); } catch (e) { console.error('mail', e && e.message); } }
+const ipOf = req => String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'x';
+async function locked(...keys) { const { data } = await load('auth'); let m = 0; keys.forEach(k => { const f = (data.fails || {})[k]; if (f && f.until > Date.now()) m = Math.max(m, Math.ceil((f.until - Date.now()) / 60000)); }); return m; }
+async function failed(pairs) { try { await mutate('auth', d => { d.fails = d.fails || {}; const now = Date.now(); Object.keys(d.fails).forEach(k => { if ((d.fails[k].t || 0) < now - 3600e3) delete d.fails[k]; }); pairs.forEach(([k, max]) => { const f = d.fails[k] || { n: 0 }; if (f.t && f.t < now - 15 * 60e3) f.n = 0; f.n++; f.t = now; if (f.n >= max) { f.until = now + 15 * 60e3; f.n = 0; } d.fails[k] = f; }); }); } catch (e) {} }
 const can = (u, perm) => u && (ROLES[u.role] || []).includes(perm);
 async function addLog(u, text) {
   try { await mutate('log', d => { d.log.unshift({ t: Date.now(), who: u ? u.name : 'Website', text }); d.log = d.log.slice(0, 400); }); } catch (e) {}
@@ -410,6 +414,7 @@ module.exports = async (req, res) => {
     if (a === 'login' && req.method === 'POST') {
       const b = await body(req);
       const pin = String(b.pin || '');
+      const lk = await locked('pin:' + ipOf(req), 'pin:*'); if (lk) return send(res, 429, { error: `Te veel pogingen. Probeer opnieuw over ${lk} minuten.` });
       await new Promise(r => setTimeout(r, 350));
       const { data: C } = await load('config');
       let user = null;
@@ -417,7 +422,7 @@ module.exports = async (req, res) => {
       else { const s = C.staff.find(x => x.pinHash === hashPin(pin) && x.active !== false); if (s) user = { id: s.id, name: s.name, role: s.role }; }
       const demoOn = C.demoLogin !== false;
       if (!user && demoOn && String(b.email || '').trim().toLowerCase() === 'admin' && String(b.password || '') === 'admin') user = { id: 'demo-owner', name: 'Admin (demo)', role: 'owner' };
-      if (!user) return send(res, 401, { error: b.email !== undefined ? 'Onbekende login' : 'Onbekende pincode' });
+      if (!user) { await failed([['pin:' + ipOf(req), 5], ['pin:*', 40]]); return send(res, 401, { error: b.email !== undefined ? 'Onbekende login' : 'Onbekende pincode' }); }
       const token = sign({ ...user, exp: Date.now() + 30 * 864e5 });
       await addLog(user, 'Ingelogd');
       return send(res, 200, { token, user, perms: ROLES[user.role] });
@@ -495,10 +500,11 @@ module.exports = async (req, res) => {
         await addLog({ name: g.name }, 'Nieuw gastaccount');
         await sendMail('welcome', g);
       } else {
+        const lk = await locked('g:' + ipOf(req), 'g:' + email); if (lk) return send(res, 429, { error: `Te veel pogingen. Probeer opnieuw over ${lk} minuten of kies 'Wachtwoord vergeten'.` });
         const { data } = await load('guests');
         g = data.guests.find(x => x.email === email);
         if (g && !g.pw) return send(res, 401, { error: 'Dit account gebruikt Google. Tik op “Doorgaan met Google”.' });
-        if (!g || hashPw(pw, g.salt) !== g.pw) return send(res, 401, { error: 'E-mail of wachtwoord klopt niet' });
+        if (!g || hashPw(pw, g.salt) !== g.pw) { await failed([['g:' + ipOf(req), 20], ['g:' + email, 8]]); return send(res, 401, { error: 'E-mail of wachtwoord klopt niet' }); }
       }
       return send(res, 200, { token: sign({ gid: g.id, name: g.name, role: 'guest', exp: Date.now() + 180 * 864e5 }), name: g.name });
     }
@@ -649,6 +655,9 @@ module.exports = async (req, res) => {
       }
       return send(res, 403, { error: 'Geen toegang' });
     }
+    { const { data: Cx } = await load('config');
+      const alive = u.id === 'owner' ? true : u.id === 'demo-owner' ? Cx.demoLogin !== false : (Cx.staff || []).some(x => x.id === u.id && x.active !== false && x.role === u.role);
+      if (!alive) return send(res, 401, { error: 'Log opnieuw in' }); }
     if (a === 'me') return send(res, 200, { user: u, perms: ROLES[u.role] });
 
     if (a === 'bootstrap') {
@@ -662,7 +671,7 @@ module.exports = async (req, res) => {
       if (can(u, 'prices')) out.prices = C.prices;
       if (can(u, 'staff')) out.staff = C.staff.map(s => ({ id: s.id, name: s.name, role: s.role, active: s.active !== false }));
       if (can(u, 'log')) out.log = (await load('log')).data.log.slice(0, 120);
-      if (can(u, 'guests')) { const { data: G } = await load('guests'); out.guests = G.guests.map(g => ({ id: g.id, name: g.name, email: g.email, phone: g.phone, memberships: g.memberships || {}, n: G.reservations.filter(r => r.guestId === g.id && r.status !== 'geannuleerd').length })); out.reservations = G.reservations.slice(-200); out.requests = G.requests.slice(0, 100); out.plans = PLANS; }
+      if (can(u, 'guests')) { const { data: G } = await load('guests'); out.guests = G.guests.map(g => ({ id: g.id, name: g.name, email: g.email, phone: g.phone, memberships: g.memberships || {}, n: G.reservations.filter(r => r.guestId === g.id && r.status !== 'geannuleerd').length })); out.reservations = G.reservations.slice(-200).map(r => r.checkin ? { ...r, checkin: { arrival: r.checkin.arrival, plate: r.checkin.plate, wishes: r.checkin.wishes, t: r.checkin.t } } : r); out.requests = G.requests.slice(0, 100); out.plans = PLANS; }
       out.store = hasStore();
       return send(res, 200, out);
     }
@@ -683,7 +692,7 @@ module.exports = async (req, res) => {
         L.push([r.from, r.to, r.room, r.id, 'hoofdgast', M.first, M.last, M.birth, M.birthplace, M.nationality, M.street, M.zip, M.city, M.country, M.idType, M.idNo, new Date(c.t).toISOString().slice(0, 16).replace('T', ' ')]);
         c.others.forEach(o => L.push([r.from, r.to, r.room, r.id, 'medereiziger', o.first, o.last, o.birth, '', o.nationality, '', '', '', '', '', '', ''])); });
       res.statusCode = 200; res.setHeader('content-type', 'text/csv; charset=utf-8'); res.setHeader('content-disposition', `attachment; filename="gastenregister-${month}.csv"`);
-      return res.end('\ufeff' + L.map(r => r.map(v => { const x = String(v == null ? '' : v); return /[;"\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; }).join(';')).join('\r\n'));
+      return res.end('\ufeff' + L.map(r => r.map(v => { let x = String(v == null ? '' : v); if (/^[=+\-@\t]/.test(x)) x = "'" + x; return /[;"\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; }).join(';')).join('\r\n'));
     }
     if (a === 'mail-preview') {
       if (u.role !== 'owner') return send(res, 403, { error: 'Geen toegang' });
