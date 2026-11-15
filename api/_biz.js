@@ -23,10 +23,12 @@ function lines(C, r) {
     if (ex.bike) add('E-bike', g * n, 45, B.vatOther);
     if (ex.late) add('Late check-out', 1, 45, B.vatLogies);
     (r.charges || []).forEach(c => add(c.label, 1, c.amount, B.vatFood));
+    (r.adjust || []).forEach(c => add(c.label, 1, c.amount, c.vat));
     if (B.touristTax > 0) L.push({ label: 'Verblijfsbelasting', qty: g * n, unit: r2(B.touristTax), total: r2(g * n * B.touristTax), vat: null });
   } else {
     const what = r.kind === 'event' ? r.title : r.kind === 'wellness' ? 'Wellness-moment' : r.kind === 'lessen' ? 'Lessenreeks Pottery House' : 'Vrij atelier Pottery House';
     add(`${what} · ${r.date}${r.time ? ' ' + r.time : ''}`, 1, r.total || 0, B.vatOther);
+    (r.adjust || []).forEach(c => add(c.label, 1, c.amount, c.vat));
   }
   return L;
 }

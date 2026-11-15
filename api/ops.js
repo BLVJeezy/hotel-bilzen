@@ -708,7 +708,7 @@ module.exports = async (req, res) => {
       if (!can(u, 'guests')) return send(res, 403, { error: 'Geen toegang' });
       const [{ data: C }, { data: G }] = await Promise.all([load('config'), load('guests')]);
       const list = G.reservations.filter(r => r.status !== 'geannuleerd').sort((x, y) => ((x.from || x.date) < (y.from || y.date) ? 1 : -1)).slice(0, 150)
-        .map(r => { const T = BZ.totals(C, r); return { id: r.id, kind: r.kind, guestName: r.guestName, roomName: r.roomName, title: r.title, from: r.from, to: r.to, date: r.date, total: T.total, paid: T.paid, due: T.due, invoiceNo: r.invoiceNo || null, invoiceMailed: r.invoiceMailed || null, bill: r.bill || null, inv: '/factuur?id=' + r.id + '&k=' + invKey(r.id), payments: (r.payments || []).filter(p => p.status === 'paid') }; });
+        .map(r => { const T = BZ.totals(C, r); return { id: r.id, kind: r.kind, guestName: r.guestName, roomName: r.roomName, title: r.title, from: r.from, to: r.to, date: r.date, total: T.total, paid: T.paid, due: T.due, invoiceNo: r.invoiceNo || null, invoiceMailed: r.invoiceMailed || null, bill: r.bill || null, adjust: r.adjust || [], vats: [BZ.biz(C).vatLogies, BZ.biz(C).vatFood, BZ.biz(C).vatOther], inv: '/factuur?id=' + r.id + '&k=' + invKey(r.id), payments: (r.payments || []).filter(p => p.status === 'paid') }; });
       return send(res, 200, { list });
     }
     if (a === 'biz-get') {
@@ -737,6 +737,20 @@ module.exports = async (req, res) => {
       if (state === 'klaar') await addLog(u, `Kamer klaar: ${ROOM_NAMES[b.room]}`);
       if (state === 'nodig') await addLog(u, `Kamer moet gepoetst worden: ${ROOM_NAMES[b.room]}`);
       if (state === 'note' && note) await addLog(u, `Melding ${ROOM_NAMES[b.room]}: ${note}`);
+      return send(res, 200, { ok: true });
+    }
+    if (a === 'invoice-adjust') {
+      if (!can(u, 'guests')) return send(res, 403, { error: 'Geen toegang' });
+      const { data: C } = await load('config'); const B = BZ.biz(C); let out = null, what = '';
+      await mutate('guests', d => { const r = d.reservations.find(x => x.id === b.id); if (!r || r.status === 'geannuleerd') return; if (r.invoiceMailed || r.peppolSent) { out = 'sent'; return; }
+        if (b.add) { const amount = BZ.r2(b.add.amount), label = clean(b.add.label, 120); if (!label || !amount) { out = 'bad'; return; } const vat = [B.vatLogies, B.vatFood, B.vatOther].includes(+b.add.vat) ? +b.add.vat : B.vatOther; r.adjust = r.adjust || []; r.adjust.push({ id: 'A' + Date.now().toString(36), label, amount, vat, by: u.name, t: Date.now() }); what = `regel toegevoegd: ${label} € ${amount}`; }
+        if (b.remove) { const x = (r.adjust || []).find(y => y.id === b.remove); if (x) { r.adjust = r.adjust.filter(y => y !== x); what = `regel verwijderd: ${x.label}`; } }
+        if (b.bill) { r.bill = { company: clean(b.bill.company, 120), vat: clean(b.bill.vat, 30), address: clean(b.bill.address, 200) }; what = what || 'klantgegevens aangepast'; }
+        out = r; });
+      if (!out) return send(res, 404, { error: 'Reservatie niet gevonden' });
+      if (out === 'sent') return send(res, 400, { error: 'Deze factuur is al verstuurd en kan niet meer aangepast worden. Een correctie gebeurt met een creditnota.' });
+      if (out === 'bad') return send(res, 400, { error: 'Geef een omschrijving en een bedrag' });
+      await addLog(u, `${out.invoiceNo ? 'Factuur ' + out.invoiceNo : 'Leverbon ' + out.id} · ${what}`);
       return send(res, 200, { ok: true });
     }
     if (a === 'invoice-make' || a === 'invoice-mail' || a === 'peppol-send') {

@@ -258,6 +258,7 @@ button{cursor:pointer}
 .hkc.idle .hkbtn{background:#ffffff0d;color:var(--muted);min-width:56px;font-size:18px;letter-spacing:2px}.hkbtn.is{background:#9fd8a822;color:var(--green);min-width:56px;font-size:20px}
 .hkopts{display:grid;gap:10px}.hko{display:block;width:100%;text-align:left;padding:16px 18px;border-radius:18px;border:1px solid var(--line);background:#ffffff06;color:var(--text);cursor:pointer;font-family:var(--sans)}.hko b{display:block;font:500 16px var(--sans)}.hko small{color:var(--muted);font-size:13px}
 .hko.main{border-color:transparent;background:linear-gradient(120deg,#f6dfa4,#e6b866 55%,#c98d3e);color:#24180e}.hko.main small{color:#24180ebb}
+.selx{width:100%;height:52px;border-radius:14px;border:1px solid var(--line);background:#120f0d;color:var(--text);padding:0 10px;font-size:15px;color-scheme:dark}
 </style>
 </head>
 <body>
@@ -378,10 +379,10 @@ function TOOLS(){const P=S.perms,o=S.user.role==='owner';return [
  P.includes('today')&&['hk','Schoonmaak','i-today',"hkView()"],
  P.includes('guests')&&['guests','Gasten','i-team',"guestsView()"],
  P.includes('guests')&&['reg','Gastenregister','i-key',"regView()"],
- P.includes('guests')&&['pay','Betalingen & facturen','i-euro',"payView()"],
+ P.includes('guests')&&['pay','Facturen & betalingen','i-euro',"payView()"],
  o&&['rep','Rapporten & export','i-log',"reportView()"],
  P.includes('staff')&&['staff','Personeel','i-team',"staffView()"],
- o&&['biz','Facturatie & betalen','i-euro',"bizSheet()"]].filter(Boolean)}
+].filter(Boolean)}
 function sbTools(){return `<div class="sb-sec">Beheer</div>`+TOOLS().map(t=>`<button class="sb-tool" data-v="${t[0]}" onclick="sbGo('${t[0]}')"><svg><use href="#${t[2]}"/></svg>${t[1]}</button>`).join('')}
 function sbGo(k){const t=TOOLS().find(x=>x[0]===k);if(!t)return;if(k!=='biz'){document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===k))}new Function(t[3])();if(k!=='biz')document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===k));scrollTo(0,0)}
 function go(t){TAB=t;document.body.classList.toggle('t-today',t==='today');history.replaceState(null,'','#'+t);document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
@@ -616,8 +617,8 @@ function eventSheet(e){e=e||{date:TODAY(),cat:'event',time:'',title:'',text:'',p
 function vMore(){const P=S.perms,li=(ic,t,sub,fn)=>`<button class="list-btn" onclick="${fn}"><svg><use href="#${ic}"/></svg><span>${t}</span><em>${sub||''}</em><svg style="width:16px;stroke:var(--muted)"><use href="#i-arrow"/></svg></button>`;
  const np='Notification' in window?Notification.permission:'unsupported';
  const pend=P.includes('guests')?(S.guests||[]).reduce((n,g)=>n+Object.values(g.memberships||{}).filter(m=>m.status==='aangevraagd').length,0)+(S.requests||[]).filter(r=>r.status!=='klaar').length:0;
- $('#app').innerHTML=`<div class="tiles">${TOOLS().map(t=>`<button class="tile" onclick="${t[3]}"><svg><use href="#${t[2]}"/></svg><span>${t[1]}</span>${t[0]==='guests'&&pend?`<i>${pend}</i>`:''}</button>`).join('')}</div><div class="card mlist">${P.includes('guests')?li('i-team','Gasten',(pend?pend+' open · ':'')+(S.guests||[]).length+' accounts',"guestsView()"):''}${P.includes('agenda')?li('i-agenda','Agenda & events',(S.events||[]).filter(e=>e.date>=TODAY()).length+' komend',"go('agenda')"):''}${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'',"menusView()"):''}${P.includes('today')?li('i-today','Schoonmaak','Kamers van vandaag',"hkView()"):''}${P.includes('guests')?li('i-euro','Betalingen & facturen','',"payView()"):''}${S.user.role==='owner'?li('i-log','Rapporten & export','Bezetting, omzet, verblijfsbelasting',"reportView()"):''}</div>
- <div class="sec"><h3>Instellingen</h3></div><div class="card">${P.includes('staff')?li('i-team','Personeel',(S.staff||[]).length+' personen',"staffView()"):''}${P.includes('connect')?li('i-web','Google-login gasten',S.googleEnv||S.googleClientId?'Aan':'Uit',"googleSheet()"):''}${S.user&&S.user.role==='owner'?li('i-web','E-mails naar gasten','',"mailSheet()")+li('i-euro','Facturatie & betalen','Btw, IBAN, Mollie',"bizSheet()"):''}${li('i-bell','Meldingen',np==='granted'?'Aan':np==='denied'?'Geblokkeerd':'Uit',"notif()")}${li('i-phone','Zet op beginscherm','',"installSheet()")}${P.includes('log')?li('i-log','Logboek','',"logView()"):''}</div>
+ $('#app').innerHTML=`<div class="tiles">${TOOLS().map(t=>`<button class="tile" onclick="${t[3]}"><svg><use href="#${t[2]}"/></svg><span>${t[1]}</span>${t[0]==='guests'&&pend?`<i>${pend}</i>`:''}</button>`).join('')}</div><div class="card mlist">${P.includes('guests')?li('i-team','Gasten',(pend?pend+' open · ':'')+(S.guests||[]).length+' accounts',"guestsView()"):''}${P.includes('agenda')?li('i-agenda','Agenda & events',(S.events||[]).filter(e=>e.date>=TODAY()).length+' komend',"go('agenda')"):''}${P.includes('menus')?li('i-menu',"Ontbijtmenu's",'',"menusView()"):''}${P.includes('today')?li('i-today','Schoonmaak','Kamers van vandaag',"hkView()"):''}${P.includes('guests')?li('i-euro','Facturen & betalingen','',"payView()"):''}${S.user.role==='owner'?li('i-log','Rapporten & export','Bezetting, omzet, verblijfsbelasting',"reportView()"):''}</div>
+ <div class="sec"><h3>Instellingen</h3></div><div class="card">${P.includes('connect')?li('i-web','Google-login gasten',S.googleEnv||S.googleClientId?'Aan':'Uit',"googleSheet()"):''}${S.user&&S.user.role==='owner'?li('i-web','E-mails naar gasten','',"mailSheet()")+li('i-key','Bedrijfsgegevens','Btw, IBAN, Mollie',"bizSheet()"):''}${li('i-bell','Meldingen',np==='granted'?'Aan':np==='denied'?'Geblokkeerd':'Uit',"notif()")}${li('i-phone','Zet op beginscherm','',"installSheet()")}${P.includes('log')?li('i-log','Logboek','',"logView()"):''}</div>
  <div class="card">${li('i-web','Open de website','',"window.open('/','_blank')")}${li('i-out','Uitloggen','',"logout()")}</div>
  ${S.user.role==='owner'?`<div class="sec"><h3>Demo</h3></div><div class="card">${li('i-key','Demo-logins',S.demoLogin?'Aan · admin/admin & customer/customer':'Uit',"demoLoginSheet()")}${li('i-out','Klaar voor livegang','Testdata wissen',"goliveSheet()")}</div>`:''}
  ${S.user.role==='owner'?`<p class="k" style="text-align:center;margin-top:16px"><button onclick="demoSheet()" style="background:none;border:0;color:var(--muted);font:inherit;text-decoration:underline">Testreservaties met QR aanmaken</button></p>`:''}
@@ -680,7 +681,7 @@ function hkTap(room){const r=hkView.d.rooms.find(x=>x.room===room),date=hkView.d
 async function hkSet(date,room,state){try{await api('hk-set',{date,room,state});closeSheet();toast(state==='klaar'?'Kamer klaar ✓':state==='nodig'?'Op de lijst gezet':'Teruggezet');hkView(date)}catch(e){toast(e.message,1)}}
 async function hkNote(date,room){try{await api('hk-set',{date,room,state:'note',note:$('#hkN').value.trim()});closeSheet();toast('Opgeslagen ✓');hkView(date)}catch(e){toast(e.message,1)}}
 /* ---------- betalingen & facturen ---------- */
-async function payView(){TAB='more';$('#title').textContent='Betalingen & facturen';$('#app').innerHTML='<div class="empty">Laden…</div>';
+async function payView(){TAB='more';$('#title').textContent='Facturen & betalingen';$('#app').innerHTML='<div class="empty">Laden…</div>';
  let d;try{d=await api('res-list')}catch(e){toast(e.message,1);return}payView.L=d.list;const q=(payView.q||'').toLowerCase();
  const L=d.list.filter(r=>!q||(r.guestName+' '+r.id+' '+(r.invoiceNo||'')).toLowerCase().includes(q));
  const open=d.list.reduce((n,r)=>n+r.due,0);
@@ -690,15 +691,25 @@ async function payView(){TAB='more';$('#title').textContent='Betalingen & factur
  <div class="card payv">${L.map(r=>`<div class="row"><div class="tx"><b>${esc(r.guestName)}</b><small>${r.kind==='room'?esc(r.roomName)+' · '+nice(r.from)+' → '+nice(r.to):esc(r.title||({pottery:'Vrij atelier',wellness:'Wellness',lessen:'Lessenreeks'})[r.kind]||r.kind)+' · '+nice(r.date)} · ${r.id}${r.invoiceNo?' · F'+esc(r.invoiceNo):''}</small><small>${fmt(r.total)} · ${r.due?`<b style="color:var(--gold2)">open ${fmt(r.due)}</b>`:'<span style="color:var(--green)">betaald</span>'}</small></div>
  <div style="display:flex;flex-direction:column;gap:6px">${r.due?`<button class="cta" style="height:36px;font-size:13px" onclick="paySheet('${r.id}')">Betaald</button>`:''}<button class="btn2" style="height:36px;font-size:13px" onclick="docSheet('${r.id}')">${r.invoiceNo?'Factuur':'Leverbon'}</button></div></div>`).join('')||'<div class="empty">Geen reservaties.</div>'}</div>`;
  const i=$('#pq');i.oninput=()=>{payView.q=i.value;clearTimeout(i._t);i._t=setTimeout(()=>{payView();},350)}}
-function docSheet(id){const r=(payView.L||[]).find(x=>x.id===id),B=r.bill||{};
- openSheet(`<h3>${r.invoiceNo?'Factuur '+esc(r.invoiceNo):'Leverbon'}</h3><div class="sub">${esc(r.guestName)} · ${r.id} · ${fmt(r.total)}${r.invoiceMailed?' · gemaild op '+new Date(r.invoiceMailed).toLocaleDateString('nl-BE'):''}</div>
+function docSheet(id){const r=(payView.L||[]).find(x=>x.id===id),B=r.bill||{},lock=!!r.invoiceMailed,V=r.vats||[6,12,21];
+ openSheet(`<h3>${r.invoiceNo?'Factuur '+esc(r.invoiceNo):'Leverbon'}</h3><div class="sub">${esc(r.guestName)} · ${r.id} · totaal ${fmt(r.total)}${lock?' · gemaild op '+new Date(r.invoiceMailed).toLocaleDateString('nl-BE'):''}</div>
  <div class="hkopts"><a class="hko" href="${r.inv}" target="_blank" rel="noopener" style="text-decoration:none"><b>Bekijk ${r.invoiceNo?'factuur':'leverbon'}</b><small>Openen, afdrukken of bewaren als PDF</small></a>
- ${r.invoiceNo?`<button class="hko main" id="dM"><b>✉ Mail factuur naar gast</b><small>De gast krijgt een mail met de factuur</small></button><button class="hko" id="dP"><b>Verstuur via Peppol</b><small>Voor bedrijven · e-facturatie</small></button>`
- :`<label class="field" style="margin-top:6px"><span>Bedrijfsnaam (alleen voor bedrijven)</span><input id="dC" value="${esc(B.company||'')}"></label><label class="field"><span>Btw-nummer klant</span><input id="dV" value="${esc(B.vat||'')}" placeholder="BE0…"></label><label class="field"><span>Factuuradres</span><input id="dA" value="${esc(B.address||'')}"></label>
- <button class="hko main" id="dF"><b>Maak factuur van deze leverbon</b><small>Krijgt het volgende factuurnummer. Kan niet ongedaan worden.</small></button>`}</div>`);
- const act=async(a,b,ok)=>{try{await api(a,b);toast(ok);closeSheet();payView()}catch(e){toast(e.message,1)}};
- const f=$('#dF');if(f)f.onclick=()=>act('invoice-make',{id,company:$('#dC').value,vat:$('#dV').value,address:$('#dA').value},'Factuur aangemaakt ✓');
- const m=$('#dM');if(m)m.onclick=()=>act('invoice-mail',{id},'Factuur gemaild ✓');const pp=$('#dP');if(pp)pp.onclick=()=>act('peppol-send',{id},'Verstuurd via Peppol ✓')}
+ ${r.invoiceNo?`<button class="hko main" id="dM"><b>✉ Mail factuur naar gast</b><small>${lock?'Opnieuw versturen':'Daarna kan de factuur niet meer aangepast worden'}</small></button><button class="hko" id="dP"><b>Verstuur via Peppol</b><small>Voor bedrijven · e-facturatie</small></button>`:`<button class="hko main" id="dF"><b>Maak factuur van deze leverbon</b><small>Krijgt het volgende factuurnummer. Kan niet ongedaan worden.</small></button>`}</div>
+ <div class="sec" style="margin-top:18px"><h3>Aanpassen</h3></div>
+ ${lock?'<p class="k" style="margin:0">Deze factuur is al verstuurd en ligt vast. Een correctie gebeurt met een creditnota.</p>':`
+ ${(r.adjust||[]).map(x=>`<div class="row"><div class="tx"><b style="font-weight:400">${esc(x.label)}</b><small>${x.vat}% btw</small></div><b>${fmt(x.amount)}</b><button class="btn2" style="height:36px;margin-left:10px" data-rm="${x.id}">✕</button></div>`).join('')}
+ <label class="field"><span>Extra regel: omschrijving</span><input id="aL" placeholder="Bv. fles wijn, schade, korting vaste klant"></label>
+ <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><label class="field"><span>Soort</span><select id="aS" class="selx"><option value="1">Toeslag (+)</option><option value="-1">Korting (−)</option></select></label><label class="field"><span>Bedrag €</span><input id="aA" type="number" step="0.01" min="0" inputmode="decimal"></label><label class="field"><span>Btw</span><select id="aV" class="selx">${V.map((v,i)=>`<option value="${v}" ${i===2?'selected':''}>${v}%</option>`).join('')}</select></label></div>
+ <button class="btn2" style="width:100%;height:50px" id="aB">+ Regel toevoegen</button>
+ <label class="field" style="margin-top:16px"><span>Bedrijfsnaam klant (alleen voor bedrijven)</span><input id="dC" value="${esc(B.company||'')}"></label><label class="field"><span>Btw-nummer klant</span><input id="dV" value="${esc(B.vat||'')}" placeholder="BE0…"></label><label class="field"><span>Factuuradres</span><input id="dA" value="${esc(B.address||'')}"></label>
+ <button class="btn2" style="width:100%;height:50px" id="dS">Klantgegevens opslaan</button>`}`);
+ const again=async(a,b,ok)=>{try{await api(a,b);toast(ok);await payView();docSheet(id)}catch(e){toast(e.message,1)}};
+ const bill=()=>({company:$('#dC').value,vat:$('#dV').value,address:$('#dA').value});
+ const f=$('#dF');if(f)f.onclick=()=>again('invoice-make',{id,...bill()},'Factuur aangemaakt ✓');
+ const m=$('#dM');if(m)m.onclick=()=>again('invoice-mail',{id},'Factuur gemaild ✓');const pp=$('#dP');if(pp)pp.onclick=()=>again('peppol-send',{id},'Verstuurd via Peppol ✓');
+ const ab=$('#aB');if(ab)ab.onclick=()=>again('invoice-adjust',{id,add:{label:$('#aL').value,amount:(+$('#aA').value||0)*(+$('#aS').value),vat:+$('#aV').value}},'Regel toegevoegd ✓');
+ const ds=$('#dS');if(ds)ds.onclick=()=>again('invoice-adjust',{id,bill:bill()},'Opgeslagen ✓');
+ document.querySelectorAll('#sheet [data-rm]').forEach(x=>x.onclick=()=>again('invoice-adjust',{id,remove:x.dataset.rm},'Regel verwijderd'))}
 function paySheet(id){const r=(payView.L||[]).find(x=>x.id===id);openSheet(`<h3>Betaling registreren</h3><div class="sub">${esc(r.guestName)} · ${r.id} · open ${fmt(r.due)}</div>
  <label class="field"><span>Bedrag</span><input id="pa" type="number" step="0.01" value="${r.due}"></label>
  <div class="grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">${['kaart','cash','overschrijving'].map((m,i)=>`<button class="btn2 ${i?'':'on'}" data-m="${m}" style="height:44px">${m[0].toUpperCase()+m.slice(1)}</button>`).join('')}</div>
@@ -724,7 +735,7 @@ async function exportCsv(month){try{const r=await fetch('/api/ops?a=export&month
 /* ---------- facturatie & betalen ---------- */
 async function bizSheet(){let B;try{B=await api('biz-get')}catch(e){toast(e.message,1);return}
  const f=(k,l,ph,t)=>`<label class="field"><span>${l}</span><input data-k="${k}" ${t?'type="'+t+'" step="0.01"':''} value="${esc(B[k]??'')}" placeholder="${ph||''}"></label>`;
- openSheet(`<h3>Facturatie & betalen</h3><div class="sub">Verschijnt op elke factuur. Laat btw-tarieven nakijken door jullie boekhouder.</div>
+ openSheet(`<h3>Bedrijfsgegevens</h3><div class="sub">Verschijnt op elke factuur. Laat btw-tarieven nakijken door jullie boekhouder.</div>
  ${f('legal','Juridische naam','Villa Amano BV')}${f('vat','Btw-nummer','BE0…')}${f('address','Adres')}${f('iban','IBAN','BE..')}${f('email','E-mail op factuur')}
  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">${f('vatLogies','Btw logies %','','number')}${f('vatFood','Btw ontbijt %','','number')}${f('vatOther','Btw activiteiten %','','number')}</div>
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${f('touristTax','Verblijfsbelasting € p.p./nacht','','number')}${f('deposit','Voorschot %','','number')}</div>
