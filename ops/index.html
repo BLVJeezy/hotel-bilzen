@@ -259,6 +259,11 @@ button{cursor:pointer}
 .hkopts{display:grid;gap:10px}.hko{display:block;width:100%;text-align:left;padding:16px 18px;border-radius:18px;border:1px solid var(--line);background:#ffffff06;color:var(--text);cursor:pointer;font-family:var(--sans)}.hko b{display:block;font:500 16px var(--sans)}.hko small{color:var(--muted);font-size:13px}
 .hko.main{border-color:transparent;background:linear-gradient(120deg,#f6dfa4,#e6b866 55%,#c98d3e);color:#24180e}.hko.main small{color:#24180ebb}
 .selx{width:100%;height:52px;border-radius:14px;border:1px solid var(--line);background:#120f0d;color:var(--text);padding:0 10px;font-size:15px;color-scheme:dark}
+.tvgrid{display:grid;gap:14px}.tvc{padding:10px}.tvp{aspect-ratio:16/9;border-radius:14px;background-size:cover;background-position:center;display:flex;flex-direction:column;justify-content:center;padding:6%;overflow:hidden}
+.tvp small{font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}.tvp b{font:400 clamp(18px,5.4vw,30px)/1.1 var(--serif);margin:6px 0 4px;color:#f3ead9}.tvp span{font-size:12px;color:#d9cdb8}
+.tvdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#6b6156;margin-right:7px}.tvdot.on{background:var(--green)}.tvdot.off{background:#e05a4f}
+.tvb{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 4px 4px}.tvb button{height:48px}.tvc .tx b,.tvc .tx small{display:block}
+@media(min-width:1024px){.tvgrid{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}.tvp b{font-size:26px}}
 </style>
 </head>
 <body>
@@ -378,6 +383,7 @@ function TOOLS(){const P=S.perms,o=S.user.role==='owner';return [
  P.includes('menus')&&['menus',"Ontbijtmenu's",'i-menu',"menusView()"],
  P.includes('today')&&['hk','Schoonmaak','i-today',"hkView()"],
  P.includes('guests')&&['guests','Gasten','i-team',"guestsView()"],
+ P.includes('guests')&&['tv','Smart TV','i-web',"tvView()"],
  P.includes('guests')&&['reg','Gastenregister','i-key',"regView()"],
  P.includes('guests')&&['pay','Facturen & betalingen','i-euro',"payView()"],
  o&&['rep','Rapporten & export','i-log',"reportView()"],
@@ -746,6 +752,40 @@ async function bizSheet(){let B;try{B=await api('biz-get')}catch(e){toast(e.mess
  <button class="cta full" id="bs">Opslaan</button>`);
  $('#bs').onclick=async()=>{const b={};document.querySelectorAll('#sheet [data-k]').forEach(i=>b[i.dataset.k]=i.value.trim());const k=$('#mk').value.trim();if(k)b.mollieKey=k;try{await api('biz-set',b);closeSheet();toast('Opgeslagen ✓')}catch(e){toast(e.message,1)}}}
 
+
+
+/* ---------- smart tv ---------- */
+const tvBgUrl=b=>/^https:/.test(b)?b:'/img/'+b+'.jpg';
+const tvPrev=s=>`<div class="tvp" style="background-image:linear-gradient(90deg,#0d0a08e0,#0d0a0855 60%,#0d0a0820),url('${esc(tvBgUrl(s.bg))}')"><small>Kamer ${String(s.no).padStart(2,'0')} · ${esc(s.roomName)}</small><b>${esc(s.title)}</b><span>${esc(s.sub||'')}</span></div>`;
+async function tvView(){TAB='more';$('#title').textContent='Smart TV';let d;try{d=await api('tv-get')}catch(e){toast(e.message,1);return}tvView.d=d;
+ $('#app').innerHTML=`<button class="btn2 back" onclick="go('more')">← Terug</button>
+ <div class="tvgrid">${d.rooms.map(r=>`<div class="card tvc">${tvPrev(r.screen)}
+  <div class="row" style="border:0;padding:12px 4px 4px"><div class="tx"><b>${String(r.no).padStart(2,'0')} · ${esc(r.name)}</b><small><i class="tvdot ${r.online?'on':r.paired?'off':''}"></i>${r.online?'Tv verbonden':r.paired?'Tv niet bereikbaar'+(r.seen?' sinds '+new Date(r.seen).toLocaleString('nl-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''):'Nog geen tv gekoppeld'}</small><small>${r.manual?'Gast (handmatig): '+esc(r.manual):r.auto?'Gast: '+esc(r.auto):'Geen gast · standaardscherm'}${r.override?' · aangepast scherm':''}</small></div></div>
+  <div class="tvb"><button class="cta" onclick="tvRoom('${r.room}')">Aanpassen</button><button class="btn2" onclick="${r.paired?`tvUnpair('${r.room}')`:`tvPair('${r.room}')`}">${r.paired?'Ontkoppel':'Koppel tv'}</button></div></div>`).join('')}</div>
+ <button class="btn2" style="width:100%;height:54px;margin-top:6px" onclick="tvDef()">Standaardscherm aanpassen</button>
+ <p class="k" style="text-align:center;margin:14px 8px 0">Open op elke tv in de browser: <b style="color:var(--text)">${location.host}/tv</b>. Wijzigingen staan binnen 20 seconden op het scherm.</p>`}
+const tvBgSel=(id,v,d)=>`<label class="field"><span>Achtergrond</span><select id="${id}" class="selx">${d?'<option value="">Standaard</option>':''}${tvView.d.images.map(i=>`<option value="${i}" ${v===i?'selected':''}>${({'villa-avond':'Villa bij avond','villa-poort':'Poort','terras':'Terras','lounge':'Lounge','lounge2':'Lounge 2','pottery':'Pottery House','rose-1':'Rose Quartz','clear-1':'Clear Quartz','sun-1':'Sunstone','moon-1':'Moonstone','ame-1':'Amethyst'})[i]}</option>`).join('')}${v&&/^https:/.test(v)?`<option value="${esc(v)}" selected>Eigen foto (link)</option>`:''}</select></label>`;
+function tvRoom(room){const r=tvView.d.rooms.find(x=>x.room===room),o=r.override||{};
+ openSheet(`<h3>Tv · ${esc(r.name)}</h3><div class="sub">${r.auto?'Huidige gast volgens de reservaties: '+esc(r.auto)+'.':'Er verblijft nu geen gast in deze kamer.'} Bij check-out gaat het scherm vanzelf terug naar standaard.</div>
+ <label class="field"><span>Gastnaam op het scherm (handmatig of om te testen)</span><input id="tvM" value="${esc(r.manual||'')}" placeholder="${esc(r.auto||'Bv. meneer Berg')}"></label>
+ <label class="field"><span>Eigen titel (laat leeg voor de automatische begroeting)</span><input id="tvT" value="${esc(o.title||'')}" placeholder="${esc(r.screen.title)}"></label>
+ <label class="field"><span>Eigen ondertitel</span><input id="tvS" value="${esc(o.sub||'')}" placeholder="${esc(tvView.d.def.sub||'')}"></label>
+ ${tvBgSel('tvB',o.bg||'',1)}
+ <button class="cta full" id="tvSv">Opslaan en tonen</button><button class="btn2" style="width:100%;height:50px;margin-top:8px" id="tvRs">Terug naar standaardscherm</button>`);
+ $('#tvSv').onclick=()=>tvDo('tv-room',{room,manual:$('#tvM').value,override:{title:$('#tvT').value,sub:$('#tvS').value,bg:$('#tvB').value}},'Scherm aangepast ✓');
+ $('#tvRs').onclick=()=>tvDo('tv-room',{room,reset:true},'Standaardscherm hersteld ✓')}
+function tvPair(room){const r=tvView.d.rooms.find(x=>x.room===room);openSheet(`<h3>Koppel tv · ${esc(r.name)}</h3><ol class="steps"><li>Open op de tv de browser en ga naar <b>${location.host}/tv</b></li><li>Op de tv verschijnt een code van 6 cijfers.</li><li>Typ die code hier.</li></ol><label class="field"><span>Code op de tv</span><input id="tvC" inputmode="numeric" maxlength="6" autocomplete="off" style="font-size:26px;letter-spacing:.3em;text-align:center"></label><button class="cta full" id="tvPk">Koppel</button>`);
+ $('#tvPk').onclick=()=>tvDo('tv-pair',{room,code:$('#tvC').value},'Tv gekoppeld ✓')}
+function tvUnpair(room){const r=tvView.d.rooms.find(x=>x.room===room);openSheet(`<h3>Tv ontkoppelen?</h3><div class="sub">De tv van ${esc(r.name)} toont daarna geen gastgegevens meer en vraagt een nieuwe code.</div><button class="cta full" id="tvU">Ontkoppel</button>`);$('#tvU').onclick=()=>tvDo('tv-unpair',{room},'Ontkoppeld')}
+function tvDef(){const D=tvView.d.def;openSheet(`<h3>Standaardscherm</h3><div class="sub">Dit ziet elke tv als er niets aangepast is.</div>
+ <label class="field"><span>Begroeting zonder gast</span><input id="tdG" value="${esc(D.greeting||'')}"></label>
+ <label class="field"><span>Begroeting met gast · {naam} wordt de gastnaam</span><input id="tdN" value="${esc(D.greetingGuest||'')}"></label>
+ <label class="field"><span>Ondertitel</span><input id="tdS" value="${esc(D.sub||'')}"></label>${tvBgSel('tdB',D.bg||'')}
+ <label class="field"><span>Eigen foto (https-link, optioneel)</span><input id="tdU" value="${/^https:/.test(D.bg||'')?esc(D.bg):''}" placeholder="https://…"></label>
+ ${[0,1,2,3].map(i=>`<label class="field"><span>Infolijn ${i+1}</span><input class="tdL" value="${esc((D.lines||[])[i]||'')}"></label>`).join('')}
+ <button class="cta full" id="tdSv">Opslaan</button>`);
+ $('#tdSv').onclick=()=>tvDo('tv-default',{greeting:$('#tdG').value,greetingGuest:$('#tdN').value,sub:$('#tdS').value,bg:$('#tdU').value.trim()||$('#tdB').value,lines:[...document.querySelectorAll('.tdL')].map(i=>i.value)},'Opgeslagen ✓')}
+async function tvDo(a,b,ok){try{await api(a,b);closeSheet();toast(ok);tvView()}catch(e){toast(e.message,1)}}
 
 /* ---------- gastenregister ---------- */
 async function regView(month){TAB='more';$('#title').textContent='Gastenregister';month=month||TODAY().slice(0,7);$('#app').innerHTML='<div class="empty">Laden…</div>';

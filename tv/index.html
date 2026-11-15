@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Villa Amano · TV</title><link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Jost:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}html,body{width:100%;height:100%;overflow:hidden;background:#0d0a08;color:#f3ead9;font-family:'Jost',system-ui,sans-serif;cursor:none}
+.bg{position:fixed;left:0;top:0;width:100%;height:100%;background-size:cover;background-position:center;opacity:0;transition:opacity 2s;animation:kb 60s ease-in-out infinite alternate}
+.bg.on{opacity:1}@keyframes kb{from{transform:scale(1)}to{transform:scale(1.08)}}
+.sh{position:fixed;left:0;top:0;width:100%;height:100%;background:linear-gradient(90deg,rgba(13,10,8,.88) 0%,rgba(13,10,8,.55) 45%,rgba(13,10,8,.15) 100%),linear-gradient(0deg,rgba(13,10,8,.8),rgba(13,10,8,0) 45%)}
+.wrap{position:fixed;left:0;top:0;width:100%;height:100%;padding:6vh 6vw;display:flex;flex-direction:column;justify-content:space-between}
+.top{display:flex;justify-content:space-between;align-items:flex-start}.top img{height:13vh}
+.clock{text-align:right}.clock b{display:block;font:300 7vh/1 'Cormorant Garamond',serif}.clock span{font-size:2.2vh;color:#d9cdb8;letter-spacing:.08em}
+.mid{max-width:62vw;transition:opacity .8s}.mid.out{opacity:0}
+.room{font-size:2.1vh;letter-spacing:.34em;text-transform:uppercase;color:#e6b866;margin-bottom:2.4vh}
+h1{font:300 10.5vh/1.05 'Cormorant Garamond',serif;letter-spacing:.005em}
+.sub{font-size:3.1vh;color:#d9cdb8;margin-top:2.6vh;font-weight:300}
+.lines{display:flex;flex-wrap:wrap;gap:1.6vh 4vw;font-size:2.3vh;color:#d9cdb8}.lines span:before{content:'';display:inline-block;width:.9vh;height:.9vh;border-radius:50%;background:#e6b866;margin-right:1.2vw;vertical-align:middle}
+.pair{position:fixed;left:0;top:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#0d0a08;padding:6vh}
+.pair.on{display:flex}.pair img{height:18vh;margin-bottom:5vh}.pair p{font-size:3vh;color:#d9cdb8;max-width:70vw;line-height:1.5}
+.code{font:300 17vh/1 'Cormorant Garamond',serif;letter-spacing:.12em;color:#f6dfa4;margin:4vh 0}
+.off{position:fixed;right:2vw;bottom:2vh;font-size:1.7vh;color:#8f8272;display:none}.off.on{display:block}
+</style></head><body>
+<div class="bg" id="b1"></div><div class="bg" id="b2"></div><div class="sh"></div>
+<div class="wrap"><div class="top"><img src="/img/logo_full.png" alt="Villa Amano"><div class="clock"><b id="ck"></b><span id="dt"></span></div></div>
+ <div class="mid" id="mid"><div class="room" id="rm"></div><h1 id="ti"></h1><div class="sub" id="su"></div></div>
+ <div class="lines" id="li"></div></div>
+<div class="pair" id="pair"><img src="/img/logo_full.png" alt=""><p>Koppel deze tv in het Operations Center:<br>Meer → Smart TV → kies de kamer → Koppel tv</p><div class="code" id="code">······</div><p style="font-size:2.2vh;color:#8f8272">De code blijft 15 minuten geldig en vernieuwt daarna vanzelf.</p></div>
+<div class="off" id="off">Geen verbinding · laatste scherm blijft staan</div>
+<script>
+(function(){
+ var K='va_tv_s',sec=null,cur='',front=1,timer=null;
+ try{sec=localStorage.getItem(K)}catch(e){}
+ function $(i){return document.getElementById(i)}
+ function tick(){var d=new Date();$('ck').textContent=d.toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'});$('dt').textContent=d.toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long'})}
+ tick();setInterval(tick,15000);
+ function bgUrl(b){return /^https:/.test(b)?b:'/img/'+b+'.jpg'}
+ function show(s){var key=JSON.stringify(s);if(key===cur)return;var first=!cur;cur=key;
+  var img=new Image(),u=bgUrl(s.bg);img.onload=img.onerror=function(){var a=$('b'+front),n=$('b'+(front===1?2:1));n.style.backgroundImage='url("'+u+'")';n.className='bg on';a.className='bg';front=front===1?2:1};img.src=u;
+  var m=$('mid');function put(){$('rm').textContent='Kamer '+('0'+s.no).slice(-2)+' · '+s.roomName;$('ti').textContent=s.title;$('su').textContent=s.sub||'';
+   var l=$('li');l.innerHTML='';(s.lines||[]).forEach(function(t){var e=document.createElement('span');e.textContent=t;l.appendChild(e)});m.className='mid'}
+  if(first)put();else{m.className='mid out';setTimeout(put,800)}}
+ function pairStart(){fetch('/api/ops?a=tv-pair-start',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}).then(function(r){return r.json()}).then(function(j){if(j.secret){sec=j.secret;try{localStorage.setItem(K,sec)}catch(e){}$('code').textContent=j.code;$('pair').className='pair on'}poll()}).catch(function(){setTimeout(pairStart,20000)})}
+ function poll(){clearTimeout(timer);if(!sec){pairStart();return}
+  fetch('/api/ops?a=tv-state',{headers:{'x-tv':sec},cache:'no-store'}).then(function(r){return r.json()}).then(function(j){$('off').className='off';
+   if(j.paired){$('pair').className='pair';show(j.screen);timer=setTimeout(poll,20000)}
+   else if(j.code){$('code').textContent=j.code;$('pair').className='pair on';timer=setTimeout(poll,5000)}
+   else{sec=null;try{localStorage.removeItem(K)}catch(e){}cur='';pairStart()}})
+  .catch(function(){$('off').className='off on';timer=setTimeout(poll,30000)})}
+ document.addEventListener('visibilitychange',function(){if(!document.hidden)poll()});
+ poll();
+})();
+</script></body></html>

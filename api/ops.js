@@ -49,6 +49,7 @@ const DEFAULTS = {
   log: () => ({ log: [] }),
   housekeeping: () => ({ days: {} }),
   auth: () => ({ fails: {} }),
+  tv: () => ({ def: { greeting: 'Welkom in Villa Amano', greetingGuest: 'Welkom, {naam}', sub: 'Rest · Create · Be', bg: 'villa-avond', lines: ['Ontbijt van 7:30 tot 10:30', 'Pottery House open tot 22:00', 'Vragen? Open je portaal of spreek ons aan'] }, rooms: {}, pending: {}, v: 1 }),
 };
 
 const PLANS = {
@@ -194,6 +195,24 @@ async function addLog(u, text) {
 
 // ---------- helpers ----------
 const id = () => crypto.randomBytes(5).toString('hex');
+// ---------- smart tv ----------
+const TV_IMGS = ['villa-avond', 'villa-poort', 'terras', 'lounge', 'lounge2', 'pottery', 'rose-1', 'clear-1', 'sun-1', 'moon-1', 'ame-1'];
+const tvHash = s => crypto.createHash('sha256').update('tv:' + String(s)).digest('hex');
+const tvBg = v => { v = String(v || ''); return TV_IMGS.includes(v) ? v : /^https:\/\/[^\s"'<>]{8,300}$/.test(v) ? v : ''; };
+function tvScreen(T, room) {
+  const D = T.def || {}, R = (T.rooms || {})[room] || {}, o = R.override || {}, name = (R.manual && R.manual.name) || (R.auto && R.auto.name) || '';
+  return { room, roomName: ROOM_NAMES[room], no: ROOMS.indexOf(room) + 1, title: o.title || (name ? String(D.greetingGuest || 'Welkom, {naam}').replace('{naam}', name) : D.greeting || 'Welkom'), sub: o.sub || D.sub || '', bg: tvBg(o.bg) || tvBg(D.bg) || 'villa-avond', lines: (D.lines || []).slice(0, 4), personal: !!name };
+}
+// Enige plek waar een gast aan een tv gekoppeld wordt. Nu gevoed door onze eigen reservaties; later door Mews (check-in / check-out).
+async function tvSync() {
+  const { data: G } = await load('guests'); const t = today(); const want = {};
+  ROOMS.forEach(room => { const r = G.reservations.find(x => x.kind === 'room' && x.room === room && x.status !== 'geannuleerd' && !x.checkedOut && x.from <= t && x.to >= t && !(x.to === t && G.reservations.some(y => y !== x && y.kind === 'room' && y.room === room && y.status !== 'geannuleerd' && y.from === t)));
+    want[room] = r ? { name: r.checkin && r.checkin.main ? (r.checkin.main.first + ' ' + r.checkin.main.last).trim() : r.guestName, ref: r.id } : null; });
+  const { data: T0 } = await load('tv');
+  const diff = ROOMS.some(room => JSON.stringify(((T0.rooms || {})[room] || {}).auto || null) !== JSON.stringify(want[room]));
+  if (diff) await mutate('tv', T => { T.rooms = T.rooms || {}; ROOMS.forEach(room => { const R = T.rooms[room] = T.rooms[room] || {}; if (want[room]) R.auto = want[room]; else { delete R.auto; } }); T.v = (T.v || 0) + 1; });
+}
+async function tvClear(room) { try { await mutate('tv', T => { const R = (T.rooms || {})[room]; if (!R) return; delete R.auto; delete R.manual; delete R.override; T.v = (T.v || 0) + 1; }); } catch (e) {} }
 const clean = (v, n = 300) => String(v == null ? '' : v).replace(/[<>]/g, '').slice(0, n).trim();
 const isDate = v => /^\d{4}-\d{2}-\d{2}$/.test(v || '');
 function send(res, code, obj, headers = {}) {
@@ -288,6 +307,22 @@ module.exports = async (req, res) => {
       if (p.status === 'paid') await addLog(null, `Online betaling ontvangen · ${rid} · € ${p.amount.value} · ${nm}`);
       return send(res, 200, { ok: true });
     }
+    if (a === 'tv-pair-start' && req.method === 'POST') {
+      const lk = await locked('tv:' + ipOf(req)); if (lk) return send(res, 429, { error: 'Even wachten' });
+      await failed([['tv:' + ipOf(req), 12]]);
+      const secretTv = crypto.randomBytes(24).toString('base64url'); let code;
+      await mutate('tv', T => { T.pending = T.pending || {}; const now = Date.now(); Object.keys(T.pending).forEach(k => { if (T.pending[k].t < now - 15 * 60e3) delete T.pending[k]; }); const ks = Object.keys(T.pending); if (ks.length >= 20) delete T.pending[ks[0]];
+        do { code = String(crypto.randomInt(100000, 999999)); } while (T.pending[code]); T.pending[code] = { h: tvHash(secretTv), t: now }; });
+      return send(res, 200, { code, secret: secretTv });
+    }
+    if (a === 'tv-state') {
+      const h = tvHash(req.headers['x-tv'] || ''); const { data: T } = await load('tv');
+      const room = ROOMS.find(r => ((T.rooms || {})[r] || {}).h === h);
+      if (!room) { const pc = Object.keys(T.pending || {}).find(k => T.pending[k].h === h && T.pending[k].t > Date.now() - 15 * 60e3); return send(res, 200, pc ? { paired: false, code: pc } : { paired: false, expired: true }); }
+      if (!(T.rooms[room].seen > Date.now() - 5 * 60e3)) { try { await mutate('tv', X => { if (X.rooms && X.rooms[room]) X.rooms[room].seen = Date.now(); }); } catch (e) {} }
+      res.setHeader('cache-control', 'no-store');
+      return send(res, 200, { paired: true, v: T.v || 0, screen: tvScreen(T, room) });
+    }
     if (a === 'cron') {
       const okCron = /vercel-cron/i.test(req.headers['user-agent'] || '') || (process.env.CRON_SECRET && (req.headers.authorization || '') === 'Bearer ' + process.env.CRON_SECRET);
       const uu = verify((req.headers.authorization || '').replace(/^Bearer /, ''));
@@ -295,6 +330,7 @@ module.exports = async (req, res) => {
       const [{ data: C }, { data: G }] = await Promise.all([load('config'), load('guests')]);
       mail.use(mcfg(C));
       const t = today(), todo = [];
+      try { await tvSync(); } catch (e) {}
       for (const r of G.reservations) {
         if (r.kind !== 'room' || r.status === 'geannuleerd' || r.demo) continue;
         const g = G.guests.find(x => x.id === r.guestId); if (!g || g.demo || !g.email) continue;
@@ -567,6 +603,7 @@ module.exports = async (req, res) => {
         }
         await mutate('guests', d => { d.reservations.push(r); });
         await addLog({ name: g.name }, `Reservatie ${r.id} · ${kind === 'room' ? r.roomName + ' ' + r.from + ' → ' + r.to : (kind === 'event' ? r.title + ' ' : kind === 'wellness' ? 'Wellness ' : kind === 'lessen' ? 'Lessenreeks ' : 'Vrij atelier ') + r.date}`);
+        if (kind === 'room' && r.from <= today()) { try { await tvSync(); } catch (e) {} }
         await sendMail('reservation', g, r);
         return send(res, 200, { ok: true, reservation: r });
       }
@@ -610,6 +647,7 @@ module.exports = async (req, res) => {
         if (out === 'done') return send(res, 400, { error: 'Je bent al uitgecheckt' });
         const T = BZ.totals(C, out);
         await addLog({ name: out.guestName }, `Online uitgecheckt · ${out.roomName}${T.due ? ' · open € ' + T.due : ''}`);
+        await tvClear(out.room);
         if (gg) await sendMail('checkedOut', gg, out, T, '/factuur?id=' + out.id + '&k=' + invKey(out.id));
         return send(res, 200, { ok: true, due: T.due });
       }
@@ -636,6 +674,7 @@ module.exports = async (req, res) => {
         if (out === 'nf') return send(res, 404, { error: 'Niet gevonden' });
         if (out === 'late') return send(res, 400, { error: 'Annuleren kan tot 48 uur vooraf. Neem contact met ons op.' });
         if (out.kind === 'room') await mutate('calendar', d => { d.entries = d.entries.filter(x => x.ref !== out.id); });
+        if (out.kind === 'room' && out.from <= today()) { try { await tvSync(); } catch (e) {} }
         await addLog({ name: out.guestName }, `Reservatie ${out.id} geannuleerd door gast`);
         { const { data: Gx } = await load('guests'); const gg = Gx.guests.find(x => x.id === gid); if (gg) await sendMail('cancelled', gg, out); }
         return send(res, 200, { ok: true });
@@ -710,6 +749,12 @@ module.exports = async (req, res) => {
       if (!url.searchParams.get('t')) return send(res, 200, { templates: mail.TEMPLATES });
       return send(res, 200, { mails: mail.preview(url.searchParams.get('t')) });
     }
+    if (a === 'tv-get') {
+      if (!can(u, 'guests')) return send(res, 403, { error: 'Geen toegang' });
+      try { await tvSync(); } catch (e) {}
+      const { data: T } = await load('tv');
+      return send(res, 200, { def: T.def, images: TV_IMGS, rooms: ROOMS.map(room => { const R = (T.rooms || {})[room] || {}; return { room, name: ROOM_NAMES[room], no: ROOMS.indexOf(room) + 1, paired: !!R.h, pairedAt: R.pairedAt || null, seen: R.seen || null, online: !!(R.h && R.seen > Date.now() - 11 * 60e3), auto: R.auto ? R.auto.name : '', manual: R.manual ? R.manual.name : '', override: R.override || null, screen: tvScreen(T, room) }; }) });
+    }
     if (a === 'hk') {
       if (!can(u, 'today')) return send(res, 403, { error: 'Geen toegang' });
       const date = isDate(url.searchParams.get('date')) ? url.searchParams.get('date') : today();
@@ -743,6 +788,23 @@ module.exports = async (req, res) => {
     if (req.method !== 'POST') return send(res, 405, { error: 'POST verwacht' });
     const b = await body(req);
 
+    if (a === 'tv-pair' || a === 'tv-unpair' || a === 'tv-room' || a === 'tv-default') {
+      if (!can(u, 'guests')) return send(res, 403, { error: 'Geen toegang' });
+      if (a !== 'tv-default' && !ROOMS.includes(b.room)) return send(res, 400, { error: 'Onbekende kamer' });
+      let err = null, msg = '';
+      await mutate('tv', T => { T.rooms = T.rooms || {}; T.def = T.def || {}; const R = b.room ? (T.rooms[b.room] = T.rooms[b.room] || {}) : null;
+        if (a === 'tv-pair') { const code = String(b.code || '').replace(/\D/g, ''); const p = (T.pending || {})[code]; if (!p || p.t < Date.now() - 15 * 60e3) { err = 'Deze code klopt niet of is verlopen. Kijk op de tv voor de juiste code.'; return; } R.h = p.h; R.pairedAt = Date.now(); R.seen = Date.now(); delete T.pending[code]; msg = `Tv gekoppeld aan ${ROOM_NAMES[b.room]}`; }
+        if (a === 'tv-unpair') { delete R.h; delete R.seen; delete R.pairedAt; msg = `Tv ontkoppeld van ${ROOM_NAMES[b.room]}`; }
+        if (a === 'tv-room') { if (b.manual !== undefined) { const n = clean(b.manual, 60); if (n) R.manual = { name: n, by: u.name }; else delete R.manual; }
+          if (b.override !== undefined) { const o = b.override || {}; const x = { title: clean(o.title, 80), sub: clean(o.sub, 120), bg: tvBg(o.bg) }; if (x.title || x.sub || x.bg) R.override = x; else delete R.override; }
+          if (b.reset) { delete R.manual; delete R.override; } msg = `Tv-scherm ${ROOM_NAMES[b.room]} aangepast`; }
+        if (a === 'tv-default') { const D = T.def; if (b.greeting !== undefined) D.greeting = clean(b.greeting, 80) || 'Welkom in Villa Amano'; if (b.greetingGuest !== undefined) { const g = clean(b.greetingGuest, 80); D.greetingGuest = g.includes('{naam}') ? g : 'Welkom, {naam}'; } if (b.sub !== undefined) D.sub = clean(b.sub, 120); if (b.bg !== undefined) D.bg = tvBg(b.bg) || 'villa-avond'; if (Array.isArray(b.lines)) D.lines = b.lines.map(x => clean(x, 70)).filter(Boolean).slice(0, 4); msg = 'Standaard tv-scherm aangepast'; }
+        T.v = (T.v || 0) + 1; });
+      if (err) { await failed([['tvp:' + u.id, 10]]); return send(res, 400, { error: err }); }
+      if (a === 'tv-pair') { try { await tvSync(); } catch (e) {} }
+      await addLog(u, msg);
+      return send(res, 200, { ok: true });
+    }
     if (a === 'hk-set') {
       if (!can(u, 'today')) return send(res, 403, { error: 'Geen toegang' });
       if (!isDate(b.date) || !ROOMS.includes(b.room)) return send(res, 400, { error: 'Ongeldig' });
