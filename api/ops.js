@@ -91,13 +91,13 @@ async function save(name, data, etag) {
   await blob.put(`ops/${name}.json`, JSON.stringify(data), opts);
 }
 async function mutate(name, fn) {
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 7; i++) {
     const { data, etag } = await load(name);
     let cur = etag;
     if (hasStore() && etag) { try { const h = await blob.head(`ops/${name}.json`); cur = h && h.etag; } catch (e) { cur = null; } }
     const out = await fn(data);
-    try { await save(name, data, i < 3 ? cur : null); return out; }
-    catch (e) { if (e && e.name === 'BlobPreconditionFailedError') { await new Promise(r => setTimeout(r, 120 * (i + 1))); continue; } throw e; }
+    try { await save(name, data, cur); return out; }
+    catch (e) { if (e && e.name === 'BlobPreconditionFailedError') { await new Promise(r => setTimeout(r, 80 * (i + 1) + Math.random() * 120)); continue; } throw e; }
   }
   throw new Error('Even druk, probeer opnieuw.');
 }
@@ -121,7 +121,11 @@ const qrSig = (t, x) => crypto.createHmac('sha256', secret()).update('qr:' + t +
 const qrCode = (t, x) => 'VA' + t + '-' + x + '-' + qrSig(t, x);
 const invKey = rid => crypto.createHmac('sha256', secret()).update('inv:' + rid).digest('base64url').slice(0, 16);
 const SITE = () => process.env.SITE_URL || 'https://hotel-bilzen.vercel.app';
-const mollieKey = C => process.env.MOLLIE_API_KEY || (C.biz || {}).mollieKey || '';
+const encKey = () => crypto.createHash('sha256').update('enc:' + secret()).digest();
+const enc = v => { const iv = crypto.randomBytes(12), c = crypto.createCipheriv('aes-256-gcm', encKey(), iv); const d = Buffer.concat([c.update(String(v), 'utf8'), c.final()]); return 'enc:' + Buffer.concat([iv, c.getAuthTag(), d]).toString('base64url'); };
+const dec = v => { if (!v || !String(v).startsWith('enc:')) return v || ''; try { const b = Buffer.from(String(v).slice(4), 'base64url'), d = crypto.createDecipheriv('aes-256-gcm', encKey(), b.subarray(0, 12)); d.setAuthTag(b.subarray(12, 28)); return Buffer.concat([d.update(b.subarray(28)), d.final()]).toString('utf8'); } catch (e) { return ''; } };
+const mcfg = C => ({ ...(C.mail || {}), key: dec((C.mail || {}).key) });
+const mollieKey = C => process.env.MOLLIE_API_KEY || dec((C.biz || {}).mollieKey) || '';
 async function mollie(C, path, opts = {}) {
   const r = await fetch('https://api.mollie.com/v2/' + path, { ...opts, headers: { authorization: 'Bearer ' + mollieKey(C), 'content-type': 'application/json' } });
   const j = await r.json().catch(() => ({}));
@@ -129,10 +133,10 @@ async function mollie(C, path, opts = {}) {
   return j;
 }
 async function ensureInvoiceNo(rid) {
-  const { data: G } = await load('guests'); const r0 = G.reservations.find(x => x.id === rid);
-  if (!r0) return null; if (r0.invoiceNo) return r0.invoiceNo;
-  let no; await mutate('config', C => { const y = new Date().getFullYear(); C.invoiceSeq = C.invoiceSeq || {}; C.invoiceSeq[y] = (C.invoiceSeq[y] || 0) + 1; no = y + '-' + String(C.invoiceSeq[y]).padStart(4, '0'); });
-  await mutate('guests', d => { const r = d.reservations.find(x => x.id === rid); if (r && !r.invoiceNo) { r.invoiceNo = no; r.invoiceDate = today(); } else if (r) no = r.invoiceNo; });
+  const { data: C } = await load('config'); const old = C.invoiceSeq || {}; let no = null;
+  await mutate('guests', d => { const r = d.reservations.find(x => x.id === rid); if (!r) return; if (r.invoiceNo) { no = r.invoiceNo; return; }
+    const y = new Date().getFullYear(); d.invoiceSeq = d.invoiceSeq || {}; d.invoiceSeq[y] = Math.max(d.invoiceSeq[y] || 0, old[y] || 0) + 1;
+    no = y + '-' + String(d.invoiceSeq[y]).padStart(4, '0'); r.invoiceNo = no; r.invoiceDate = today(); });
   return no;
 }
 function qrParse(code) {
@@ -179,7 +183,7 @@ async function seedDemo(email, name) {
   await mutate('calendar', d => { d.entries = d.entries.filter(e => e.demoFor !== email); rs.filter(r => r.kind === 'room').forEach(r => d.entries.push({ id: 'c' + r.id, ref: r.id, room: r.room, from: r.from, to: r.to, type: 'booking', guest: g.name, guestId: g.id, note: 'Voorbeeld · 2 pers. · ontbijt', by: 'Demo', demo: true, demoFor: email, created: Date.now() })); });
   return { g, pw, rs, t };
 }
-async function sendMail(fn, ...args) { try { const { data: C } = await load('config'); mail.use(C.mail); await mail[fn](...args); } catch (e) { console.error('mail', e && e.message); } }
+async function sendMail(fn, ...args) { try { const { data: C } = await load('config'); mail.use(mcfg(C)); await mail[fn](...args); } catch (e) { console.error('mail', e && e.message); } }
 const ipOf = req => String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'x';
 async function locked(...keys) { const { data } = await load('auth'); let m = 0; keys.forEach(k => { const f = (data.fails || {})[k]; if (f && f.until > Date.now()) m = Math.max(m, Math.ceil((f.until - Date.now()) / 60000)); }); return m; }
 async function failed(pairs) { try { await mutate('auth', d => { d.fails = d.fails || {}; const now = Date.now(); Object.keys(d.fails).forEach(k => { if ((d.fails[k].t || 0) < now - 3600e3) delete d.fails[k]; }); pairs.forEach(([k, max]) => { const f = d.fails[k] || { n: 0 }; if (f.t && f.t < now - 15 * 60e3) f.n = 0; f.n++; f.t = now; if (f.n >= max) { f.until = now + 15 * 60e3; f.n = 0; } d.fails[k] = f; }); }); } catch (e) {} }
@@ -289,7 +293,7 @@ module.exports = async (req, res) => {
       const uu = verify((req.headers.authorization || '').replace(/^Bearer /, ''));
       if (!okCron && !(uu && uu.role === 'owner')) return send(res, 401, { error: 'unauthorized' });
       const [{ data: C }, { data: G }] = await Promise.all([load('config'), load('guests')]);
-      mail.use(C.mail);
+      mail.use(mcfg(C));
       const t = today(), todo = [];
       for (const r of G.reservations) {
         if (r.kind !== 'room' || r.status === 'geannuleerd' || r.demo) continue;
@@ -419,13 +423,14 @@ module.exports = async (req, res) => {
       const { data: C } = await load('config');
       let user = null;
       if ((process.env.OPS_OWNER_PIN && pin === process.env.OPS_OWNER_PIN) || (C.ownerPinHash && hashPin(pin) === C.ownerPinHash)) user = { id: 'owner', name: C.ownerName || 'Eigenaar', role: 'owner' };
+      else if (C.adminPinHash && hashPin(pin) === C.adminPinHash) user = { id: 'admin', name: 'Solyn', role: 'beheer' };
       else { const s = C.staff.find(x => x.pinHash === hashPin(pin) && x.active !== false); if (s) user = { id: s.id, name: s.name, role: s.role }; }
       const demoOn = C.demoLogin !== false;
       if (!user && demoOn && String(b.email || '').trim().toLowerCase() === 'admin' && String(b.password || '') === 'admin') user = { id: 'demo-owner', name: 'Admin (demo)', role: 'owner' };
       if (!user) { await failed([['pin:' + ipOf(req), 5], ['pin:*', 40]]); return send(res, 401, { error: b.email !== undefined ? 'Onbekende login' : 'Onbekende pincode' }); }
       const token = sign({ ...user, exp: Date.now() + 30 * 864e5 });
       await addLog(user, 'Ingelogd');
-      return send(res, 200, { token, user, perms: ROLES[user.role] });
+      return send(res, 200, { token, user: user.role === 'beheer' ? { ...user, role: 'owner', admin: true } : user, perms: ROLES[user.role === 'beheer' ? 'owner' : user.role] });
     }
 
     // ===== gasten: account =====
@@ -512,6 +517,7 @@ module.exports = async (req, res) => {
     // ===== beveiligd =====
     const u = verify((req.headers.authorization || '').replace(/^Bearer /, ''));
     if (!u) return send(res, 401, { error: 'Log opnieuw in' });
+    let tech = false;
     if (u.role === 'guest') {
       const gid = u.gid;
       if (a === 'g-me') {
@@ -656,8 +662,10 @@ module.exports = async (req, res) => {
       return send(res, 403, { error: 'Geen toegang' });
     }
     { const { data: Cx } = await load('config');
-      const alive = u.id === 'owner' ? true : u.id === 'demo-owner' ? Cx.demoLogin !== false : (Cx.staff || []).some(x => x.id === u.id && x.active !== false && x.role === u.role);
-      if (!alive) return send(res, 401, { error: 'Log opnieuw in' }); }
+      const alive = u.id === 'owner' ? true : u.id === 'admin' ? !!Cx.adminPinHash : u.id === 'demo-owner' ? Cx.demoLogin !== false : (Cx.staff || []).some(x => x.id === u.id && x.active !== false && x.role === u.role);
+      if (!alive) return send(res, 401, { error: 'Log opnieuw in' });
+      if (u.role === 'beheer') { u.role = 'owner'; u.admin = true; }
+      tech = !!u.admin || (u.role === 'owner' && !Cx.adminPinHash); }
     if (a === 'me') return send(res, 200, { user: u, perms: ROLES[u.role] });
 
     if (a === 'bootstrap') {
@@ -668,6 +676,8 @@ module.exports = async (req, res) => {
       if (can(u, 'connect')) out.ical = C.ical, out.icalKey = C.icalKey;
       if (can(u, 'connect')) out.googleClientId = C.googleClientId || '', out.googleEnv = !!process.env.GOOGLE_CLIENT_ID;
       if (u.role === 'owner') out.demoLogin = C.demoLogin !== false;
+      out.tech = tech; out.hasAdmin = !!C.adminPinHash;
+      if (tech && ((C.mail && C.mail.key && !String(C.mail.key).startsWith('enc:')) || (C.biz && C.biz.mollieKey && !String(C.biz.mollieKey).startsWith('enc:')))) await mutate('config', X => { if (X.mail && X.mail.key && !String(X.mail.key).startsWith('enc:')) X.mail.key = enc(X.mail.key); if (X.biz && X.biz.mollieKey && !String(X.biz.mollieKey).startsWith('enc:')) X.biz.mollieKey = enc(X.biz.mollieKey); });
       if (can(u, 'prices')) out.prices = C.prices;
       if (can(u, 'staff')) out.staff = C.staff.map(s => ({ id: s.id, name: s.name, role: s.role, active: s.active !== false }));
       if (can(u, 'log')) out.log = (await load('log')).data.log.slice(0, 120);
@@ -696,7 +706,7 @@ module.exports = async (req, res) => {
     }
     if (a === 'mail-preview') {
       if (u.role !== 'owner') return send(res, 403, { error: 'Geen toegang' });
-      const { data: C } = await load('config'); mail.use(C.mail);
+      const { data: C } = await load('config'); mail.use(mcfg(C));
       if (!url.searchParams.get('t')) return send(res, 200, { templates: mail.TEMPLATES });
       return send(res, 200, { mails: mail.preview(url.searchParams.get('t')) });
     }
@@ -727,7 +737,7 @@ module.exports = async (req, res) => {
     }
     if (a === 'mail-status') {
       if (u.role !== 'owner') return send(res, 403, { error: 'Geen toegang' });
-      const { data: C } = await load('config'); mail.use(C.mail);
+      const { data: C } = await load('config'); mail.use(mcfg(C));
       return send(res, 200, mail.status());
     }
     if (req.method !== 'POST') return send(res, 405, { error: 'POST verwacht' });
@@ -776,7 +786,7 @@ module.exports = async (req, res) => {
       const { data: C } = await load('config');
       if (a === 'invoice-mail') {
         const g = G0.guests.find(x => x.id === r0.guestId); if (!g || !g.email) return send(res, 400, { error: 'Geen e-mailadres bekend voor deze gast' });
-        mail.use(C.mail); const x = await mail.invoice(g, r0, BZ.totals(C, r0), '/factuur?id=' + r0.id + '&k=' + invKey(r0.id));
+        mail.use(mcfg(C)); const x = await mail.invoice(g, r0, BZ.totals(C, r0), '/factuur?id=' + r0.id + '&k=' + invKey(r0.id));
         if (!x || x.skipped || x.error || !x.id) return send(res, 502, { error: 'Versturen mislukt. Controleer de e-mailinstellingen.' });
         await mutate('guests', d => { const r = d.reservations.find(y => y.id === b.id); if (r) r.invoiceMailed = Date.now(); });
         await addLog(u, `Factuur ${r0.invoiceNo} gemaild naar ${g.email}`);
@@ -801,8 +811,8 @@ module.exports = async (req, res) => {
         C.biz = C.biz || {};
         ['company', 'legal', 'vat', 'address', 'iban', 'email'].forEach(k => { if (typeof b[k] === 'string') C.biz[k] = clean(b[k], 160); });
         ['vatLogies', 'vatFood', 'vatOther', 'touristTax', 'deposit'].forEach(k => { if (b[k] !== undefined && b[k] !== '' && !isNaN(+b[k]) && +b[k] >= 0 && +b[k] <= 100) C.biz[k] = BZ.r2(+b[k]); });
-        if (typeof b.mollieKey === 'string' && /^(test|live)_\w{20,}$/.test(b.mollieKey.trim())) C.biz.mollieKey = b.mollieKey.trim();
-        if (b.mollieKey === null) delete C.biz.mollieKey;
+        if (typeof b.mollieKey === 'string' && /^(test|live)_\w{20,}$/.test(b.mollieKey.trim())) { if (!tech) return; C.biz.mollieKey = enc(b.mollieKey.trim()); }
+        if (b.mollieKey === null && tech) delete C.biz.mollieKey;
       });
       await addLog(u, 'Facturatie- en betaalinstellingen aangepast');
       return send(res, 200, { ok: true });
@@ -811,14 +821,14 @@ module.exports = async (req, res) => {
       if (u.role !== 'owner') return send(res, 403, { error: 'Geen toegang' });
       await mutate('config', C => {
         C.mail = C.mail || {};
-        if (typeof b.key === 'string' && /^re_[\w-]{10,}$/.test(b.key.trim())) C.mail.key = b.key.trim();
-        if (b.key === null) delete C.mail.key;
+        if (typeof b.key === 'string' && /^re_[\w-]{10,}$/.test(b.key.trim())) { if (!tech) return; C.mail.key = enc(b.key.trim()); }
+        if (b.key === null && tech) delete C.mail.key;
         if (typeof b.from === 'string' && b.from.includes('@')) C.mail.from = String(b.from).replace(/[\r\n"]/g, '').slice(0, 120).trim();
         if (typeof b.replyTo === 'string' && b.replyTo.includes('@')) C.mail.replyTo = clean(b.replyTo, 120);
         if (typeof b.notify === 'string') C.mail.notify = clean(b.notify, 300);
         if (typeof b.reviewUrl === 'string' && (/^https:\/\//.test(b.reviewUrl) || !b.reviewUrl)) C.mail.reviewUrl = clean(b.reviewUrl, 300);
       });
-      const { data: C } = await load('config'); mail.use(C.mail);
+      const { data: C } = await load('config'); mail.use(mcfg(C));
       await addLog(u, 'E-mailinstellingen aangepast');
       return send(res, 200, mail.status());
     }
@@ -826,7 +836,7 @@ module.exports = async (req, res) => {
       if (u.role !== 'owner') return send(res, 403, { error: 'Geen toegang' });
       const to = clean(b.to, 120);
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return send(res, 400, { error: 'Geef een geldig e-mailadres' });
-      const { data: C } = await load('config'); mail.use(C.mail);
+      const { data: C } = await load('config'); mail.use(mcfg(C));
       const r = await mail.test(to);
       return send(res, r && r.id ? 200 : 502, r && r.id ? { ok: true, id: r.id } : { error: (r && r.message) || 'Versturen mislukt' });
     }
@@ -915,7 +925,7 @@ module.exports = async (req, res) => {
       return send(res, 200, out);
     }
     if (a === 'demo-seed' || a === 'demo-clear') {
-      if (u.role !== 'owner') return send(res, 403, { error: 'Alleen de eigenaar' });
+      if (!tech) return send(res, 403, { error: 'Alleen de beheerder (Solyn)' });
       const email = process.env.DEMO_SEED_EMAIL || 'voorbeeld@villa-amano.com';
       if (a === 'demo-clear') {
         await mutate('guests', d => { d.reservations = d.reservations.filter(r => !r.demo); });
@@ -927,9 +937,9 @@ module.exports = async (req, res) => {
       return send(res, 200, { ok: true, email, password: pw, items: rs.map(r => ({ id: r.id, kind: r.kind, phase: (r.to || r.date) < t ? 'Afgelopen' : (r.from || r.date) <= t ? 'Nu bezig' : 'Gepland', label: r.kind === 'room' ? r.roomName + ' · kamer ' + String(r.roomNo).padStart(2, '0') : r.kind === 'event' ? r.title : 'Vrij atelier Pottery', when: r.kind === 'room' ? r.from + ' → ' + r.to : r.date + (r.time ? ' · ' + r.time : ''), qr: qrCode('R', r.id), valid: validity(r) })) });
     }
     if (a === 'golive-reset') {
-      if (u.role !== 'owner' || b.confirm !== 'WIS TESTDATA') return send(res, 403, { error: 'Alleen de eigenaar, met bevestiging' });
+      if (!tech || b.confirm !== 'WIS TESTDATA') return send(res, 403, { error: 'Alleen de eigenaar, met bevestiging' });
       const n = {};
-      await mutate('guests', d => { n.guests = d.guests.length; n.reservations = d.reservations.length; n.requests = d.requests.length; d.guests = []; d.reservations = []; d.requests = []; });
+      await mutate('guests', d => { n.guests = d.guests.length; n.reservations = d.reservations.length; n.requests = d.requests.length; d.guests = []; d.reservations = []; d.requests = []; d.invoiceSeq = {}; });
       await mutate('orders', d => { n.orders = d.orders.length; d.orders = []; });
       await mutate('calendar', d => { const k = d.entries.filter(e => !e.ref && !e.demo && !e.guestId); n.calendarRemoved = d.entries.length - k.length; n.calendarKept = k.length; d.entries = k; });
       await mutate('housekeeping', d => { d.days = {}; });
@@ -937,14 +947,22 @@ module.exports = async (req, res) => {
       await addLog(u, 'Testdata gewist, factuurteller op nul, demo-logins uit');
       return send(res, 200, { ok: true, removed: n });
     }
+    if (a === 'admin-pin') {
+      if (!tech) return send(res, 403, { error: 'Alleen de beheerder (Solyn)' });
+      const pin = String(b.pin || ''); if (!/^\d{6,8}$/.test(pin)) return send(res, 400, { error: 'Kies een pincode van 6 tot 8 cijfers' });
+      const r = await mutate('config', C => { const h = hashPin(pin); if (C.ownerPinHash === h || (C.staff || []).some(x => x.pinHash === h)) return 'dup'; C.adminPinHash = h; return 'ok'; });
+      if (r === 'dup') return send(res, 400, { error: 'Deze pincode is al in gebruik' });
+      await addLog(u, 'Beheerders-pincode ingesteld');
+      return send(res, 200, { ok: true });
+    }
     if (a === 'demo-login-set') {
-      if (u.role !== 'owner') return send(res, 403, { error: 'Alleen de eigenaar' });
+      if (!tech) return send(res, 403, { error: 'Alleen de beheerder (Solyn)' });
       await mutate('config', C => { C.demoLogin = !!b.on; });
       await addLog(u, b.on ? 'Demo-logins aan' : 'Demo-logins uit');
       return send(res, 200, { ok: true });
     }
     if (a === 'google-set') {
-      if (!can(u, 'connect')) return send(res, 403, { error: 'Geen toegang' });
+      if (!tech) return send(res, 403, { error: 'Alleen de beheerder (Solyn)' });
       const v = clean(b.clientId, 200);
       if (v && !/^[\w-]+\.apps\.googleusercontent\.com$/.test(v)) return send(res, 400, { error: 'Dit lijkt geen Google Client ID (…apps.googleusercontent.com)' });
       await mutate('config', C => { C.googleClientId = v; });
@@ -964,7 +982,7 @@ module.exports = async (req, res) => {
       if (!name) return send(res, 400, { error: 'Naam is verplicht' });
       if (b.pin && !/^\d{4,8}$/.test(String(b.pin))) return send(res, 400, { error: 'Pincode: 4 tot 8 cijfers' });
       const r = await mutate('config', C => {
-        if (b.pin && (C.staff.some(s => s.pinHash === hashPin(b.pin) && s.id !== b.id) || C.ownerPinHash === hashPin(b.pin))) return 'dup';
+        if (b.pin && (C.staff.some(s => s.pinHash === hashPin(b.pin) && s.id !== b.id) || C.ownerPinHash === hashPin(b.pin) || C.adminPinHash === hashPin(b.pin))) return 'dup';
         let s = C.staff.find(x => x.id === b.id);
         if (!s) { if (!b.pin) return 'nopin'; s = { id: id(), created: Date.now() }; C.staff.push(s); }
         s.name = name; s.role = role; s.active = b.active !== false; if (b.pin) s.pinHash = hashPin(b.pin);
