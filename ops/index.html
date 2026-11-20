@@ -368,7 +368,7 @@ function logout(silent){TOKEN=null;try{localStorage.removeItem('va_ops_t')}catch
 
 /* ---------- SHELL ---------- */
 const TABDEF=[['today','Vandaag','i-today'],['orders','Ontbijt','i-orders'],['calendar','Kalender','i-cal'],['more','Meer','i-more']];
-async function start(){try{S=await api('bootstrap')}catch(e){return}
+async function start(){try{S=await api('bootstrap')}catch(e){return}if(/[?&]next=beheer\b/.test(location.search)&&S.user&&S.user.role==='owner'){location.replace('/beheer.html');return}
  $('#login').classList.add('hide');$('#shell').classList.remove('hide');
  S.orders.forEach(o=>seenOrders.add(o.id));
  $('#me').innerHTML=`<b>${esc(S.user.name[0]||'?')}</b>${esc(S.user.name)} · ${ROLE_NL[S.user.role]}`;
