@@ -672,7 +672,8 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
       var inp = $('input', f); inp.value = cur; inp.type = c.type === 'email' ? 'email' : c.type === 'phone' ? 'tel' : c.type === 'url' ? 'url' : 'text';
       inp.inputMode = c.type === 'phone' ? 'tel' : c.type === 'email' ? 'email' : 'text';
       var note = $('small', f);
-      function upd() { note.textContent = inp.value.trim() && inp.value.trim() !== c.value ? 'Was: ' + c.value : ''; }
+      if (!c.value) inp.placeholder = c.placeholder || 'Nog niet op de website: vul in om toe te voegen';
+      function upd() { var v = inp.value.trim(); note.textContent = !c.value ? (v ? 'Verschijnt op de website na publiceren.' : 'Staat nu niet op de website.') : v && v !== c.value ? 'Was: ' + c.value : ''; }
       upd();
       inp.addEventListener('input', function () {
         var v = inp.value.trim();

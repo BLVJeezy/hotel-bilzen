@@ -58,6 +58,18 @@
     return h;
   }
   var A = new WeakMap(); // a -> { orig, applied } voor href
+  /* Lege plekken voor contactgegevens (data-contact="phone" enz.): verborgen tot de klant iets invult in het beheer. */
+  function slotNode(el) {
+    var c = draft.contact[el.getAttribute('data-contact')], v = c && c.v ? String(c.v) : '';
+    if (el.hidden !== !v) el.hidden = !v;
+    if (!v) return;
+    var txt = el.querySelector('[data-contact-text]') || el;
+    if (txt.textContent !== v) txt.textContent = v;
+    if (el.tagName === 'A') {
+      var t = c.t, href = t === 'phone' ? 'tel:+32' + core(v) : t === 'email' ? 'mailto:' + v : t === 'url' ? v : null;
+      if (href && el.getAttribute('href') !== href) el.setAttribute('href', href);
+    }
+  }
   var M = new WeakMap(); // gestructureerde gegevens (Google) en meta-omschrijvingen
   function headData() {
     Array.prototype.forEach.call(document.querySelectorAll('script[type="application/ld+json"], meta[name="description"], meta[property="og:description"], meta[name="twitter:description"]'), function (el) {
@@ -128,6 +140,8 @@
       Array.prototype.forEach.call(root.querySelectorAll ? root.querySelectorAll('a[href]') : [], linkNode);
       if (root.tagName === 'A') linkNode(root);
       if (root === document.body) headData();
+      Array.prototype.forEach.call(root.querySelectorAll ? root.querySelectorAll('[data-contact]') : [], slotNode);
+      if (root.hasAttribute && root.hasAttribute('data-contact')) slotNode(root);
       if (EDIT) mark(root);
     } finally { busy = false; }
     if (EDIT && typeof api.onRender === 'function') { try { api.onRender(); } catch (e) {} }
