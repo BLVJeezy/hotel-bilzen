@@ -388,6 +388,7 @@ function TOOLS(){const P=S.perms,o=S.user.role==='owner';return [
  P.includes('guests')&&['pay','Facturen & betalingen','i-euro',"payView()"],
  o&&['rep','Rapporten & export','i-log',"reportView()"],
  P.includes('staff')&&['staff','Personeel','i-team',"staffView()"],
+ o&&['site','Website aanpassen','i-web',"location.href='/beheer.html'"],
 ].filter(Boolean)}
 function sbTools(){return `<div class="sb-sec">Beheer</div>`+TOOLS().map(t=>`<button class="sb-tool" data-v="${t[0]}" onclick="sbGo('${t[0]}')"><svg><use href="#${t[2]}"/></svg>${t[1]}</button>`).join('')}
 function sbGo(k){const t=TOOLS().find(x=>x[0]===k);if(!t)return;if(k!=='biz'){document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===k))}new Function(t[3])();if(k!=='biz')document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===k));scrollTo(0,0)}
