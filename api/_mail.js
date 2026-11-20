@@ -92,6 +92,12 @@ module.exports = {
     return Promise.all(p);
   },
 
+  loginCode(to, code) {
+    const t = 'Je inlogcode';
+    return send(to, 'Inlogcode Operations center Villa Amano: ' + code,
+      layout(t, `Gebruik deze code om in te loggen in het Operations center:<br><br><span style="font-size:32px;letter-spacing:.3em;color:#f3ead9">${esc(code)}</span><br><br>De code is 10 minuten geldig. Heb je niet geprobeerd in te loggen? Dan mag je deze mail negeren.`),
+      [t, '', 'Code: ' + code, '', 'Geldig voor 10 minuten.'].join('\n'));
+  },
   reset(g, link) {
     const t = 'Nieuw wachtwoord kiezen', cta = ['Kies een nieuw wachtwoord', link];
     return send(g.email, 'Nieuw wachtwoord · Villa Amano', layout(t, `Dag ${esc(g.name.split(' ')[0])}, tik op de knop om een nieuw wachtwoord te kiezen. De link werkt één uur en maar één keer.`, null, cta, 'Heb je dit niet gevraagd? Dan hoef je niets te doen.'), text(t, null, cta), [{ name: 'type', value: 'reset' }]);

@@ -287,24 +287,34 @@ button{cursor:pointer}
  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
 </svg>
 
+<style>
+#login .lg-box{width:100%;max-width:340px;margin-top:8px}
+#login .lg-or{display:flex;align-items:center;gap:10px;color:#8f8272;font-size:13px;margin:12px 0}
+#login .lg-or:before,#login .lg-or:after{content:"";flex:1;height:1px;background:#3a2f25}
+#login .lg-note{font-size:14px;color:#cfc3b0;line-height:1.5;margin:0 0 10px}
+#login .hide{display:none!important}
+</style>
 <!-- LOGIN -->
 <section id="login">
  <img src="/img/logo_a.png" alt="Villa Amano">
  <span class="caps">Operations center</span>
  <h1 id="lgT">Welkom terug</h1>
- <p id="lgP">Voer je persoonlijke pincode in.</p>
+ <p id="lgP">Log in met Google of met je e-mailadres.</p>
  <div id="lgWarn"></div>
- <div id="lgSetup" class="hide" style="width:100%;max-width:340px">
-  <label class="field"><span>Jouw naam</span><input id="suName" autocomplete="name" placeholder="Bv. Leen"></label>
+ <div class="lg-box">
+  <div id="gBtn" class="hide" style="display:flex;justify-content:center;min-height:44px;margin-bottom:6px"></div>
+  <div class="lg-or hide" id="lgOr"><span>of</span></div>
+  <form id="mailForm">
+   <label class="field"><span>E-mailadres</span><input id="lgMail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="naam@voorbeeld.be" required></label>
+   <button class="cta full" type="submit" id="lgSend">Stuur mij een code</button>
+  </form>
+  <form id="codeForm" class="hide">
+   <p class="lg-note" id="lgSent"></p>
+   <label class="field"><span>Code uit de e-mail</span><input id="lgCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*" placeholder="123456" required></label>
+   <button class="cta full" type="submit" id="lgGo">Inloggen</button>
+   <button type="button" class="ghostlink" id="lgBack">Ander e-mailadres</button>
+  </form>
  </div>
- <div class="dots" id="dots"><i></i><i></i><i></i><i></i><i></i><i></i></div>
- <div class="pad" id="pad"></div>
- <button type="button" class="ghostlink" id="pwToggle">Inloggen met e-mail en wachtwoord</button>
- <form id="pwForm" class="hide" style="margin-top:14px">
-  <label class="field"><span>E-mail of gebruikersnaam</span><input id="pwU" autocomplete="username" autocapitalize="off" placeholder="admin"></label>
-  <label class="field"><span>Wachtwoord</span><input id="pwP" type="password" autocomplete="current-password" placeholder="••••••"></label>
-  <button class="cta full" type="submit">Inloggen</button>
- </form>
 </section>
 
 <!-- APP -->
@@ -342,27 +352,25 @@ async function api(a,body){const r=await fetch('/api/ops?a='+a,{method:body?'POS
  if(r.status===401&&a!=='login'){logout(true);throw new Error(j.error||'Log opnieuw in')}
  if(!r.ok)throw Object.assign(new Error(j.error||'Er ging iets mis'),{data:j});return j}
 
-/* ---------- LOGIN ---------- */
-let pin='',setupMode=false,setupFirst=null;
-$('#pwToggle').onclick=()=>{const f=$('#pwForm');f.classList.toggle('hide');$('#pad').classList.toggle('hide');$('#dots').classList.toggle('hide');$('#pwToggle').textContent=f.classList.contains('hide')?'Inloggen met e-mail en wachtwoord':'Inloggen met pincode';if(!f.classList.contains('hide'))$('#pwU').focus()};
-$('#pwForm').onsubmit=async e=>{e.preventDefault();try{const r=await api('login',{email:$('#pwU').value,password:$('#pwP').value});TOKEN=r.token;try{localStorage.setItem('va_ops_t',TOKEN)}catch(x){}start()}catch(x){$('#lgP').textContent=x.message}};
-$('#pad').innerHTML=[1,2,3,4,5,6,7,8,9,'wis',0,'ok'].map(k=>`<button type="button" class="${typeof k==='string'?'ghost':''}" data-k="${k}">${k==='wis'?'Wissen':k==='ok'?'OK':k}</button>`).join('');
-function drawDots(){[...$('#dots').children].forEach((d,i)=>d.classList.toggle('on',i<pin.length))}
-$('#pad').onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.k;
- if(k==='wis'){pin=pin.slice(0,-1)}else if(k==='ok'){submitPin();return}else if(pin.length<6){pin+=k;navigator.vibrate&&navigator.vibrate(8)}
- drawDots();if(pin.length===6||(!setupMode&&pin.length>=4&&false))submitPin()};
-document.addEventListener('keydown',e=>{if($('#login').classList.contains('hide'))return;if(document.activeElement&&document.activeElement.tagName==='INPUT')return;if(/^\d$/.test(e.key)&&pin.length<6){pin+=e.key;drawDots();if(pin.length===6)submitPin()}else if(e.key==='Backspace'){pin=pin.slice(0,-1);drawDots()}else if(e.key==='Enter')submitPin()});
-function shake(){const d=$('#dots');d.classList.remove('err');void d.offsetWidth;d.classList.add('err');navigator.vibrate&&navigator.vibrate([30,40,30])}
-async function submitPin(){if(pin.length<4){shake();return}
- const p=pin;pin='';drawDots();
- if(setupMode){if(!setupFirst){setupFirst=p;$('#lgP').textContent='Herhaal je nieuwe pincode.';return}
-  if(setupFirst!==p){setupFirst=null;shake();$('#lgP').textContent='Pincodes kwamen niet overeen. Kies opnieuw.';return}
-  try{await api('setup',{pin:p,name:$('#suName').value});toast('Ingesteld ✓');setupMode=false}catch(e){toast(e.message,1);return}}
- try{const r=await api('login',{pin:p});TOKEN=r.token;try{localStorage.setItem('va_ops_t',TOKEN)}catch(e){}start()}catch(e){shake();$('#lgP').textContent=e.message}}
+/* ---------- LOGIN: Google of een code per e-mail ---------- */
+let lgEmail='';
+function loggedIn(r){TOKEN=r.token;try{localStorage.setItem('va_ops_t',TOKEN)}catch(e){}start()}
+$('#mailForm').onsubmit=async e=>{e.preventDefault();const b=$('#lgSend');lgEmail=$('#lgMail').value.trim().toLowerCase();b.disabled=true;b.textContent='Versturen…';
+ try{await api('staff-code',{email:lgEmail});$('#mailForm').classList.add('hide');$('#codeForm').classList.remove('hide');$('#lgSent').textContent='We stuurden een code van 6 cijfers naar '+lgEmail+'. Kijk ook bij ongewenste mail.';$('#lgCode').value='';$('#lgCode').focus()}
+ catch(x){$('#lgP').textContent=x.message}finally{b.disabled=false;b.textContent='Stuur mij een code'}};
+$('#codeForm').onsubmit=async e=>{e.preventDefault();const b=$('#lgGo');b.disabled=true;
+ try{loggedIn(await api('staff-verify',{email:lgEmail,code:$('#lgCode').value}))}catch(x){$('#lgP').textContent=x.message;$('#lgCode').select()}finally{b.disabled=false}};
+$('#lgCode').oninput=()=>{if(/^\d{6}$/.test($('#lgCode').value))$('#codeForm').requestSubmit()};
+$('#lgBack').onclick=()=>{$('#codeForm').classList.add('hide');$('#mailForm').classList.remove('hide');$('#lgP').textContent='Log in met Google of met je e-mailadres.';$('#lgMail').focus()};
+let gisLoaded=false;
+function googleButton(cid){if(gisLoaded)return;gisLoaded=true;const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.async=true;
+ sc.onload=()=>{try{google.accounts.id.initialize({client_id:cid,callback:async c=>{try{loggedIn(await api('staff-google',{credential:c.credential}))}catch(x){$('#lgP').textContent=x.message}}});
+  google.accounts.id.renderButton($('#gBtn'),{theme:'filled_black',size:'large',shape:'pill',text:'signin_with',width:300,locale:'nl'});$('#gBtn').classList.remove('hide');$('#lgOr').classList.remove('hide')}catch(e){}};
+ document.head.appendChild(sc)}
 async function showLogin(){$('#login').classList.remove('hide');$('#shell').classList.add('hide');
- try{const r=await fetch('/api/ops?a=setup-needed').then(r=>r.json());
-  $('#lgWarn').innerHTML=r.store?'':'<div class="warn"><b>Opslag nog niet gekoppeld.</b> Maak in Vercel een Blob-store aan en koppel die aan dit project. Tot dan wordt niets bewaard.</div>';
-  if(r.setup){setupMode=true;$('#lgSetup').classList.remove('hide');$('#lgT').textContent='Eerste keer instellen';$('#lgP').textContent='Kies een pincode van 6 cijfers voor de eigenaar.'}
+ try{const [st,au]=await Promise.all([fetch('/api/ops?a=setup-needed').then(r=>r.json()),fetch('/api/ops?a=staff-auth').then(r=>r.json())]);
+  $('#lgWarn').innerHTML=st.store?'':'<div class="warn"><b>Opslag nog niet gekoppeld.</b> Maak in Vercel een Blob-store aan en koppel die aan dit project. Tot dan wordt niets bewaard.</div>';
+  if(au.google)googleButton(au.google);
  }catch(e){$('#lgWarn').innerHTML='<div class="warn">Geen verbinding met de server.</div>'}}
 function logout(silent){TOKEN=null;try{localStorage.removeItem('va_ops_t')}catch(e){}clearInterval(pollT);if(!silent)toast('Uitgelogd');showLogin()}
 
@@ -649,19 +657,21 @@ function menusView(){const M=JSON.parse(JSON.stringify(S.menus)),own=S.user.role
 function pricesSheet(){openSheet(`<h3>Kamerprijzen</h3><div class="sub">Prijs per nacht, inclusief btw.</div>${ROOMS.map(r=>`<label class="field"><span>${r[1]}</span><input type="number" data-r="${r[0]}" value="${S.prices[r[0]]}"></label>`).join('')}<button class="cta full" id="sv">Opslaan</button>`);
  $('#sv').onclick=async()=>{const p={};document.querySelectorAll('#sheet [data-r]').forEach(i=>p[i.dataset.r]=+i.value);try{await api('prices-save',{prices:p});S.prices=p;closeSheet();toast('Opgeslagen ✓')}catch(e){toast(e.message,1)}}}
 function staffView(){$('#title').textContent='Personeel';
- $('#app').innerHTML=`<button class="btn2" style="margin-bottom:12px" onclick="go('more')">← Terug</button><div class="card"><div class="row"><i class="dot"></i><div class="tx"><b>${esc(S.user.role==='owner'?S.user.name:'Eigenaar')}</b><small>Eigenaar · alles</small></div></div>${(S.staff||[]).map(s=>`<div class="row" data-s="${s.id}" style="--c:${s.role==='keuken'?'#e6b866':s.role==='owner'?'#f6dfa4':'#9fb8e6'}"><i class="dot"></i><div class="tx"><b>${esc(s.name)}</b><small>${ROLE_NL[s.role]}${s.active?'':' · gedeactiveerd'}</small></div><div class="rt">Bewerk →</div></div>`).join('')}</div>
+ $('#app').innerHTML=`<button class="btn2" style="margin-bottom:12px" onclick="go('more')">← Terug</button><div class="card"><div class="row"><i class="dot"></i><div class="tx"><b>${esc(S.user.role==='owner'?S.user.name:'Eigenaar')}</b><small>Eigenaar · alles</small></div></div>${(S.staff||[]).map(s=>`<div class="row" data-s="${s.id}" style="--c:${s.role==='keuken'?'#e6b866':s.role==='owner'?'#f6dfa4':'#9fb8e6'}"><i class="dot"></i><div class="tx"><b>${esc(s.name)}</b><small>${ROLE_NL[s.role]}${s.email?' · '+esc(s.email):''}${s.active?'':' · gedeactiveerd'}</small></div><div class="rt">Bewerk →</div></div>`).join('')}</div>
  <div class="card"><p class="k" style="margin:0 0 8px">Wat ziet wie?</p><div style="font-size:13px;color:#d6cab7;line-height:1.7"><b>Receptie</b> · vandaag, bestellingen, kalender, agenda, koppelingen<br><b>Keuken</b> · vandaag, bestellingen, menu's<br><b>Eigenaar</b> · alles, plus prijzen, personeel en logboek</div></div>
+ <div class="card"><label class="row" style="padding:4px 2px"><div class="tx"><b>Nieuwe beheerders toelaten</b><small>${S.staffSignup?'Open: wie nu inlogt met Google of e-mail, wordt automatisch eigenaar.':'Gesloten: alleen wie hierboven staat kan inloggen.'}</small></div><span class="sw"><input type="checkbox" id="sgn" ${S.staffSignup?'checked':''}><i></i></span></label></div>
  <button class="cta fab" onclick="staffSheet()">+ Personeel</button>`;
+ if($('#sgn'))$('#sgn').onchange=async e=>{const open=e.target.checked;if(!open&&!confirmBox('Inschrijving sluiten? Daarna kan alleen wie in deze lijst staat nog inloggen.')){e.target.checked=true;return}try{await api('staff-signup',{open});await reload();staffView();toast(open?'Inschrijving open':'Inschrijving gesloten ✓')}catch(x){toast(x.message,1)}};
  $('#app').querySelectorAll('[data-s]').forEach(r=>r.onclick=()=>staffSheet(S.staff.find(s=>s.id===r.dataset.s)))}
 function staffSheet(s){s=s||{name:'',role:'receptie',active:true};let role=s.role;
- openSheet(`<h3>${s.id?esc(s.name):'Nieuw personeelslid'}</h3><div class="sub">Iedereen logt in met een eigen pincode.</div>
+ openSheet(`<h3>${s.id?esc(s.name):'Nieuw personeelslid'}</h3><div class="sub">Iedereen logt in met Google of met een code per e-mail.</div>
  <label class="field"><span>Naam</span><input id="sn" value="${esc(s.name)}" placeholder="Voornaam"></label>
  <div class="k" style="margin-bottom:6px">Rol</div><div class="opts" id="sr">${['receptie','keuken','owner'].map(r=>`<button data-v="${r}" class="${r===role?'on':''}">${ROLE_NL[r]}</button>`).join('')}</div>
- <label class="field"><span>${s.id?'Nieuwe pincode (leeg = behouden)':'Pincode (6 cijfers)'}</span><input id="sp" inputmode="numeric" maxlength="8" pattern="[0-9]*" placeholder="••••••"></label>
+ <label class="field"><span>E-mailadres (om in te loggen)</span><input id="sm" type="email" inputmode="email" autocapitalize="off" value="${esc(s.email||'')}" placeholder="naam@voorbeeld.be"></label>
  ${s.id?`<label class="row" style="padding:6px 2px 14px"><div class="tx"><b>Actief</b><small>Uit = kan niet meer inloggen</small></div><span class="sw"><input type="checkbox" id="sa" ${s.active?'checked':''}><i></i></span></label>`:''}
  <div class="acts">${s.id?'<button class="btn2 red" id="dl">Verwijder</button>':''}<button class="cta" id="sv">Opslaan</button></div>`);
  $('#sr').onclick=e=>{const b=e.target.closest('button');if(!b)return;role=b.dataset.v;[...$('#sr').children].forEach(y=>y.classList.toggle('on',y===b))};
- $('#sv').onclick=async()=>{try{await api('staff-save',{id:s.id,name:$('#sn').value,role,pin:$('#sp').value,active:$('#sa')?$('#sa').checked:true});closeSheet();toast('Opgeslagen ✓');await reload();staffView()}catch(e){toast(e.message,1)}};
+ $('#sv').onclick=async()=>{try{await api('staff-save',{id:s.id,name:$('#sn').value,role,email:$('#sm').value,active:$('#sa')?$('#sa').checked:true});closeSheet();toast('Opgeslagen ✓');await reload();staffView()}catch(e){toast(e.message,1)}};
  if($('#dl'))$('#dl').onclick=async()=>{if(!confirmBox('Verwijderen?'))return;try{await api('staff-del',{id:s.id});closeSheet();await reload();staffView()}catch(e){toast(e.message,1)}}}
 
 /* ---------- schoonmaak ---------- */

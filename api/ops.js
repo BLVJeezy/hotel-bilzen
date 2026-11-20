@@ -189,6 +189,24 @@ const ipOf = req => String(req.headers['x-forwarded-for'] || '').split(',')[0].t
 async function locked(...keys) { const { data } = await load('auth'); let m = 0; keys.forEach(k => { const f = (data.fails || {})[k]; if (f && f.until > Date.now()) m = Math.max(m, Math.ceil((f.until - Date.now()) / 60000)); }); return m; }
 async function failed(pairs) { try { await mutate('auth', d => { d.fails = d.fails || {}; const now = Date.now(); Object.keys(d.fails).forEach(k => { if ((d.fails[k].t || 0) < now - 3600e3) delete d.fails[k]; }); pairs.forEach(([k, max]) => { const f = d.fails[k] || { n: 0 }; if (f.t && f.t < now - 15 * 60e3) f.n = 0; f.n++; f.t = now; if (f.n >= max) { f.until = now + 15 * 60e3; f.n = 0; } d.fails[k] = f; }); }); } catch (e) {} }
 const can = (u, perm) => u && (ROLES[u.role] || []).includes(perm);
+const SOLYN_ADMINS = String(process.env.OPS_SOLYN_ADMINS || '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
+/** Bestaand personeelslid met dit e-mailadres, of (zolang de inschrijving open staat) een nieuwe beheerder. */
+async function staffByEmail(email, name, via) {
+  let user = null;
+  await mutate('config', C => {
+    C.staff = C.staff || [];
+    let s = C.staff.find(x => x.email === email);
+    if (s && s.active === false) return;
+    if (!s) {
+      if (C.staffSignup === false) return;
+      s = { id: id(), email, name: name || email.split('@')[0], role: 'owner', active: true, created: Date.now(), via };
+      C.staff.push(s);
+    }
+    user = { id: s.id, name: s.name, role: s.role, email };
+    if (SOLYN_ADMINS.includes(email) || /@solynglobal\.be$/.test(email)) user.admin = true; // Solyn: technische instellingen
+  });
+  return user;
+}
 async function addLog(u, text) {
   try { await mutate('log', d => { d.log.unshift({ t: Date.now(), who: u ? u.name : 'Website', text }); d.log = d.log.slice(0, 400); }); } catch (e) {}
 }
@@ -437,7 +455,7 @@ module.exports = async (req, res) => {
     // ===== inloggen =====
     if (a === 'setup-needed') {
       const { data: C } = await load('config');
-      return send(res, 200, { setup: !process.env.OPS_OWNER_PIN && !C.ownerPinHash, store: hasStore() });
+      return send(res, 200, { setup: false, store: hasStore() });
     }
     if (a === 'setup' && req.method === 'POST') {
       const b = await body(req);
@@ -451,18 +469,67 @@ module.exports = async (req, res) => {
       await addLog({ name: clean(b.name, 40) || 'Eigenaar' }, 'Operations center ingesteld');
       return send(res, 200, { ok: true });
     }
+    // ===== personeel: inloggen met Google of een code per e-mail (geen pincode meer) =====
+    if (a === 'staff-auth') {
+      const { data: C } = await load('config');
+      mail.use(mcfg(C));
+      return send(res, 200, { google: process.env.GOOGLE_CLIENT_ID || C.googleClientId || null, signup: C.staffSignup !== false, mail: mail.status().on });
+    }
+    if (a === 'staff-google' && req.method === 'POST') {
+      const b = await body(req);
+      const { data: C } = await load('config');
+      const cid = process.env.GOOGLE_CLIENT_ID || C.googleClientId;
+      if (!cid) return send(res, 400, { error: 'Google-login is nog niet ingesteld' });
+      let info;
+      try { const r = await fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(String(b.credential || ''))); info = r.ok ? await r.json() : null; } catch (e) { info = null; }
+      if (!info || info.aud !== cid || !['accounts.google.com', 'https://accounts.google.com'].includes(info.iss) || String(info.email_verified) !== 'true' || Number(info.exp) * 1000 < Date.now())
+        return send(res, 401, { error: 'Inloggen met Google mislukt, probeer opnieuw' });
+      const user = await staffByEmail(String(info.email).toLowerCase(), clean(info.name, 40), 'Google');
+      if (!user) return send(res, 403, { error: 'Dit account heeft geen toegang. Vraag de eigenaar om je toe te voegen.' });
+      await addLog(user, 'Ingelogd (Google)');
+      return send(res, 200, { token: sign({ ...user, exp: Date.now() + 30 * 864e5 }), user, perms: ROLES[user.role] });
+    }
+    if (a === 'staff-code' && req.method === 'POST') {
+      const b = await body(req);
+      const email = clean(b.email, 120).toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return send(res, 400, { error: 'Vul een geldig e-mailadres in' });
+      const lk = await locked('mail:' + ipOf(req), 'mail:' + email); if (lk) return send(res, 429, { error: `Te veel pogingen. Probeer opnieuw over ${lk} minuten.` });
+      await failed([['mail:' + ipOf(req), 8], ['mail:' + email, 5]]);
+      const { data: C } = await load('config');
+      const known = (C.staff || []).some(s => s.email === email && s.active !== false);
+      if (!known && C.staffSignup === false) return send(res, 403, { error: 'Dit e-mailadres heeft geen toegang. Vraag de eigenaar om je toe te voegen.' });
+      const code = String(crypto.randomInt(100000, 1000000));
+      await mutate('auth', d => { d.codes = d.codes || {}; const now = Date.now(); Object.keys(d.codes).forEach(k => { if (d.codes[k].exp < now) delete d.codes[k]; }); d.codes[email] = { h: hashPin('code:' + email + ':' + code), exp: now + 10 * 60e3, n: 0 }; });
+      mail.use(mcfg(C));
+      const r = await mail.loginCode(email, code).catch(() => null);
+      const mailed = !!(r && r.id);
+      if (!mailed) return send(res, 502, { error: 'De e-mail kon niet verstuurd worden. Probeer het met Google of vraag Solyn om hulp.' });
+      return send(res, 200, { ok: true });
+    }
+    if (a === 'staff-verify' && req.method === 'POST') {
+      const b = await body(req);
+      const email = clean(b.email, 120).toLowerCase(), code = String(b.code || '').replace(/\D/g, '');
+      const lk = await locked('code:' + email); if (lk) return send(res, 429, { error: `Te veel pogingen. Vraag over ${lk} minuten een nieuwe code.` });
+      let ok = false;
+      await mutate('auth', d => { const c = (d.codes || {})[email]; if (!c || c.exp < Date.now()) return; if (c.h === hashPin('code:' + email + ':' + code)) { ok = true; delete d.codes[email]; } else { c.n = (c.n || 0) + 1; if (c.n >= 5) delete d.codes[email]; } });
+      if (!ok) { await failed([['code:' + email, 8]]); return send(res, 401, { error: 'Die code klopt niet of is verlopen' }); }
+      const user = await staffByEmail(email, clean(b.name, 40), 'e-mail');
+      if (!user) return send(res, 403, { error: 'Dit e-mailadres heeft geen toegang' });
+      await addLog(user, 'Ingelogd (e-mail)');
+      return send(res, 200, { token: sign({ ...user, exp: Date.now() + 30 * 864e5 }), user, perms: ROLES[user.role] });
+    }
     if (a === 'login' && req.method === 'POST') {
+      return send(res, 410, { error: 'Inloggen met een pincode kan niet meer. Log in met Google of met je e-mailadres.' });
+    }
+    // noodtoegang voor Solyn (beheerders-pincode), niet zichtbaar in het inlogscherm; personeel en eigenaar loggen niet meer met een pincode in
+    if (a === 'solyn-pin' && req.method === 'POST') {
       const b = await body(req);
       const pin = String(b.pin || '');
       const lk = await locked('pin:' + ipOf(req), 'pin:*'); if (lk) return send(res, 429, { error: `Te veel pogingen. Probeer opnieuw over ${lk} minuten.` });
       await new Promise(r => setTimeout(r, 350));
       const { data: C } = await load('config');
       let user = null;
-      if ((process.env.OPS_OWNER_PIN && pin === process.env.OPS_OWNER_PIN) || (C.ownerPinHash && hashPin(pin) === C.ownerPinHash)) user = { id: 'owner', name: C.ownerName || 'Eigenaar', role: 'owner' };
-      else if (C.adminPinHash && hashPin(pin) === C.adminPinHash) user = { id: 'admin', name: 'Solyn', role: 'beheer' };
-      else { const s = C.staff.find(x => x.pinHash === hashPin(pin) && x.active !== false); if (s) user = { id: s.id, name: s.name, role: s.role }; }
-      const demoOn = C.demoLogin !== false;
-      if (!user && demoOn && String(b.email || '').trim().toLowerCase() === 'admin' && String(b.password || '') === 'admin') user = { id: 'demo-owner', name: 'Admin (demo)', role: 'owner' };
+      if (C.adminPinHash && /^\d{4,8}$/.test(pin) && hashPin(pin) === C.adminPinHash) user = { id: 'admin', name: 'Solyn', role: 'beheer' };
       if (!user) { await failed([['pin:' + ipOf(req), 5], ['pin:*', 40]]); return send(res, 401, { error: b.email !== undefined ? 'Onbekende login' : 'Onbekende pincode' }); }
       const token = sign({ ...user, exp: Date.now() + 30 * 864e5 });
       await addLog(user, 'Ingelogd');
@@ -718,7 +785,7 @@ module.exports = async (req, res) => {
       out.tech = tech; out.hasAdmin = !!C.adminPinHash;
       if (tech && ((C.mail && C.mail.key && !String(C.mail.key).startsWith('enc:')) || (C.biz && C.biz.mollieKey && !String(C.biz.mollieKey).startsWith('enc:')))) await mutate('config', X => { if (X.mail && X.mail.key && !String(X.mail.key).startsWith('enc:')) X.mail.key = enc(X.mail.key); if (X.biz && X.biz.mollieKey && !String(X.biz.mollieKey).startsWith('enc:')) X.biz.mollieKey = enc(X.biz.mollieKey); });
       if (can(u, 'prices')) out.prices = C.prices;
-      if (can(u, 'staff')) out.staff = C.staff.map(s => ({ id: s.id, name: s.name, role: s.role, active: s.active !== false }));
+      if (can(u, 'staff')) { out.staff = C.staff.map(s => ({ id: s.id, name: s.name, role: s.role, email: s.email || '', active: s.active !== false })); out.staffSignup = C.staffSignup !== false; }
       if (can(u, 'log')) out.log = (await load('log')).data.log.slice(0, 120);
       if (can(u, 'guests')) { const { data: G } = await load('guests'); out.guests = G.guests.map(g => ({ id: g.id, name: g.name, email: g.email, phone: g.phone, memberships: g.memberships || {}, n: G.reservations.filter(r => r.guestId === g.id && r.status !== 'geannuleerd').length })); out.reservations = G.reservations.slice(-200).map(r => r.checkin ? { ...r, checkin: { arrival: r.checkin.arrival, plate: r.checkin.plate, wishes: r.checkin.wishes, t: r.checkin.t } } : r); out.requests = G.requests.slice(0, 100); out.plans = PLANS; }
       out.store = hasStore();
@@ -1042,16 +1109,17 @@ module.exports = async (req, res) => {
       const role = ['receptie', 'keuken', 'owner'].includes(b.role) ? b.role : 'receptie';
       const name = clean(b.name, 40);
       if (!name) return send(res, 400, { error: 'Naam is verplicht' });
-      if (b.pin && !/^\d{4,8}$/.test(String(b.pin))) return send(res, 400, { error: 'Pincode: 4 tot 8 cijfers' });
+      const email = clean(b.email, 120).toLowerCase();
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return send(res, 400, { error: 'Ongeldig e-mailadres' });
       const r = await mutate('config', C => {
-        if (b.pin && (C.staff.some(s => s.pinHash === hashPin(b.pin) && s.id !== b.id) || C.ownerPinHash === hashPin(b.pin) || C.adminPinHash === hashPin(b.pin))) return 'dup';
+        if (email && C.staff.some(s => s.email === email && s.id !== b.id)) return 'dup';
         let s = C.staff.find(x => x.id === b.id);
-        if (!s) { if (!b.pin) return 'nopin'; s = { id: id(), created: Date.now() }; C.staff.push(s); }
-        s.name = name; s.role = role; s.active = b.active !== false; if (b.pin) s.pinHash = hashPin(b.pin);
+        if (!s) { if (!email) return 'nomail'; s = { id: id(), created: Date.now() }; C.staff.push(s); }
+        s.name = name; s.role = role; s.active = b.active !== false; if (email) s.email = email;
         return 'ok';
       });
-      if (r === 'dup') return send(res, 400, { error: 'Deze pincode is al in gebruik' });
-      if (r === 'nopin') return send(res, 400, { error: 'Geef een pincode' });
+      if (r === 'dup') return send(res, 400, { error: 'Dit e-mailadres is al in gebruik' });
+      if (r === 'nomail') return send(res, 400, { error: 'Geef een e-mailadres' });
       await addLog(u, `Personeel: ${name} (${role})`);
       return send(res, 200, { ok: true });
     }
@@ -1067,6 +1135,12 @@ module.exports = async (req, res) => {
       if (!can(u, 'guests')) return send(res, 403, { error: 'Geen toegang' });
       await mutate('guests', d => { const r = d.requests.find(x => x.id === b.id); if (r) { r.status = 'klaar'; r.by = u.name; r.done = Date.now(); } });
       await addLog(u, 'Gastverzoek afgehandeld');
+      return send(res, 200, { ok: true });
+    }
+    if (a === 'staff-signup') {
+      if (!can(u, 'staff')) return send(res, 403, { error: 'Geen toegang' });
+      await mutate('config', C => { C.staffSignup = !!b.open; });
+      await addLog(u, b.open ? 'Inschrijving voor beheerders geopend' : 'Inschrijving voor beheerders gesloten');
       return send(res, 200, { ok: true });
     }
     if (a === 'staff-del') {
