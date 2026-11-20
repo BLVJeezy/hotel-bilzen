@@ -40,6 +40,11 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
 .err{color:#F0B4B4;font-size:14px;min-height:1.2em}
 .err:empty{display:none}
 .note-btn svg{width:16px;height:16px}
+.seg.kind{display:flex}.seg.kind button{flex:1;min-height:40px}
+.shots{display:flex;gap:10px;flex-wrap:wrap}.shots:empty{display:none}
+.shot{position:relative;width:96px;height:72px;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.08)}
+.shot img{width:100%;height:100%;object-fit:cover}
+.shot button{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;cursor:pointer;font-size:14px;line-height:1}
 .field textarea{width:100%;border:0;border-radius:14px;background:var(--ivory);color:#1b1b1b;padding:13px 14px;outline:none;font-size:16px;min-height:130px;resize:vertical;line-height:1.5;font:inherit}
 .modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.55)}
 .modal-box{width:100%;max-width:460px;max-height:calc(100dvh - 32px);overflow:auto;display:flex;flex-direction:column;gap:14px;background:var(--panel);color:var(--ivory);padding:24px;border-radius:22px;box-shadow:0 30px 60px -20px rgba(0,0,0,.7)}
@@ -140,7 +145,7 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
       <button type="button" data-view="phone" aria-pressed="false">Telefoon</button>
     </div>
     <div class="status" id="statusBox" aria-live="polite"><i></i><span id="status">Alles is bewaard</span></div>
-    <button class="btn small note-btn" type="button" id="noteBtn" title="Ik heb een opmerking"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg><span>Ik heb een opmerking</span></button>
+    <button class="btn small note-btn" type="button" id="noteBtn" title="Probleem of opmerking melden"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg><span>Probleem of opmerking</span></button>
     <a class="btn ghost small site-link" id="siteLink" href="/" target="_blank" rel="noopener">Bekijk de site</a>
   </header>
   <div class="work">
@@ -195,7 +200,7 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
         </div>
         <div class="card">
           <div class="meta">Andere acties</div>
-          <button class="btn ghost small" type="button" id="noteBtn2">Ik heb een opmerking</button>
+          <button class="btn ghost small" type="button" id="noteBtn2">Probleem of opmerking melden</button>
           <button class="btn ghost small" type="button" id="share">Wijzigingen doorsturen naar Solyn</button>
           <button class="btn ghost small" type="button" id="dl">Download als bestand</button>
           <label class="btn ghost small" style="cursor:pointer">Bestand met wijzigingen openen<input type="file" id="imp" accept=".js,.json,.txt,text/plain,application/json,text/javascript" hidden></label>
@@ -208,14 +213,25 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
 </div>
 <div class="modal" id="noteModal" hidden role="dialog" aria-modal="true" aria-labelledby="noteTitle">
   <form class="modal-box" id="noteForm">
-    <h2 id="noteTitle" style="font-size:21px">Ik heb een opmerking</h2>
-    <p class="hint">Een vraag, iets dat niet werkt of iets dat je anders wil? Schrijf het hier. Jason van Solyn krijgt het meteen.</p>
+    <h2 id="noteTitle" style="font-size:21px">Probleem of opmerking</h2>
+    <div class="seg kind" role="group" aria-label="Soort">
+      <button type="button" data-kind="probleem" aria-pressed="true">Er werkt iets niet</button>
+      <button type="button" data-kind="andere" aria-pressed="false">Vraag of opmerking</button>
+    </div>
+    <p class="hint" id="noteIntro">Beschrijf kort wat er mis is. Jason van Solyn krijgt het meteen en een probleem krijgt altijd voorrang.</p>
     <label class="field"><span>Je naam (mag leeg)</span><input id="noteName" type="text" autocomplete="name"></label>
-    <label class="field"><span>Je opmerking</span><textarea id="noteMsg" required maxlength="4000" placeholder="Bv. de openingsuren op de contactpagina kloppen niet meer…"></textarea></label>
+    <label class="field"><span id="noteMsgLabel">Wat werkt er niet?</span><textarea id="noteMsg" required maxlength="3800" placeholder="Bv. de knop Boeken op de homepage doet niets op mijn gsm."></textarea></label>
+    <div class="field"><span>Screenshot (mag, helpt wel)</span>
+      <div class="acts">
+        <button class="btn ghost small" type="button" id="shotBtn">Screenshot van deze pagina</button>
+        <label class="btn ghost small" style="cursor:pointer">Foto of screenshot toevoegen<input type="file" id="shotFile" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple hidden></label>
+      </div>
+      <div class="shots" id="shots"></div>
+    </div>
     <div class="hint" id="notePage" style="font-size:13px;color:var(--mut)"></div>
     <div class="err" id="noteErr" role="alert"></div>
     <div class="acts" id="noteFallback" hidden></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn ghost small" type="button" id="noteCancel">Annuleren</button><button class="btn small" type="submit" id="noteSend">Verstuur</button></div>
+    <div class="acts" style="justify-content:flex-end"><button class="btn ghost small" type="button" id="noteCancel">Annuleren</button><button class="btn small" type="submit" id="noteSend">Verstuur naar Solyn</button></div>
   </form>
 </div>
 <div class="toast" id="toast" role="status"></div>
@@ -224,7 +240,7 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
 (function () {
   'use strict';
   /* ---------- instellingen per klant ---------- */
-  var CFG = {"name": "Villa Amano", "slug": "villa-amano", "hash": "1257d3859585a6c44c6fff9218146ae64c2261b421996dd19154fbb650827fe7", "api": "https://solyn-corporate-zen.vercel.app/api/beheer", "pages": [{"group": "Algemeen"}, {"path": "/", "name": "Home"}, {"path": "/cadeaubon", "name": "Cadeaubon"}, {"path": "/contact", "name": "Contact & route"}, {"path": "/faq", "name": "Veelgestelde vragen"}, {"path": "/ontbijt-info", "name": "Ontbijt op je kamer of terras"}, {"path": "/over-ons", "name": "Over ons"}, {"path": "/pottery-house", "name": "Pottery House"}, {"path": "/praktisch", "name": "Praktische info"}, {"path": "/retreats", "name": "Amano Retreats"}, {"path": "/reviews", "name": "Reviews"}, {"path": "/shop", "name": "The Amano Shop"}, {"path": "/therapy", "name": "Amano Therapy"}, {"path": "/wellness", "name": "Privé wellness met sauna & stoombad"}, {"group": "Kamers"}, {"path": "/kamers/", "name": "Kamers in Bilzen"}, {"path": "/kamers/amethyst", "name": "Amethyst"}, {"path": "/kamers/clear-quartz", "name": "Clear Quartz"}, {"path": "/kamers/moonstone", "name": "Moonstone"}, {"path": "/kamers/rose-quartz", "name": "Rose Quartz"}, {"path": "/kamers/sunstone", "name": "Sunstone"}, {"group": "Agenda"}, {"path": "/agenda/", "name": "Agenda & events in Bilzen"}, {"path": "/agenda/kerstavond-brunch", "name": "Kerstavond-brunch 24 december in Bilzen"}, {"path": "/agenda/kerstbrunch", "name": "Kerstbrunch met live piano in Bilzen"}, {"path": "/agenda/kerstkommen-workshop", "name": "Workshop kerstkommen draaien"}, {"path": "/agenda/kerstmarkt", "name": "Kerstmarkt The Amano Shop"}, {"path": "/agenda/oudejaar", "name": "Oudejaar"}, {"path": "/agenda/raku-avond", "name": "Raku-avond in de tuin"}, {"path": "/agenda/retreatdag", "name": "Rest"}, {"path": "/agenda/sound-bath", "name": "Sound bath in de wellness"}, {"group": "Omgeving"}, {"path": "/omgeving/", "name": "Omgeving"}, {"path": "/omgeving/alden-biesen", "name": "Hotel bij Alden Biesen in Bilzen"}, {"path": "/omgeving/haspengouw-fietsen", "name": "Fietsen in Haspengouw vanaf de deur"}, {"path": "/omgeving/hasselt", "name": "Hotel nabij Hasselt"}, {"path": "/omgeving/maastricht", "name": "Overnachten bij Maastricht, net over de grens"}, {"path": "/omgeving/tongeren", "name": "Overnachten bij Tongeren"}, {"group": "Andere talen"}, {"path": "/en/", "name": "English (home)"}, {"path": "/fr/", "name": "Français (home)"}, {"group": "Juridisch"}, {"path": "/algemene-voorwaarden", "name": "Algemene voorwaarden"}, {"path": "/cookies", "name": "Cookiebeleid"}, {"path": "/privacy", "name": "Privacyverklaring"}]};
+  var CFG = {"name": "Villa Amano", "slug": "villa-amano", "hash": "0d11a45eb6b9b9ff75e27eef4bfb63283436b6cb2d7066b60ecc483d5ca86d43", "api": "https://solyn-corporate-zen.vercel.app/api/beheer", "hubToken": "b297682c7366b6531fb732f818d1634fd2ae", "pages": [{"group": "Algemeen"}, {"path": "/", "name": "Home"}, {"path": "/cadeaubon", "name": "Cadeaubon"}, {"path": "/contact", "name": "Contact & route"}, {"path": "/faq", "name": "Veelgestelde vragen"}, {"path": "/ontbijt-info", "name": "Ontbijt op je kamer of terras"}, {"path": "/over-ons", "name": "Over ons"}, {"path": "/pottery-house", "name": "Pottery House"}, {"path": "/praktisch", "name": "Praktische info"}, {"path": "/retreats", "name": "Amano Retreats"}, {"path": "/reviews", "name": "Reviews"}, {"path": "/shop", "name": "The Amano Shop"}, {"path": "/therapy", "name": "Amano Therapy"}, {"path": "/wellness", "name": "Privé wellness met sauna & stoombad"}, {"group": "Kamers"}, {"path": "/kamers/", "name": "Kamers in Bilzen"}, {"path": "/kamers/amethyst", "name": "Amethyst"}, {"path": "/kamers/clear-quartz", "name": "Clear Quartz"}, {"path": "/kamers/moonstone", "name": "Moonstone"}, {"path": "/kamers/rose-quartz", "name": "Rose Quartz"}, {"path": "/kamers/sunstone", "name": "Sunstone"}, {"group": "Agenda"}, {"path": "/agenda/", "name": "Agenda & events in Bilzen"}, {"path": "/agenda/kerstavond-brunch", "name": "Kerstavond-brunch 24 december in Bilzen"}, {"path": "/agenda/kerstbrunch", "name": "Kerstbrunch met live piano in Bilzen"}, {"path": "/agenda/kerstkommen-workshop", "name": "Workshop kerstkommen draaien"}, {"path": "/agenda/kerstmarkt", "name": "Kerstmarkt The Amano Shop"}, {"path": "/agenda/oudejaar", "name": "Oudejaar"}, {"path": "/agenda/raku-avond", "name": "Raku-avond in de tuin"}, {"path": "/agenda/retreatdag", "name": "Rest"}, {"path": "/agenda/sound-bath", "name": "Sound bath in de wellness"}, {"group": "Omgeving"}, {"path": "/omgeving/", "name": "Omgeving"}, {"path": "/omgeving/alden-biesen", "name": "Hotel bij Alden Biesen in Bilzen"}, {"path": "/omgeving/haspengouw-fietsen", "name": "Fietsen in Haspengouw vanaf de deur"}, {"path": "/omgeving/hasselt", "name": "Hotel nabij Hasselt"}, {"path": "/omgeving/maastricht", "name": "Overnachten bij Maastricht, net over de grens"}, {"path": "/omgeving/tongeren", "name": "Overnachten bij Tongeren"}, {"group": "Andere talen"}, {"path": "/en/", "name": "English (home)"}, {"path": "/fr/", "name": "Français (home)"}, {"group": "Juridisch"}, {"path": "/algemene-voorwaarden", "name": "Algemene voorwaarden"}, {"path": "/cookies", "name": "Cookiebeleid"}, {"path": "/privacy", "name": "Privacyverklaring"}]};
   window.__isBeheer = true;
   var mode = 'edit';
   var KEY = 'site-beheer-draft', CODEKEY = 'site-beheer-code', COACH = 'site-beheer-coach';
@@ -484,9 +500,47 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
     draft = norm(clone(published)); try { localStorage.removeItem(KEY); } catch (e) {} save(); push(); toast('Teruggezet naar wat online staat');
   });
 
-  /* ---------- "Ik heb een opmerking" ---------- */
-  var WA = '32485594555', MAIL = 'jason@solynglobal.be';
-  function curPage() { var o = $('#pageSel').selectedOptions && $('#pageSel').selectedOptions[0]; return o ? o.textContent + ' (' + o.value + ')' : ''; }
+  /* ---------- probleem of opmerking melden: gaat als aanvraag en taak naar het Solyn Operations Center ---------- */
+  var WA = '32485594555', MAIL = 'jason@solynglobal.be', HUB = 'https://solyn22.lovable.app/api/public/request';
+  var kind = 'probleem', shots = [];
+  function curPage() { var o = $('#pageSel').selectedOptions && $('#pageSel').selectedOptions[0]; var here = ''; try { here = frame.contentWindow.location.pathname; } catch (e) {} return (o ? o.textContent : '') + ' (' + (here || (o && o.value) || '/') + ')'; }
+  function setKind(k) {
+    kind = k; $$('[data-kind]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-kind') === k)); });
+    $('#noteIntro').textContent = k === 'probleem' ? 'Beschrijf kort wat er mis is. Jason van Solyn krijgt het meteen en een probleem krijgt altijd voorrang.' : 'Een vraag of iets dat je anders wil? Schrijf het hier, Jason van Solyn krijgt het meteen.';
+    $('#noteMsgLabel').textContent = k === 'probleem' ? 'Wat werkt er niet?' : 'Je vraag of opmerking';
+  }
+  $$('[data-kind]').forEach(function (b) { b.addEventListener('click', function () { setKind(b.getAttribute('data-kind')); }); });
+  function drawShots() {
+    var box = $('#shots'); box.innerHTML = '';
+    shots.forEach(function (s, i) {
+      var d = document.createElement('div'); d.className = 'shot';
+      d.innerHTML = '<img alt=""><button type="button" aria-label="Verwijder">×</button>';
+      var u = URL.createObjectURL(s); $('img', d).src = u;
+      $('button', d).addEventListener('click', function () { URL.revokeObjectURL(u); shots.splice(i, 1); drawShots(); });
+      box.appendChild(d);
+    });
+  }
+  function addShot(file) {
+    if (shots.length >= 5) { toast('Maximaal 5 afbeeldingen.'); return; }
+    if (file.size > 8 * 1024 * 1024) { toast('Die afbeelding is te groot (max. 8 MB).'); return; }
+    shots.push(file); drawShots();
+  }
+  $('#shotFile').addEventListener('change', function () { Array.prototype.forEach.call(this.files, addShot); this.value = ''; });
+  $('#shotBtn').addEventListener('click', function () {
+    var btn = this, w = frame.contentWindow, doc = frame.contentDocument; if (!w || !doc) return;
+    btn.disabled = true; btn.textContent = 'Screenshot maken…';
+    var done = function () { btn.disabled = false; btn.textContent = 'Screenshot van deze pagina'; };
+    var take = function () {
+      w.html2canvas(doc.body, { useCORS: true, logging: false, scale: Math.min(2, w.devicePixelRatio || 1), x: w.scrollX, y: w.scrollY, width: w.innerWidth, height: w.innerHeight, windowWidth: doc.documentElement.clientWidth, windowHeight: w.innerHeight,
+        ignoreElements: function (el) { return el.hasAttribute && el.hasAttribute('data-se-skip-shot'); } })
+        .then(function (c) { c.toBlob(function (b) { if (b) addShot(new File([b], 'screenshot-' + Date.now() + '.jpg', { type: 'image/jpeg' })); else toast('Screenshot lukte niet. Voeg zelf een screenshot toe.'); done(); }, 'image/jpeg', 0.82); })
+        .catch(function () { toast('Screenshot lukte niet. Voeg zelf een screenshot toe.'); done(); });
+    };
+    if (w.html2canvas) return take();
+    var sc = doc.createElement('script'); sc.src = '/beheer-shot.js';
+    sc.onload = take; sc.onerror = function () { toast('Screenshot lukte niet. Voeg zelf een screenshot toe.'); done(); };
+    doc.head.appendChild(sc);
+  });
   function noteOpen() {
     $('#noteErr').textContent = ''; $('#noteFallback').hidden = true; $('#noteFallback').innerHTML = '';
     $('#notePage').textContent = 'Pagina: ' + curPage();
@@ -498,23 +552,33 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
   $('#noteCancel').addEventListener('click', noteClose);
   $('#noteModal').addEventListener('click', function (e) { if (e.target === this) noteClose(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('#noteModal').hidden) noteClose(); });
+  function fallback(msg, name) {
+    var t = (kind === 'probleem' ? 'Probleem' : 'Opmerking') + ' ' + CFG.name + (name ? ' (' + name + ')' : '') + ':\n' + msg + '\n\nPagina: ' + curPage();
+    $('#noteFallback').innerHTML = '<a class="btn small" target="_blank" rel="noopener">WhatsApp</a><a class="btn ghost small">Mail</a>';
+    $('#noteFallback a').href = 'https://wa.me/' + WA + '?text=' + encodeURIComponent(t);
+    $$('#noteFallback a')[1].href = 'mailto:' + MAIL + '?subject=' + encodeURIComponent((kind === 'probleem' ? 'Probleem ' : 'Opmerking ') + CFG.name) + '&body=' + encodeURIComponent(t);
+    $('#noteFallback').hidden = false;
+  }
   $('#noteForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var msg = $('#noteMsg').value.trim(), name = $('#noteName').value.trim(), btn = $('#noteSend');
-    if (msg.length < 2) { $('#noteErr').textContent = 'Schrijf eerst je opmerking.'; return; }
+    if (msg.length < 3) { $('#noteErr').textContent = 'Schrijf eerst wat er is.'; return; }
     try { localStorage.setItem('site-beheer-name', name); } catch (x) {}
-    btn.disabled = true; btn.textContent = 'Versturen…'; $('#noteErr').textContent = '';
-    call('feedback', { message: msg, name: name, page: curPage() })
-      .then(function () { $('#noteMsg').value = ''; noteClose(); toast('Bedankt! Je opmerking is doorgestuurd naar Solyn.'); })
-      .catch(function () {
-        var t = 'Opmerking ' + CFG.name + (name ? ' (' + name + ')' : '') + ':\n' + msg + '\n\nPagina: ' + curPage();
-        $('#noteErr').textContent = 'Versturen lukte niet. Stuur je opmerking via WhatsApp of mail:';
-        $('#noteFallback').innerHTML = '<a class="btn small" target="_blank" rel="noopener">WhatsApp</a><a class="btn ghost small">Mail</a>';
-        $('#noteFallback a').href = 'https://wa.me/' + WA + '?text=' + encodeURIComponent(t);
-        $$('#noteFallback a')[1].href = 'mailto:' + MAIL + '?subject=' + encodeURIComponent('Opmerking ' + CFG.name) + '&body=' + encodeURIComponent(t);
-        $('#noteFallback').hidden = false;
-      })
-      .then(function () { btn.disabled = false; btn.textContent = 'Verstuur'; });
+    $('#noteErr').textContent = ''; $('#noteFallback').hidden = true;
+    if (!CFG.hubToken) { $('#noteErr').textContent = 'Stuur je bericht via WhatsApp of mail:'; fallback(msg, name); return; }
+    var first = msg.split(/\n/)[0].replace(/\s+/g, ' ').trim(), title = first.length > 90 ? first.slice(0, 87) + '…' : first;
+    if (title.length < 3) title = kind === 'probleem' ? 'Probleem op de website' : 'Opmerking over de website';
+    var fd = new FormData();
+    fd.append('token', CFG.hubToken); fd.append('source', 'beheer'); fd.append('kind', kind); fd.append('title', title);
+    fd.append('details', msg + '\n\nPagina: ' + curPage() + '\nVerstuurd vanuit de beheerpagina (' + location.host + ').');
+    if (name) fd.append('contact_name', name);
+    shots.forEach(function (f) { fd.append('files', f, f.name); });
+    btn.disabled = true; btn.textContent = 'Versturen…';
+    fetch(HUB, { method: 'POST', body: fd })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw new Error(j.error || 'Versturen lukte niet.'); return j; }); })
+      .then(function () { $('#noteMsg').value = ''; shots = []; drawShots(); noteClose(); toast(kind === 'probleem' ? 'Verstuurd! Solyn bekijkt het probleem zo snel mogelijk.' : 'Bedankt! Je bericht is doorgestuurd naar Solyn.'); })
+      .catch(function (err) { $('#noteErr').textContent = (err && err.message ? err.message + ' ' : '') + 'Stuur je bericht anders via WhatsApp of mail:'; fallback(msg, name); })
+      .then(function () { btn.disabled = false; btn.textContent = 'Verstuur naar Solyn'; });
   });
 
   /* ---------- installeren als app ---------- */
