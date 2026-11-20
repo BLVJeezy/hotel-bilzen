@@ -16,7 +16,7 @@
   var SKIP = 'script,style,noscript,template,svg,textarea,input,select,option,code,pre,[data-se-skip]';
   var BLOCK_TAGS = /^(H[1-6]|P|LI|A|BUTTON|SPAN|LABEL|BLOCKQUOTE|FIGCAPTION|TD|TH|DT|DD|SMALL|STRONG|EM|B|I|DIV|SUMMARY|CITE|Q|TIME|ADDRESS|LEGEND|CAPTION)$/;
 
-  function norm(d) { d = d && typeof d === 'object' ? d : {}; d.text = d.text || {}; d.img = d.img || {}; d.contact = d.contact && typeof d.contact === 'object' && !Array.isArray(d.contact) ? d.contact : {}; return d; }
+  function norm(d) { d = d && typeof d === 'object' ? d : {}; d.text = d.text || {}; d.img = d.img || {}; d.contact = d.contact && typeof d.contact === 'object' && !Array.isArray(d.contact) ? d.contact : {}; d.style = d.style && typeof d.style === 'object' ? d.style : {}; d.style.el = d.style.el && typeof d.style.el === 'object' ? d.style.el : {}; return d; }
   var draft = norm(window.SITE_CONTENT);
 
   /* ---------- contactgegevens: één keer aanpassen, overal op de site vervangen (tekst én links) ---------- */
@@ -69,6 +69,65 @@
       var t = c.t, href = t === 'phone' ? 'tel:+32' + core(v) : t === 'email' ? 'mailto:' + v : t === 'url' ? v : null;
       if (href && el.getAttribute('href') !== href) el.setAttribute('href', href);
     }
+  }
+  /* ---------- lettertypes: voor de hele site (titels / tekst) en per tekst (lettertype + grootte) ---------- */
+  var FONTDIR = '/beheer-fonts/', fontsLoading = false, facesDone = {};
+  var FALLBACK = { serif: 'Georgia, serif', sans: 'system-ui, sans-serif', script: 'cursive' };
+  function fontInfo(n) { var L = window.BEHEER_FONTS || []; for (var i = 0; i < L.length; i++) if (L[i].n === n) return L[i]; return null; }
+  function needFonts() { var st = draft.style; return !!(st.head || st.body || Object.keys(st.el).length); }
+  function fam(n) { var f = fontInfo(n); return '"' + n + '", ' + (f ? FALLBACK[f.c] : 'sans-serif'); }
+  function face(n) {
+    if (facesDone[n]) return; var f = fontInfo(n); if (!f) return; facesDone[n] = true;
+    var css = f.f.map(function (x) { return '@font-face{font-family:"' + n + '";src:url(' + FONTDIR + x[0] + ') format("woff2");font-weight:' + x[1] + ';font-style:normal;font-display:swap}'; }).join('');
+    var tag = document.getElementById('se-fonts'); if (!tag) { tag = document.createElement('style'); tag.id = 'se-fonts'; document.head.appendChild(tag); }
+    tag.textContent += css;
+  }
+  function loadFonts(cb) {
+    if (window.BEHEER_FONTS) return cb();
+    if (fontsLoading) return; fontsLoading = true;
+    var sc = document.createElement('script'); sc.src = FONTDIR + 'beheer-fonts.js'; sc.onload = function () { fontsLoading = false; cb(); }; sc.onerror = function () { fontsLoading = false; };
+    document.head.appendChild(sc);
+  }
+  var HEADS = 'h1,h2,h3,h4,h5,h6';
+  function siteFonts() {
+    var st = draft.style, css = '', tag = document.getElementById('se-style');
+    if (st.body && fontInfo(st.body)) { face(st.body); css += 'body,body :not(' + HEADS + '):not(:is(' + HEADS + ') *):not([class*="icon"]):not([class*="fa-"]):not([class*="material"]){font-family:' + fam(st.body) + ' !important}'; }
+    if (st.head && fontInfo(st.head)) { face(st.head); css += HEADS + ',:is(' + HEADS + ') *{font-family:' + fam(st.head) + ' !important}'; }
+    if (!css && !tag) return;
+    if (!tag) { tag = document.createElement('style'); tag.id = 'se-style'; document.head.appendChild(tag); }
+    if (tag.textContent !== css) tag.textContent = css;
+  }
+  function keyOf(el) {
+    var out = '', w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), n;
+    while ((n = w.nextNode())) { var r = T.get(n); out += r ? r.orig : n.nodeValue; if (out.length > 600) break; }
+    return out.replace(/\s+/g, ' ').trim().slice(0, 300);
+  }
+  var STY_SEL = 'h1,h2,h3,h4,h5,h6,p,li,a,button,span,label,blockquote,figcaption,td,th,dt,dd,small,strong,em,summary,cite,address';
+  function elFonts(root) {
+    var map = draft.style.el, keys = Object.keys(map), had = root.querySelectorAll ? root.querySelectorAll('[data-se-st]') : [];
+    if (!keys.length && !had.length) return;
+    var list = root.querySelectorAll ? root.querySelectorAll(keys.length ? STY_SEL : '[data-se-st]') : [];
+    Array.prototype.forEach.call(list, function (el) {
+      if (el.closest(SKIP)) return;
+      var txt = el.textContent; if (!txt || txt.length > 700) return;
+      var k = keyOf(el), r = keys.length ? map[k] : null;
+      if (r && (r.f || r.s)) {
+        if (r.f && fontInfo(r.f)) { face(r.f); el.style.setProperty('font-family', fam(r.f), 'important'); } else el.style.removeProperty('font-family');
+        if (r.s && r.s !== 100) {
+          if (!el.hasAttribute('data-se-fs0')) { el.style.removeProperty('font-size'); el.setAttribute('data-se-fs0', parseFloat(getComputedStyle(el).fontSize) || 16); }
+          el.style.setProperty('font-size', Math.round(+el.getAttribute('data-se-fs0') * r.s) / 100 + 'px', 'important');
+        } else el.style.removeProperty('font-size');
+        el.setAttribute('data-se-st', '');
+      } else if (el.hasAttribute('data-se-st')) {
+        el.style.removeProperty('font-family'); el.style.removeProperty('font-size'); el.removeAttribute('data-se-st'); el.removeAttribute('data-se-fs0');
+      }
+    });
+  }
+  function styles(root) {
+    if (!needFonts() && !document.getElementById('se-style') && !document.querySelector('[data-se-st]')) return;
+    if (needFonts() && !window.BEHEER_FONTS) { loadFonts(function () { apply(document.body); }); return; }
+    if (root === document.body) siteFonts();
+    elFonts(root);
   }
   var M = new WeakMap(); // gestructureerde gegevens (Google) en meta-omschrijvingen
   function headData() {
@@ -142,6 +201,7 @@
       if (root === document.body) headData();
       Array.prototype.forEach.call(root.querySelectorAll ? root.querySelectorAll('[data-contact]') : [], slotNode);
       if (root.hasAttribute && root.hasAttribute('data-contact')) slotNode(root);
+      styles(root);
       if (EDIT) mark(root);
     } finally { busy = false; }
     if (EDIT && typeof api.onRender === 'function') { try { api.onRender(); } catch (e) {} }
@@ -196,7 +256,7 @@
     el.spellcheck = true;
     if (typeof api.onActive === 'function') { try { api.onActive(info()); } catch (e) {} }
   }
-  function info() { return active ? { tag: active.tagName, orig: snap.map(function (s) { return s.orig; }).join(''), now: active.textContent || '' } : null; }
+  function info() { return active ? { tag: active.tagName, orig: snap.map(function (s) { return s.orig; }).join(''), now: active.textContent || '', key: keyOf(active), size: parseFloat(getComputedStyle(active).fontSize) || 0 } : null; }
   function deactivate() {
     if (!active) return;
     active.removeAttribute('contenteditable'); active.removeAttribute('data-se-active');
@@ -255,6 +315,7 @@
     edit: EDIT,
     get draft() { return draft; },
     attach: function (d) { draft = norm(d); apply(document.body); },
+    keyOf: function (el) { return el ? keyOf(el) : ''; },
     revertActive: function () {
       if (!active) return;
       var origs = snap.map(function (s) { return s.orig; });

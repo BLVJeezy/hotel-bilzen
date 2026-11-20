@@ -87,6 +87,11 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
 .pane-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .ops-login{display:flex;justify-content:center;align-items:center;text-align:center;text-decoration:none;width:100%}
 .solyn-link{border:0;background:none;color:var(--mut);font:inherit;font-size:12.5px;margin-top:6px;cursor:pointer;opacity:.6}
+.type-bar{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:6px;padding:8px;border-radius:999px;background:var(--dk);box-shadow:0 0 0 1px var(--line),0 16px 34px -12px rgba(0,0,0,.7);max-width:calc(100% - 24px)}
+.type-bar select{min-width:0;max-width:170px;height:38px;border-radius:999px;border:0;background:var(--panel);color:var(--ivory);padding:0 12px;font:inherit;font-size:14px}
+.type-bar .tb{width:38px;height:38px;border-radius:50%;border:0;background:var(--panel);color:var(--ivory);font:600 14px/1 inherit;cursor:pointer}
+.type-bar .tb-size{min-width:44px;text-align:center;font-size:13px;color:var(--mut);font-variant-numeric:tabular-nums}
+@media (max-width:900px){.type-bar{bottom:calc(100px + env(safe-area-inset-bottom,0px))}}
 .modal-head{display:flex;align-items:center;gap:12px}.modal-head h2{flex:1}
 .x-btn{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:0;background:var(--dk2);color:var(--ivory);box-shadow:inset 0 0 0 1px var(--line);cursor:pointer}
 .x-btn svg{width:20px;height:20px}
@@ -243,6 +248,13 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
   </header>
   <div class="work">
     <div class="stage" id="stage">
+      <div class="type-bar" id="typeBar" hidden>
+        <select id="typeFont" aria-label="Lettertype van deze tekst"></select>
+        <button type="button" class="tb" id="typeMinus" aria-label="Kleiner">A−</button>
+        <span class="tb-size" id="typeSize">100%</span>
+        <button type="button" class="tb" id="typePlus" aria-label="Groter">A+</button>
+        <button type="button" class="tb" id="typeReset" aria-label="Standaard" title="Standaard">↺</button>
+      </div>
       <div class="seo-bar" id="seoBar" hidden role="status"><div><b id="seoHead">Belangrijk voor Google</b><span id="seoText"></span></div><button class="btn light small" type="button" id="seoUndo" hidden>Zet terug</button></div>
       <iframe id="site" title="Voorbeeld van de website"></iframe>
     </div>
@@ -267,6 +279,12 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
       <section class="pane on" data-pane="teksten">
         <h2 class="pane-title">Teksten aanpassen <button class="help-btn" type="button" data-help="teksten" aria-label="Uitleg">?</button></h2>
         <p class="hint">Kies bovenaan een pagina. Tik of klik in de website op een tekst en typ. Een gestippelde lijn toont wat je kunt aanpassen. Alles wordt meteen bewaard.</p>
+        <div class="card" id="fontCard" hidden>
+          <div class="meta">Lettertypes van de website</div>
+          <label class="field"><span>Titels</span><select id="fontHead"></select></label>
+          <label class="field"><span>Tekst</span><select id="fontBody"></select></label>
+          <p class="hint" style="font-size:13px">Lettertype of grootte van één tekst aanpassen? Tik die tekst aan in de website.</p>
+        </div>
         <div class="card">
           <div class="meta">Goed om te weten</div>
           <ul class="steps">
@@ -389,7 +407,7 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
 (function () {
   'use strict';
   /* ---------- instellingen per klant ---------- */
-  var CFG = {"name": "Villa Amano", "slug": "villa-amano", "hash": "fc9accdda8b545376590eb750bbc8e63d2ff2b2fa72d89672b5be8d07877e2d3", "api": "https://solyn22.lovable.app/api/public/beheer", "hubToken": "b297682c7366b6531fb732f818d1634fd2ae", "master": "5f110b05d440ba90a0abc8ebdba5290df0ad522345b8b8ff65cb65c016598a16", "opsKey": "va_ops_t", "open": false, "opsOnly": true, "contact": [{"k": "email", "label": "E-mail", "type": "email", "value": "info@villa-amano.com"}, {"k": "street", "label": "Straat en nummer", "type": "text", "value": "Wijsstraat 1"}, {"k": "city", "label": "Postcode en gemeente", "type": "text", "value": "3740 Bilzen-Hoeselt"}, {"k": "checkin", "label": "Inchecken (uren)", "type": "text", "value": "15:00 – 21:00"}], "seo": ["bilzen", "hoeselt", "limburg", "hotel", "boutique", "kamer", "overnacht", "wellness", "keramiek", "pottery", "retreat", "ontbijt"], "projects": [{"name": "Villa Amano", "what": "Website Villa Amano", "url": "https://hotel-bilzen.vercel.app/beheer.html", "icon": "site", "here": true}, {"name": "Operations center", "what": "Boekingen, gasten en personeel", "url": "https://hotel-bilzen.vercel.app/ops/", "icon": "app", "here": false}, {"name": "Nuance", "what": "Website van Nuance", "url": "https://nuance-therapy.vercel.app/beheer.html", "icon": "site", "sso": true, "here": false}], "pages": [{"group": "Algemeen"}, {"path": "/", "name": "Home"}, {"path": "/cadeaubon", "name": "Cadeaubon"}, {"path": "/contact", "name": "Contact & route"}, {"path": "/faq", "name": "Veelgestelde vragen"}, {"path": "/ontbijt-info", "name": "Ontbijt op je kamer of terras"}, {"path": "/over-ons", "name": "Over ons"}, {"path": "/pottery-house", "name": "Pottery House"}, {"path": "/praktisch", "name": "Praktische info"}, {"path": "/retreats", "name": "Amano Retreats"}, {"path": "/reviews", "name": "Reviews"}, {"path": "/shop", "name": "The Amano Shop"}, {"path": "/therapy", "name": "Amano Therapy"}, {"path": "/wellness", "name": "Privé wellness met sauna & stoombad"}, {"group": "Kamers"}, {"path": "/kamers/", "name": "Kamers in Bilzen"}, {"path": "/kamers/amethyst", "name": "Amethyst"}, {"path": "/kamers/clear-quartz", "name": "Clear Quartz"}, {"path": "/kamers/moonstone", "name": "Moonstone"}, {"path": "/kamers/rose-quartz", "name": "Rose Quartz"}, {"path": "/kamers/sunstone", "name": "Sunstone"}, {"group": "Agenda"}, {"path": "/agenda/", "name": "Agenda & events in Bilzen"}, {"path": "/agenda/kerstavond-brunch", "name": "Kerstavond-brunch 24 december in Bilzen"}, {"path": "/agenda/kerstbrunch", "name": "Kerstbrunch met live piano in Bilzen"}, {"path": "/agenda/kerstkommen-workshop", "name": "Workshop kerstkommen draaien"}, {"path": "/agenda/kerstmarkt", "name": "Kerstmarkt The Amano Shop"}, {"path": "/agenda/oudejaar", "name": "Oudejaar"}, {"path": "/agenda/raku-avond", "name": "Raku-avond in de tuin"}, {"path": "/agenda/retreatdag", "name": "Rest"}, {"path": "/agenda/sound-bath", "name": "Sound bath in de wellness"}, {"group": "Omgeving"}, {"path": "/omgeving/", "name": "Omgeving"}, {"path": "/omgeving/alden-biesen", "name": "Hotel bij Alden Biesen in Bilzen"}, {"path": "/omgeving/haspengouw-fietsen", "name": "Fietsen in Haspengouw vanaf de deur"}, {"path": "/omgeving/hasselt", "name": "Hotel nabij Hasselt"}, {"path": "/omgeving/maastricht", "name": "Overnachten bij Maastricht, net over de grens"}, {"path": "/omgeving/tongeren", "name": "Overnachten bij Tongeren"}, {"group": "Andere talen"}, {"path": "/en/", "name": "English (home)"}, {"path": "/fr/", "name": "Français (home)"}, {"group": "Juridisch"}, {"path": "/algemene-voorwaarden", "name": "Algemene voorwaarden"}, {"path": "/cookies", "name": "Cookiebeleid"}, {"path": "/privacy", "name": "Privacyverklaring"}]};
+  var CFG = {"name": "Villa Amano", "slug": "villa-amano", "hash": "fc9accdda8b545376590eb750bbc8e63d2ff2b2fa72d89672b5be8d07877e2d3", "api": "https://solyn22.lovable.app/api/public/beheer", "hubToken": "b297682c7366b6531fb732f818d1634fd2ae", "master": "5f110b05d440ba90a0abc8ebdba5290df0ad522345b8b8ff65cb65c016598a16", "opsKey": "va_ops_t", "open": false, "opsOnly": true, "fonts": true, "contact": [{"k": "email", "label": "E-mail", "type": "email", "value": "info@villa-amano.com"}, {"k": "street", "label": "Straat en nummer", "type": "text", "value": "Wijsstraat 1"}, {"k": "city", "label": "Postcode en gemeente", "type": "text", "value": "3740 Bilzen-Hoeselt"}, {"k": "checkin", "label": "Inchecken (uren)", "type": "text", "value": "15:00 – 21:00"}], "seo": ["bilzen", "hoeselt", "limburg", "hotel", "boutique", "kamer", "overnacht", "wellness", "keramiek", "pottery", "retreat", "ontbijt"], "projects": [{"name": "Villa Amano", "what": "Website Villa Amano", "url": "https://hotel-bilzen.vercel.app/beheer.html", "icon": "site", "here": true}, {"name": "Operations center", "what": "Boekingen, gasten en personeel", "url": "https://hotel-bilzen.vercel.app/ops/", "icon": "app", "here": false}, {"name": "Nuance", "what": "Website van Nuance", "url": "https://nuance-therapy.vercel.app/beheer.html", "icon": "site", "sso": true, "here": false}], "pages": [{"group": "Algemeen"}, {"path": "/", "name": "Home"}, {"path": "/cadeaubon", "name": "Cadeaubon"}, {"path": "/contact", "name": "Contact & route"}, {"path": "/faq", "name": "Veelgestelde vragen"}, {"path": "/ontbijt-info", "name": "Ontbijt op je kamer of terras"}, {"path": "/over-ons", "name": "Over ons"}, {"path": "/pottery-house", "name": "Pottery House"}, {"path": "/praktisch", "name": "Praktische info"}, {"path": "/retreats", "name": "Amano Retreats"}, {"path": "/reviews", "name": "Reviews"}, {"path": "/shop", "name": "The Amano Shop"}, {"path": "/therapy", "name": "Amano Therapy"}, {"path": "/wellness", "name": "Privé wellness met sauna & stoombad"}, {"group": "Kamers"}, {"path": "/kamers/", "name": "Kamers in Bilzen"}, {"path": "/kamers/amethyst", "name": "Amethyst"}, {"path": "/kamers/clear-quartz", "name": "Clear Quartz"}, {"path": "/kamers/moonstone", "name": "Moonstone"}, {"path": "/kamers/rose-quartz", "name": "Rose Quartz"}, {"path": "/kamers/sunstone", "name": "Sunstone"}, {"group": "Agenda"}, {"path": "/agenda/", "name": "Agenda & events in Bilzen"}, {"path": "/agenda/kerstavond-brunch", "name": "Kerstavond-brunch 24 december in Bilzen"}, {"path": "/agenda/kerstbrunch", "name": "Kerstbrunch met live piano in Bilzen"}, {"path": "/agenda/kerstkommen-workshop", "name": "Workshop kerstkommen draaien"}, {"path": "/agenda/kerstmarkt", "name": "Kerstmarkt The Amano Shop"}, {"path": "/agenda/oudejaar", "name": "Oudejaar"}, {"path": "/agenda/raku-avond", "name": "Raku-avond in de tuin"}, {"path": "/agenda/retreatdag", "name": "Rest"}, {"path": "/agenda/sound-bath", "name": "Sound bath in de wellness"}, {"group": "Omgeving"}, {"path": "/omgeving/", "name": "Omgeving"}, {"path": "/omgeving/alden-biesen", "name": "Hotel bij Alden Biesen in Bilzen"}, {"path": "/omgeving/haspengouw-fietsen", "name": "Fietsen in Haspengouw vanaf de deur"}, {"path": "/omgeving/hasselt", "name": "Hotel nabij Hasselt"}, {"path": "/omgeving/maastricht", "name": "Overnachten bij Maastricht, net over de grens"}, {"path": "/omgeving/tongeren", "name": "Overnachten bij Tongeren"}, {"group": "Andere talen"}, {"path": "/en/", "name": "English (home)"}, {"path": "/fr/", "name": "Français (home)"}, {"group": "Juridisch"}, {"path": "/algemene-voorwaarden", "name": "Algemene voorwaarden"}, {"path": "/cookies", "name": "Cookiebeleid"}, {"path": "/privacy", "name": "Privacyverklaring"}]};
   window.__isBeheer = true;
   var mode = 'edit';
   var KEY = 'site-beheer-draft', CODEKEY = 'site-beheer-code', COACH = 'site-beheer-tour1';
@@ -404,7 +422,7 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
   window.addEventListener('resize', barH); window.addEventListener('orientationchange', function () { setTimeout(barH, 300); });
   var TITLES = { teksten: 'Teksten', fotos: "Foto's", contact: 'Contactgegevens', klaar: 'Publiceren' };
 
-  function norm(d) { d = d && typeof d === 'object' ? d : {}; d.text = d.text || {}; d.img = d.img || {}; d.contact = d.contact && typeof d.contact === 'object' && !Array.isArray(d.contact) ? d.contact : {}; return d; }
+  function norm(d) { d = d && typeof d === 'object' ? d : {}; d.text = d.text || {}; d.img = d.img || {}; d.contact = d.contact && typeof d.contact === 'object' && !Array.isArray(d.contact) ? d.contact : {}; d.style = d.style && typeof d.style === 'object' ? d.style : {}; d.style.el = d.style.el && typeof d.style.el === 'object' ? d.style.el : {}; return d; }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
   function load() { try { var d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d) return norm(d); } catch (e) {} return norm(clone(published)); }
   function call(action, data) {
@@ -548,7 +566,7 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
       if (hit) { sel.value = hit.path; } $('#siteLink').href = here; } catch (e) {}
     a.attach(draft);
     a.onChange = function (info) { save(); seoCheck(info); };
-    a.onActive = seoCheck;
+    a.onActive = function (info) { seoCheck(info); typeBar(info); };
     a.onRender = function () { if ($('[data-pane="fotos"]').classList.contains('on')) photosSoon(); };
     if ($('[data-pane="fotos"]').classList.contains('on')) photosSoon();
   });
@@ -577,6 +595,7 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
     $('#sheetTitle').textContent = TITLES[tab];
     if (tab === 'fotos') photos();
     if (tab === 'contact') contacts();
+    if (tab === 'teksten') syncFonts();
     if (tab === 'klaar') { counts(); history(); }
     $('#side').scrollTop = 0;
   }
@@ -658,13 +677,14 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
     var c = 0;
     Object.keys(draft.contact).concat(Object.keys(published.contact)).filter(function (k, i, a) { return a.indexOf(k) === i; })
       .forEach(function (k) { if ((draft.contact[k] || {}).v !== (published.contact[k] || {}).v) c++; });
-    return { t: t, p: p, c: c };
+    var st = JSON.stringify(draft.style || {}) !== JSON.stringify(published.style || {}) ? 1 : 0;
+    return { t: t, p: p, c: c, s: st };
   }
   function counts() {
-    if (!draft) return; var n = diff(), sum = n.t + n.p + n.c;
+    if (!draft) return; var n = diff(), sum = n.t + n.p + n.c + n.s;
     $('#count').textContent = sum; $('#count').setAttribute('data-n', String(sum));
     $('#summary').textContent = sum ? (n.t + ' tekst(en) en ' + n.p + ' foto(’s) nog niet gepubliceerd.') : 'Alles wat je aanpaste, staat online.';
-    if (sum && n.c) $('#summary').textContent = [n.t ? n.t + ' tekst(en)' : '', n.p ? n.p + ' foto(’s)' : '', n.c + ' contactgegeven(s)'].filter(Boolean).join(', ') + ' nog niet gepubliceerd.';
+    if (sum && (n.c || n.s)) $('#summary').textContent = [n.t ? n.t + ' tekst(en)' : '', n.p ? n.p + ' foto(’s)' : '', n.c ? n.c + ' contactgegeven(s)' : '', n.s ? 'lettertypes' : ''].filter(Boolean).join(', ') + ' nog niet gepubliceerd.';
     $('#publish').disabled = !sum; $('#publish').style.opacity = sum ? '' : '.5';
   }
   function when(iso) { try { return new Date(iso).toLocaleString('nl-BE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return iso; } }
@@ -726,6 +746,47 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
   $('#projBtn').addEventListener('click', projOpen);
   $('#projX').addEventListener('click', function () { $('#projModal').hidden = true; });
   $('#projModal').addEventListener('click', function (e) { if (e.target === this) this.hidden = true; });
+  /* ---------- lettertypes ---------- */
+  var FONTS = [], curType = null;
+  function fontOptions(sel, withDefault) {
+    var html = '<option value="">' + withDefault + '</option>', G = { serif: 'Met schreef', sans: 'Zonder schreef', script: 'Handschrift' };
+    ['serif', 'sans', 'script'].forEach(function (c) {
+      html += '<optgroup label="' + G[c] + '">' + FONTS.filter(function (f) { return f.c === c; }).map(function (f) { return '<option value="' + f.n + '" style="font-family:\'' + f.n + '\'">' + f.n + '</option>'; }).join('') + '</optgroup>';
+    });
+    sel.innerHTML = html;
+  }
+  function fontsReady() {
+    FONTS = window.BEHEER_FONTS || []; if (!FONTS.length) return;
+    var css = FONTS.map(function (f) { return f.f.map(function (x) { return '@font-face{font-family:"' + f.n + '";src:url(/beheer-fonts/' + x[0] + ') format("woff2");font-weight:' + x[1] + ';font-display:swap}'; }).join(''); }).join('');
+    var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+    fontOptions($('#fontHead'), 'Zoals ontworpen'); fontOptions($('#fontBody'), 'Zoals ontworpen'); fontOptions($('#typeFont'), 'Lettertype');
+    $('#fontCard').hidden = false; syncFonts();
+  }
+  function syncFonts() { if (!draft || !FONTS.length) return; $('#fontHead').value = draft.style.head || ''; $('#fontBody').value = draft.style.body || ''; }
+  function setSite(k, v) { if (v) draft.style[k] = v; else delete draft.style[k]; save(); push(); counts(); }
+  $('#fontHead').addEventListener('change', function () { setSite('head', this.value); });
+  $('#fontBody').addEventListener('change', function () { setSite('body', this.value); });
+  var typeHide = null;
+  function typeBar(info) {
+    clearTimeout(typeHide);
+    if (!info) { typeHide = setTimeout(function () { if (!$('#typeBar').contains(document.activeElement)) $('#typeBar').hidden = true; }, 300); return; }
+    if (!FONTS.length || !info.key) return;
+    curType = info; $('#typeBar').hidden = false;
+    var r = draft.style.el[curType.key] || {};
+    $('#typeFont').value = r.f || ''; $('#typeSize').textContent = (r.s || 100) + '%';
+  }
+  function setType(ch) {
+    if (!curType) return; var k = curType.key, r = Object.assign({}, draft.style.el[k] || {}, ch);
+    if (!r.f) delete r.f; if (!r.s || r.s === 100) delete r.s;
+    if (Object.keys(r).length) draft.style.el[k] = r; else delete draft.style.el[k];
+    $('#typeSize').textContent = (r.s || 100) + '%'; save(); push(); counts();
+  }
+  $('#typeFont').addEventListener('change', function () { setType({ f: this.value }); });
+  $('#typeMinus').addEventListener('click', function () { var r = draft.style.el[curType && curType.key] || {}; setType({ s: Math.max(50, (r.s || 100) - 10) }); });
+  $('#typePlus').addEventListener('click', function () { var r = draft.style.el[curType && curType.key] || {}; setType({ s: Math.min(300, (r.s || 100) + 10) }); });
+  $('#typeReset').addEventListener('click', function () { setType({ f: '', s: 100 }); $('#typeFont').value = ''; });
+  $('#typeBar').addEventListener('mousedown', function (e) { if (e.target.tagName !== 'SELECT') e.preventDefault(); });
+  if (CFG.fonts) { var fs = document.createElement('script'); fs.src = '/beheer-fonts/beheer-fonts.js'; fs.onload = fontsReady; document.head.appendChild(fs); }
   function history() {
     if (!store || !code) return;
     call('history').then(function (j) {
@@ -763,7 +824,7 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
   $('#saveVer').addEventListener('click', function () {
     var btn = this; if (btn.disabled) return; $('#pubErr').textContent = '';
     btn.disabled = true; var label = btn.lastChild.textContent; btn.lastChild.textContent = 'Bezig met bewaren…';
-    uploadPending().then(function () { save(); push(); return call('save', { content: { text: draft.text, img: draft.img, contact: draft.contact } }); })
+    uploadPending().then(function () { save(); push(); return call('save', { content: { text: draft.text, img: draft.img, contact: draft.contact, style: draft.style } }); })
       .then(function () { history(); toast('Versie bewaard. Ze staat nog niet online.'); })
       .catch(function (e) { $('#pubErr').textContent = e.message; })
       .then(function () { btn.disabled = false; btn.lastChild.textContent = label; });
@@ -774,7 +835,7 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
     var keys = Object.keys(draft.img).filter(function (k) { return /^data:/.test(draft.img[k]); });
     var chain = Promise.resolve();
     keys.forEach(function (k) { chain = chain.then(function () { return call('upload', { dataUrl: draft.img[k] }).then(function (j) { draft.img[k] = j.url; }); }); });
-    chain.then(function () { save(); push(); return call('publish', { content: { text: draft.text, img: draft.img, contact: draft.contact } }); })
+    chain.then(function () { save(); push(); return call('publish', { content: { text: draft.text, img: draft.img, contact: draft.contact, style: draft.style } }); })
       .then(function () { published = norm(clone(draft)); save(); counts(); history(); toast('Gepubliceerd! Binnen een halve minuut staat het online.'); })
       .catch(function (e) { $('#pubErr').textContent = e.message; if (e.setup) { store = false; pubState(); } })
       .then(function () { btn.lastChild.textContent = label; counts(); });
