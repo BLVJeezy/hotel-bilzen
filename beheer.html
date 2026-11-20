@@ -8,11 +8,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Villa Amano Beheer">
+<meta name="apple-mobile-web-app-title" content="Villa Amano">
 <title>Villa Amano — Beheer</title>
 <link rel="manifest" href="/beheer.webmanifest">
 <link rel="icon" href="/img/favicon-192.png">
-<link rel="apple-touch-icon" href="/img/favicon-192.png">
+<link rel="apple-touch-icon" href="/beheer-apple-icon.png">
 <script src="/site-content.js"></script>
 <script src="https://solyn22.lovable.app/api/public/beheer?a=content&site=villa-amano"></script>
 <style>
@@ -74,6 +74,14 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
 .proj span{flex:1;min-width:0}.proj b{display:block;font-size:15.5px}.proj small{display:block;color:var(--mut);font-size:13px;margin-top:2px}
 .proj em{font-style:normal;font-size:12px;font-weight:600;color:var(--acc)}
 .proj.here{box-shadow:inset 0 0 0 2px var(--acc)}
+.ios-hint{position:fixed;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top,0px));z-index:2147483000;display:flex;align-items:center;gap:12px;padding:14px;border-radius:20px;background:var(--ivory);color:#1b1b1b;box-shadow:0 24px 50px -12px rgba(0,0,0,.65);animation:hintIn 380ms cubic-bezier(.2,.8,.2,1)}
+.ios-hint img{width:48px;height:48px;border-radius:12px;flex:none;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+.ios-hint div{flex:1;min-width:0;font-size:15px;line-height:1.35}.ios-hint b{display:block}.ios-hint span{display:block;color:#555;font-size:13.5px;margin-top:2px}.ios-hint .nowrap{display:inline;white-space:nowrap;color:inherit;font-size:inherit;margin:0}
+.ios-hint .x-btn{background:#e9e4dd;color:#1b1b1b;box-shadow:none}
+.ios-arrow{position:absolute;left:50%;bottom:-46px;width:34px;height:34px;margin-left:-17px;color:var(--ivory);filter:drop-shadow(0 4px 10px rgba(0,0,0,.6));animation:hintBob 1.1s ease-in-out infinite}
+@keyframes hintIn{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:none}}
+@keyframes hintBob{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+@media (prefers-reduced-motion:reduce){.ios-hint,.ios-arrow{animation:none}}
 .modal-head{display:flex;align-items:center;gap:12px}.modal-head h2{flex:1}
 .x-btn{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:0;background:var(--dk2);color:var(--ivory);box-shadow:inset 0 0 0 1px var(--line);cursor:pointer}
 .x-btn svg{width:20px;height:20px}
@@ -347,6 +355,12 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
 </div>
 <div class="area-bar" id="areaBar" hidden><span>Tik op het stuk van de pagina waar het over gaat</span><button class="btn light small" type="button" id="areaCancel">Annuleren</button></div>
 <div class="toast" id="toast" role="status"></div>
+<div class="ios-hint" id="iosHint" hidden role="status">
+  <img src="/beheer-apple-icon.png" alt="">
+  <div><b>Scroll naar beneden en tik op <span class="nowrap">“Zet op beginscherm”</span></b><span id="iosHintSub">Daarna staat Villa Amano als app op je gsm.</span></div>
+  <button class="x-btn" type="button" id="iosHintX" aria-label="Sluiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <svg class="ios-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v15M6 13l6 6 6-6"/></svg>
+</div>
 <div class="tour" id="tour" hidden>
   <div class="tour-ring" id="tourRing"></div>
   <div class="tour-card" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
@@ -417,8 +431,10 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
     { t: 'Foto’s, contact en publiceren', p: 'Hier vind je Foto’s, Contactgegevens en Publiceren. Klaar met aanpassen? Bij Publiceren zet je alles online, of bewaar je eerst een versie.', el: function () { return phone.matches ? $('#fab') : $('#nav'); } },
     { t: 'Werkt er iets niet?', p: 'Meld het met deze knop. Je kan een screenshot toevoegen en aanduiden waar het probleem zit. Solyn krijgt het meteen.', el: function () { return $('#noteBtn'); } }
   ], tourStep = 0;
+  var isApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (!isApp) STEPS.push({ t: 'Installeer als app op je gsm?', p: 'Dan staat het beheer met het logo van ' + CFG.name + ' op je beginscherm en open je het met één tik.', install: true, el: function () { return document.querySelector('.tour-card'); } });
   function tourPlace() {
-    var el = STEPS[tourStep].el(), r = el.getBoundingClientRect(), pad = el.id === 'stage' ? -8 : 8, ring = $('#tourRing');
+    var el = STEPS[tourStep].el(), r = el.getBoundingClientRect(), pad = el.id === 'stage' ? -8 : el.classList.contains('tour-card') ? 0 : 8, ring = $('#tourRing');
     ring.style.left = (r.left - pad) + 'px'; ring.style.top = (r.top - pad) + 'px'; ring.style.width = (r.width + pad * 2) + 'px'; ring.style.height = (r.height + pad * 2) + 'px';
     ring.style.borderRadius = el.id === 'fab' || el.classList.contains('note-btn') && phone.matches ? '999px' : '18px';
   }
@@ -426,11 +442,12 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
     sheet(false); menu(false); tourStep = i;
     $('#tour').hidden = false; $('#tourTitle').textContent = STEPS[i].t; $('#tourText').textContent = STEPS[i].p + (i === 1 && (CFG.projects || []).length > 1 ? ' Bij Projecten vind je ook je andere projecten met Solyn.' : '');
     $('#tourDots').innerHTML = STEPS.map(function (x, j) { return '<i' + (j === i ? ' class="on"' : '') + '></i>'; }).join('');
-    $('#tourNext').textContent = i === STEPS.length - 1 ? 'Aan de slag' : 'Volgende';
+    $('#tourNext').textContent = STEPS[i].install ? 'Installeer als app' : i === STEPS.length - 1 ? 'Aan de slag' : 'Volgende';
+    $('#tourSkip').textContent = STEPS[i].install ? 'Later' : 'Overslaan';
     tourPlace(); setTimeout(function () { $('#tourNext').focus(); }, 50);
   }
   function tourEnd() { $('#tour').hidden = true; try { localStorage.setItem(COACH, '1'); } catch (e) {} }
-  $('#tourNext').addEventListener('click', function () { if (tourStep < STEPS.length - 1) tour(tourStep + 1); else tourEnd(); });
+  $('#tourNext').addEventListener('click', function () { if (STEPS[tourStep].install) { tourEnd(); installApp(); } else if (tourStep < STEPS.length - 1) tour(tourStep + 1); else tourEnd(); });
   $('#tourSkip').addEventListener('click', tourEnd);
   $('#tourAgain').addEventListener('click', function () { tour(0); });
   window.addEventListener('resize', function () { if (!$('#tour').hidden) tourPlace(); });
@@ -961,10 +978,34 @@ h1,h2,h3{font-weight:600;margin:0;letter-spacing:-.01em}
   else if (ios) $('#installText').innerHTML = 'Op iPhone: open deze pagina in Safari, tik onderaan op <b>Deel</b> (het vierkantje met de pijl) en kies <b>Zet op beginscherm</b>.';
   else $('#installText').textContent = 'Zet het beheer als app op je telefoon of computer, dan open je het met één tik. In Chrome kan dat ook via het menu (⋮) en dan “App installeren” of “Toevoegen aan startscherm”.';
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; $('#installBtn').hidden = false; });
-  $('#installBtn').addEventListener('click', function () {
-    if (!deferred) return; deferred.prompt();
-    deferred.userChoice.then(function (c) { if (c.outcome === 'accepted') { $('#installCard').hidden = true; toast('Geïnstalleerd'); } deferred = null; $('#installBtn').hidden = true; });
-  });
+  if (ios && !standalone) $('#installBtn').hidden = false;
+  /* Installeren: Android/Chrome toont zijn eigen venster. iPhone: het deelmenu springt open en wij tonen bovenaan wat ze moeten doen. */
+  function iosHint(on, sub) {
+    $('#iosHint').hidden = !on;
+    if (sub) $('#iosHintSub').textContent = sub;
+  }
+  function installApp() {
+    if (deferred) {
+      deferred.prompt();
+      deferred.userChoice.then(function (c) { if (c.outcome === 'accepted') { $('#installCard').hidden = true; toast('Geïnstalleerd'); } deferred = null; $('#installBtn').hidden = true; });
+      return;
+    }
+    if (ios) {
+      iosHint(true, 'Daarna staat ' + CFG.name + ' als app op je gsm.');
+      if (navigator.share) {
+        navigator.share({ title: CFG.name, url: location.origin + '/beheer.html' })
+          .then(function () { setTimeout(function () { iosHint(false); }, 1200); })
+          .catch(function (e) {
+            if (e && e.name === 'AbortError') iosHint(true, 'Stond “Zet op beginscherm” er niet bij? Tik onderaan in Safari op Deel (het vierkantje met de pijl) en kies daar “Zet op beginscherm”.');
+            else iosHint(true, 'Tik onderaan in Safari op Deel (het vierkantje met de pijl) en kies “Zet op beginscherm”.');
+          });
+      } else iosHint(true, 'Tik onderaan in Safari op Deel (het vierkantje met de pijl) en kies “Zet op beginscherm”.');
+      return;
+    }
+    toast('Kies in het menu van je browser (⋮) “App installeren” of “Toevoegen aan startscherm”.');
+  }
+  $('#installBtn').addEventListener('click', installApp);
+  $('#iosHintX').addEventListener('click', function () { iosHint(false); });
   window.addEventListener('appinstalled', function () { $('#installCard').hidden = true; });
   if ('serviceWorker' in navigator) window.addEventListener('load', function () { navigator.serviceWorker.register('/beheer-sw.js', { scope: '/beheer' }).catch(function () {}); });
 
