@@ -16,10 +16,69 @@
   var SKIP = 'script,style,noscript,template,svg,textarea,input,select,option,code,pre,[data-se-skip]';
   var BLOCK_TAGS = /^(H[1-6]|P|LI|A|BUTTON|SPAN|LABEL|BLOCKQUOTE|FIGCAPTION|TD|TH|DT|DD|SMALL|STRONG|EM|B|I|DIV|SUMMARY|CITE|Q|TIME|ADDRESS|LEGEND|CAPTION)$/;
 
-  function norm(d) { d = d && typeof d === 'object' ? d : {}; d.text = d.text || {}; d.img = d.img || {}; return d; }
+  function norm(d) { d = d && typeof d === 'object' ? d : {}; d.text = d.text || {}; d.img = d.img || {}; d.contact = d.contact && typeof d.contact === 'object' && !Array.isArray(d.contact) ? d.contact : {}; return d; }
   var draft = norm(window.SITE_CONTENT);
+
+  /* ---------- contactgegevens: één keer aanpassen, overal op de site vervangen (tekst én links) ---------- */
+  var REPL = [], REPL_SIG = '';
+  function esc(x) { return x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function core(num) { var d = String(num).replace(/\D/g, ''); if (d.indexOf('0032') === 0) d = d.slice(4); else if (d.indexOf('32') === 0 && d.length > 9) d = d.slice(2); else if (d.charAt(0) === '0') d = d.slice(1); return d; }
+  function buildRepl() {
+    var sig = JSON.stringify(draft.contact); if (sig === REPL_SIG) return; REPL_SIG = sig; REPL = [];
+    Object.keys(draft.contact).forEach(function (k) {
+      var c = draft.contact[k]; if (!c || !c.f || !c.v || c.f === c.v) return;
+      if (c.t === 'phone') {
+        var oc = core(c.f), nc = core(c.v); if (oc.length < 6 || nc.length < 6) return;
+        var digits = oc.split('').map(esc).join('[\\s./-]?');
+        REPL.push({ phone: true, re: new RegExp('(\\+\\s?32\\s?(?:\\(0\\)\\s?)?|0032\\s?|\\b32|\\b0)' + digits + '(?!\\d)', 'g'), v: c.v, nc: nc });
+      } else if (c.t === 'url') {
+        REPL.push({ url: true, f: String(c.f).replace(/\/+$/, ''), v: c.v });
+      } else {
+        var parts = String(c.f).trim().split(/[\s,]+/).filter(Boolean).map(esc);
+        if (!parts.length) return;
+        REPL.push({ re: new RegExp('(?<![0-9A-Za-z])' + parts.join('[\\s,]*') + '(?![0-9A-Za-z])', c.t === 'email' ? 'gi' : 'g'), v: c.v, enc: new RegExp(parts.map(function (x) { return x; }).join('(?:\\+|%20|%2C|,|\\s)+'), 'gi'), venc: encodeURIComponent(c.v) });
+      }
+    });
+  }
+  function contactText(t) {
+    if (!REPL.length || !t) return t;
+    REPL.forEach(function (r) {
+      if (r.url) return;
+      t = t.replace(r.re, r.phone ? function (m, pre) { return /^(\+|00|32)/.test(pre.replace(/\s/g, '')) ? '+32 ' + r.v.replace(/^\s*(\+32|0032|0)\s?/, '') : r.v; } : function () { return r.v; });
+    });
+    return t;
+  }
+  function contactHref(h) {
+    if (!REPL.length || !h) return h;
+    REPL.forEach(function (r) {
+      if (r.url) { if (h.replace(/\/+$/, '') === r.f) h = r.v; return; }
+      if (r.phone) h = h.replace(r.re, function (m, pre) { var p = pre.replace(/\s/g, ''); return (/^\+/.test(p) ? '+32' : /^(00|32)/.test(p) ? '32' : '0') + r.nc; });
+      else { h = h.replace(r.re, r.v); h = h.replace(r.enc, r.venc); }
+    });
+    return h;
+  }
+  var A = new WeakMap(); // a -> { orig, applied } voor href
+  var M = new WeakMap(); // gestructureerde gegevens (Google) en meta-omschrijvingen
+  function headData() {
+    Array.prototype.forEach.call(document.querySelectorAll('script[type="application/ld+json"], meta[name="description"], meta[property="og:description"], meta[name="twitter:description"]'), function (el) {
+      var isMeta = el.tagName === 'META', cur = isMeta ? el.getAttribute('content') || '' : el.textContent, rec = M.get(el);
+      var orig = rec && cur === rec.applied ? rec.orig : cur;
+      var want = isMeta ? contactText(orig) : contactHref(orig);
+      if (cur !== want) { if (isMeta) el.setAttribute('content', want); else el.textContent = want; }
+      M.set(el, { orig: orig, applied: want });
+    });
+  }
+  function linkNode(el) {
+    var cur = el.getAttribute('href') || '', rec = A.get(el);
+    var orig = rec && cur === rec.applied ? rec.orig : cur;
+    if (!/^(tel:|mailto:|sms:|https?:\/\/(wa\.me|api\.whatsapp|(www\.)?google\.[a-z.]+\/maps|maps\.|(www\.)?(facebook|instagram|linkedin|tiktok|youtube|twitter|x)\.com))/i.test(orig) && !(rec && rec.orig !== rec.applied)) return;
+    var want = contactHref(orig);
+    if (cur !== want) el.setAttribute('href', want);
+    A.set(el, { orig: orig, applied: want });
+  }
   if (EDIT) { try { var s = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); if (s) draft = norm(s); } catch (e) {} }
 
+  var snapHTML = '';
   var T = new WeakMap(); // tekstknoop -> { orig, applied }
   var I = new WeakMap(); // img -> { orig, applied }
   var key = function (s) { return String(s || '').replace(/\s+/g, ' ').trim(); };
@@ -35,7 +94,7 @@
     var cur = n.nodeValue, rec = T.get(n);
     var orig = rec && cur === rec.applied ? rec.orig : cur;
     var k = key(orig); if (!k) return;
-    var want = Object.prototype.hasOwnProperty.call(draft.text, k) ? wrap(orig, draft.text[k]) : orig;
+    var want = contactText(Object.prototype.hasOwnProperty.call(draft.text, k) ? wrap(orig, draft.text[k]) : orig);
     if (cur !== want) n.nodeValue = want;
     T.set(n, { orig: orig, applied: want });
   }
@@ -60,11 +119,15 @@
     root = root || document.body; if (!root || busy) return;
     busy = true;
     try {
+      buildRepl();
       var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: function (n) { return skipped(n) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; } });
       var n; while ((n = w.nextNode())) { if (n.parentElement && n.parentElement.isContentEditable && n.parentElement.closest('[data-se-active]')) continue; textNode(n); }
       var imgs = root.querySelectorAll ? root.querySelectorAll('img') : [];
       Array.prototype.forEach.call(imgs, imgNode);
       if (root.tagName === 'IMG') imgNode(root);
+      Array.prototype.forEach.call(root.querySelectorAll ? root.querySelectorAll('a[href]') : [], linkNode);
+      if (root.tagName === 'A') linkNode(root);
+      if (root === document.body) headData();
       if (EDIT) mark(root);
     } finally { busy = false; }
     if (EDIT && typeof api.onRender === 'function') { try { api.onRender(); } catch (e) {} }
@@ -111,17 +174,21 @@
     if (active === el) return;
     deactivate();
     active = el;
+    snapHTML = el.innerHTML;
     snap = texts(el).map(function (n) { var r = T.get(n); return { node: n, orig: r && n.nodeValue === r.applied ? r.orig : n.nodeValue }; });
     el.setAttribute('data-se-active', '');
     try { el.contentEditable = 'plaintext-only'; } catch (e) {}
     if (el.contentEditable !== 'plaintext-only') el.contentEditable = 'true';
     el.spellcheck = true;
+    if (typeof api.onActive === 'function') { try { api.onActive(info()); } catch (e) {} }
   }
+  function info() { return active ? { tag: active.tagName, orig: snap.map(function (s) { return s.orig; }).join(''), now: active.textContent || '' } : null; }
   function deactivate() {
     if (!active) return;
     active.removeAttribute('contenteditable'); active.removeAttribute('data-se-active');
     snap.forEach(function (s) { if (s.node.isConnected) T.set(s.node, { orig: s.orig, applied: s.node.nodeValue }); });
     active = null; snap = [];
+    if (typeof api.onActive === 'function') { try { api.onActive(null); } catch (e) {} }
   }
   function record() {
     if (!active) return;
@@ -135,7 +202,7 @@
     } else {
       snap.forEach(function (s) { if (s.node.isConnected) setText(s.orig, s.node.nodeValue); });
     }
-    if (typeof api.onChange === 'function') api.onChange();
+    if (typeof api.onChange === 'function') api.onChange(info());
   }
   function setText(orig, val) {
     var k = key(orig), v = key(val); if (!k) return;
@@ -174,6 +241,14 @@
     edit: EDIT,
     get draft() { return draft; },
     attach: function (d) { draft = norm(d); apply(document.body); },
+    revertActive: function () {
+      if (!active) return;
+      var origs = snap.map(function (s) { return s.orig; });
+      active.innerHTML = snapHTML;
+      origs.forEach(function (o) { setText(o, o); });
+      snap = texts(active).map(function (n, i) { return { node: n, orig: n.nodeValue }; });
+      if (typeof api.onChange === 'function') api.onChange(info());
+    },
     apply: function () { apply(document.body); },
     images: function () {
       var seen = {}, out = [];
