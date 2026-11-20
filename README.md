@@ -20,6 +20,6 @@ Klantbeheer voor teksten en foto's (Solyn Global), zonder server of database. Ze
 
 ### Publiceren en opmerkingen (sinds 20 nov 2026)
 
-- De klant publiceert zelf met **Publiceer op de website** in het beheer. Foto's en teksten gaan via de centrale Solyn-API (`solyn-corporate-zen` → `/api/beheer`, Vercel Blob onder `beheer/<site>/`). De site laadt de gepubliceerde versie via `/api/beheer?a=content&site=<site>` (cache ±20 s). Eerdere versies zijn terug te zetten in het tabblad Publiceren.
+- De klant publiceert zelf met **Publiceer op de website** in het beheer. Foto's en teksten gaan via de Solyn Operations Center (`ops-hub-charm` → `/api/public/beheer`, Supabase: tabellen `beheer_content`/`beheer_versions`, foto's in de openbare map `beheer/<site>/`). De site laadt de gepubliceerde versie via `/api/beheer?a=content&site=<site>` (cache ±20 s). Eerdere versies zijn terug te zetten in het tabblad Publiceren.
 - **Probleem of opmerking**: knop bovenaan het beheer. De klant kiest "Er werkt iets niet" of "Vraag of opmerking", kan een screenshot van de pagina maken (`beheer-shot.js` = html2canvas 1.4.1, MIT) of zelf foto's toevoegen. Het gaat naar het Solyn Operations Center (`/api/public/request` met de aanvraaglink van de klant): aanvraag + taak + mail naar Jason. Zonder aanvraaglink of bij een fout: WhatsApp- en mailknop.
 - Toegangscode: de gewone naam (zie boven); alleen de sha256 staat in de code.
