@@ -299,12 +299,13 @@ button{cursor:pointer}
  <img src="/img/logo_a.png" alt="Villa Amano">
  <span class="caps">Operations center</span>
  <h1 id="lgT">Welkom terug</h1>
- <p id="lgP">Log in met Google of met je e-mailadres.</p>
+ <p id="lgP">Vul je naam en e-mailadres in. Je krijgt een code per mail om in te loggen.</p>
  <div id="lgWarn"></div>
  <div class="lg-box">
   <div id="gBtn" class="hide" style="display:flex;justify-content:center;min-height:44px;margin-bottom:6px"></div>
   <div class="lg-or hide" id="lgOr"><span>of</span></div>
   <form id="mailForm">
+   <label class="field"><span>Naam</span><input id="lgName" autocomplete="name" placeholder="Voornaam" required></label>
    <label class="field"><span>E-mailadres</span><input id="lgMail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="naam@voorbeeld.be" required></label>
    <button class="cta full" type="submit" id="lgSend">Stuur mij een code</button>
   </form>
@@ -359,9 +360,9 @@ $('#mailForm').onsubmit=async e=>{e.preventDefault();const b=$('#lgSend');lgEmai
  try{await api('staff-code',{email:lgEmail});$('#mailForm').classList.add('hide');$('#codeForm').classList.remove('hide');$('#lgSent').textContent='We stuurden een code van 6 cijfers naar '+lgEmail+'. Kijk ook bij ongewenste mail.';$('#lgCode').value='';$('#lgCode').focus()}
  catch(x){$('#lgP').textContent=x.message}finally{b.disabled=false;b.textContent='Stuur mij een code'}};
 $('#codeForm').onsubmit=async e=>{e.preventDefault();const b=$('#lgGo');b.disabled=true;
- try{loggedIn(await api('staff-verify',{email:lgEmail,code:$('#lgCode').value}))}catch(x){$('#lgP').textContent=x.message;$('#lgCode').select()}finally{b.disabled=false}};
+ try{loggedIn(await api('staff-verify',{email:lgEmail,name:$('#lgName').value,code:$('#lgCode').value}))}catch(x){$('#lgP').textContent=x.message;$('#lgCode').select()}finally{b.disabled=false}};
 $('#lgCode').oninput=()=>{if(/^\d{6}$/.test($('#lgCode').value))$('#codeForm').requestSubmit()};
-$('#lgBack').onclick=()=>{$('#codeForm').classList.add('hide');$('#mailForm').classList.remove('hide');$('#lgP').textContent='Log in met Google of met je e-mailadres.';$('#lgMail').focus()};
+$('#lgBack').onclick=()=>{$('#codeForm').classList.add('hide');$('#mailForm').classList.remove('hide');$('#lgP').textContent='Vul je naam en e-mailadres in. Je krijgt een code per mail om in te loggen.';$('#lgMail').focus()};
 let gisLoaded=false;
 function googleButton(cid){if(gisLoaded)return;gisLoaded=true;const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.async=true;
  sc.onload=()=>{try{google.accounts.id.initialize({client_id:cid,callback:async c=>{try{loggedIn(await api('staff-google',{credential:c.credential}))}catch(x){$('#lgP').textContent=x.message}}});

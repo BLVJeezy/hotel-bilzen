@@ -197,6 +197,7 @@ async function staffByEmail(email, name, via) {
     C.staff = C.staff || [];
     let s = C.staff.find(x => x.email === email);
     if (s && s.active === false) return;
+    if (s && name && (!s.name || s.name === s.email.split('@')[0])) s.name = name;
     if (!s) {
       if (C.staffSignup === false) return;
       s = { id: id(), email, name: name || email.split('@')[0], role: 'owner', active: true, created: Date.now(), via };
