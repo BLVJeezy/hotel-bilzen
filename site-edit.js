@@ -9,7 +9,9 @@
 (function () {
   'use strict';
   if (window.__siteEdit) return;
-  var EDIT = /[?&]edit=1(&|$)/.test(location.search) && window.parent !== window;
+  var inBeheer = false; try { inBeheer = window.parent !== window && !!window.parent.__isBeheer; } catch (e) {}
+  var EDIT = window.parent !== window && (/[?&]edit=1(&|$)/.test(location.search) || inBeheer);
+  var MODE = 'edit'; // 'edit' = teksten aanpassen, 'browse' = gewoon klikken (taal, menu, andere pagina)
   var DRAFT_KEY = 'site-beheer-draft';
   var SKIP = 'script,style,noscript,template,svg,textarea,input,select,option,code,pre,[data-se-skip]';
   var BLOCK_TAGS = /^(H[1-6]|P|LI|A|BUTTON|SPAN|LABEL|BLOCKQUOTE|FIGCAPTION|TD|TH|DT|DD|SMALL|STRONG|EM|B|I|DIV|SUMMARY|CITE|Q|TIME|ADDRESS|LEGEND|CAPTION)$/;
@@ -141,15 +143,17 @@
   }
   function editMode() {
     var st = document.createElement('style');
-    st.textContent = '[data-se-t]{outline:1px dashed rgba(127,127,127,.55);outline-offset:2px;cursor:text !important}[data-se-t]:hover{outline:1px dashed currentColor}[data-se-active]{outline:2px solid #2f80ed !important;outline-offset:3px;border-radius:2px}*{-webkit-user-select:auto}';
+    st.textContent = 'html.se-edit [data-se-t]{outline:1px dashed rgba(127,127,127,.55);outline-offset:2px;cursor:text !important}html.se-edit [data-se-t]:hover{outline:1px dashed currentColor}[data-se-active]{outline:2px solid #2f80ed !important;outline-offset:3px;border-radius:2px}*{-webkit-user-select:auto}';
     document.head.appendChild(st);
+    document.documentElement.classList.add('se-edit');
     window.addEventListener('pointerdown', function (e) {
+      if (MODE !== 'edit') return;
       var el = block(e.target);
       if (el) activate(el); else if (active && !active.contains(e.target)) deactivate();
     }, true);
     ['click', 'auxclick', 'dblclick'].forEach(function (t) {
       window.addEventListener(t, function (e) {
-        if (inBanner(e.target)) return;
+        if (MODE !== 'edit' || inBanner(e.target)) return;
         var a = e.target.closest && e.target.closest('a[href],button,[role="button"],summary,label');
         if (a || block(e.target)) { e.preventDefault(); e.stopPropagation(); }
         var el = block(e.target); if (el && el === active && document.activeElement !== el) el.focus();
@@ -182,9 +186,19 @@
       });
       return out;
     },
+    get mode() { return MODE; },
+    setMode: function (m) { MODE = m === 'browse' ? 'browse' : 'edit'; if (MODE === 'browse') deactivate(); document.documentElement.classList.toggle('se-edit', MODE === 'edit'); },
     onChange: null, onRender: null
   };
 
-  function start() { if (EDIT) editMode(); apply(document.body); observe(); }
+  // Door de server opgebouwde React-pagina's (TanStack Start, Next.js): eerst React laten opstarten, dan pas aanpassen.
+  function ssr() { return !!(window.$_TSR || window.__TSR_ROUTER__ || window.__NEXT_DATA__ || document.getElementById('__NEXT_DATA__') || /\$_TSR/.test((document.scripts[0] || {}).textContent || '')); }
+  function start() {
+    if (EDIT) editMode();
+    var go = function () { apply(document.body); observe(); };
+    if (!ssr()) return go();
+    var run = function () { setTimeout(go, 300); };
+    if (document.readyState === 'complete') run(); else window.addEventListener('load', run);
+  }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
